@@ -520,9 +520,9 @@ function renderWeek(animate){
   const dow=now.getDay(),hasDays=c=>(c.type==='frequency'||c.type==='fixed')&&Array.isArray(c.days)&&c.days.length;
   const strip=c=>`<span class="strip" aria-label="${c.days.slice().sort().map(d=>DOWL[d]).join(', ')}">${DOW.map((_,d)=>`<i class="${c.days.includes(d)?'p':''}${d===dow&&!due?' t':''}"></i>`).join('')}</span>`;
   const off=c=>!due&&hasDays(c)&&!c.days.includes(dow);
-  const legacy=c=>c.type==='frequency'&&!hasDays(c);
+  const legacy=c=>false;
   const row=(c,i,small)=>`<${legacy(c)?`button data-plan="${c.id}"`:'div'} class="row${legacy(c)?' plan':''}${small?' small':''}${isFast(c)?' fast':''}${off(c)?' off':''}${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">
-      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b></span>${hasDays(c)?strip(c):`<span class="val">${settingLabel(c)}${legacy(c)?' ›':''}</span>`}</${legacy(c)?'button':'div'}>`;
+      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b></span></${legacy(c)?'button':'div'}>`;
   const letters=`<span class="strip lt" aria-hidden="true">${DOW.map((l,d)=>`<b class="${d===dow&&!due?'t':''}">${l}</b>`).join('')}</span>`;
   const isToday=c=>due||!hasDays(c)||c.days.includes(dow);
   const shown=rest.filter(isToday),hidden=rest.filter(c=>!isToday(c));
@@ -533,9 +533,9 @@ function renderWeek(animate){
    ?`<div class="fhead"><span class="ffocus">${esc(w.focus)}</span>${timer}</div>
      <section class="fastp${animate?' grow':''}" aria-label="${esc(fast.name)} today"><div class="ftop"><span class="cond">${DOWL[now.getDay()].toUpperCase()}</span>${ico(fast.icon||'moon')}</div>
        <div class="fname" style="font-size:${Math.max(30,Math.min(132,Math.floor(Math.min(innerWidth,560)*.78/(fname.length*.62))))}px">${esc(fname)}</div></section>
-     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div>${list(true)}`
+     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}</div>${list(true)}`
    :`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}
-     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div>${list(false)}`;
+     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}</div>${list(false)}`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
   el.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>openDays(w,w.commitments.find(c=>c.id===b.dataset.plan)));
