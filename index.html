@@ -68,7 +68,12 @@ nav.bar svg.i{width:24px;height:24px}
 .timer{margin-top:18px;display:flex;align-items:center;gap:12px;font-family:var(--cond);font-weight:500;font-size:34px;letter-spacing:.03em;font-variant-numeric:tabular-nums}
 .timer .dot{width:7px;height:7px;border-radius:50%;background:var(--ac)}
 .timer.due{font-family:var(--serif);font-style:italic;font-size:24px;letter-spacing:0;color:var(--ac)}
-.rows{margin-top:6px}
+.rows{margin-top:2px}
+.grp+.grp{margin-top:22px}
+.gh{display:flex;align-items:center;gap:8px;padding:6px 0 4px;color:var(--mu2);font-family:var(--cond);font-size:13px;letter-spacing:.16em;text-transform:uppercase}
+.gh svg.i{width:16px;height:16px}
+.grp .row:last-child{border-bottom:0}
+.rows.tight .grp+.grp{margin-top:14px}
 .wkhd{margin-top:34px;display:flex;align-items:center;gap:4px;min-height:44px;color:var(--mu);width:auto}
 .wkhd svg.i{width:16px;height:16px}
 .row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule)}
@@ -483,16 +488,18 @@ function renderWeek(animate){
   if(!due&&inWeek(todayK)&&!marks[todayK]&&now.getHours()>=17){askK=todayK;askL='Today'}
   else if(inWeek(ydK)&&!marks[ydK]&&(now.getHours()<17||marks[todayK])){askK=ydK;askL='Yesterday'}
   const ask=askK?`<div class="ask"><span class="lbl">${askL}</span><div class="askb"><button class="btn sm pri" data-ask="on" data-k="${askK}">On course</button><button class="btn sm ghost" data-ask="drift" data-k="${askK}">Drifted</button></div></div>`:'';
+  const grouped=list=>{let i=0;return[...SPHERES,ONCE].map(sp=>{const g=list.filter(c=>(SPHERES.some(x=>x.id===c.sphere)?c.sphere:'once')===sp.id);if(!g.length)return'';
+    return`<div class="grp"><div class="gh${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">${ico(sp.icon)}<span>${sp.id==='once'?'One-offs':sp.name}</span></div>${g.map(c=>row(c,i++,!!fast)).join('')}</div>`}).join('')};
   const row=(c,i,small)=>`<div class="row${small?' small':''}${isFast(c)?' fast':''}${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">
-      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b>${small?'':`<small>${esc(sphereOf(c.sphere).name)}</small>`}</span><span class="val">${settingLabel(c)}</span></div>`;
+      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b></span><span class="val">${settingLabel(c)}</span></div>`;
   const fname=fast?fast.name.toUpperCase():'';
   el.innerHTML=fast
    ?`<div class="fhead"><span class="ffocus">${esc(w.focus)}</span>${timer}</div>
      <section class="fastp${animate?' grow':''}" aria-label="${esc(fast.name)} today"><div class="ftop"><span class="cond">${DOWL[now.getDay()].toUpperCase()}</span>${ico(fast.icon||'moon')}</div>
        <div class="fname" style="font-size:${Math.max(30,Math.min(132,Math.floor(Math.min(innerWidth,560)*.78/(fname.length*.62))))}px">${esc(fname)}</div></section>
-     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows tight">${rest.map((c,i)=>row(c,i,true)).join('')}</div>`
+     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows tight">${grouped(rest)}</div>`
    :`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}
-     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows">${rest.map((c,i)=>row(c,i,false)).join('')}</div>`;
+     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows">${grouped(rest)}</div>`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
   el.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>store.mark(w,b.dataset.k,b.dataset.ask));
