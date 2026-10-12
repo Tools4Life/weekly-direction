@@ -544,6 +544,33 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .dose>button>*{position:relative}
 .dose>.done{border-color:rgba(232,116,59,.5)!important}
 .dose>.done::before{transform:scaleX(1)}
+
+/* timer views */
+.tbtn{display:flex;align-items:center;padding:0;text-align:left;min-height:40px}
+.talt{font-variant-numeric:tabular-nums}
+.tunit{margin-left:8px;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.trow .focus{cursor:pointer}
+/* compass */
+.compass{position:fixed;inset:0;z-index:95;background:#060607;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;opacity:0;transition:opacity .3s ease;touch-action:none}
+.compass.on{opacity:1}
+.cx{position:absolute;top:calc(var(--st) + 14px);right:18px;width:44px;height:44px;font-size:30px;line-height:1;color:var(--mu)}
+.cpword{font-family:var(--serif);font-size:34px;color:var(--tx);letter-spacing:-.01em;min-height:40px}
+.cpwrap{position:relative;width:min(84vw,340px);aspect-ratio:1}
+.dial{width:100%;height:100%;will-change:transform}
+.dial .ring{fill:#101012;stroke:#26262A;stroke-width:1.5}
+.dial .tk{stroke:#3A3A40;stroke-width:1.5}.dial .tk.big{stroke:#8E8A84;stroke-width:2}
+.dial .cl{font-family:var(--cond);font-size:22px;letter-spacing:.06em;fill:#8E8A84}
+.dial .north rect{fill:#F2EFEA;transition:fill .3s}
+.dial .pin{fill:#3A3A40}
+.lubber{position:absolute;left:50%;top:-14px;width:0;height:0;margin-left:-8px;border-left:8px solid transparent;border-right:8px solid transparent;border-top:12px solid #F2EFEA;z-index:2;transition:border-top-color .3s}
+.compass.north .dial .north rect{fill:var(--ac)}
+.compass.north .lubber{border-top-color:var(--ac)}
+.compass.north .dial .ring{stroke:rgba(232,116,59,.55)}
+.cpwrap{border-radius:50%;transition:box-shadow .4s ease}
+.compass.north .cpwrap{box-shadow:0 0 42px rgba(232,116,59,.28)}
+.cphead{font-family:var(--cond);font-size:26px;letter-spacing:.1em;color:var(--tx);min-height:32px}
+.compass.north .cphead{color:var(--ac)}
+.cphint{font-size:14px;color:var(--mu2)}
 </style>
 </head>
 <body>
@@ -662,6 +689,12 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 <div class="sheet dark" id="shWeek" role="dialog" aria-modal="true" aria-labelledby="hwFocus"><div class="grab"></div><div id="hwBody"></div></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <label class="hap" aria-hidden="true"><input type="checkbox" switch id="hapIn" tabindex="-1"></label>
+<div class="compass" id="compass" hidden role="dialog" aria-modal="true" aria-label="Compass">
+  <button class="cx" id="cpClose" aria-label="Close">&times;</button>
+  <div class="cpword" id="cpWord"></div>
+  <div class="cpwrap"><div class="lubber"></div><svg class="dial" id="cpDial" viewBox="-160 -160 320 320" aria-hidden="true"></svg></div>
+  <div class="cphead" id="cpHead">—</div><div class="cphint" id="cpHint"></div>
+</div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -874,7 +907,10 @@ $('cfAdd').onclick=()=>{const mg=+$('cfMg').value;if(!(mg>0)){$('cfMg').focus();
 
 /* ---------- This Week (dark, home) ---------- */
 const active=()=>D.weeks.find(w=>w.status==='active');
-let tickT=null;
+let tickT=null,tmMode=0;
+// other ways to count the same stretch of time (breaths ~12/min, heartbeats ~70/min at rest: estimates)
+const TM_VIEWS=[null,['hours',36e5,1],['minutes',6e4,1],['breaths',6e4,12],['heartbeats',6e4,70]];
+const altTime=ms=>{const [u,div,mult]=TM_VIEWS[tmMode],n=Math.floor(Math.max(0,ms)/div*mult);return`<span class="talt">${mult>1?'≈ ':''}${n.toLocaleString()}</span><span class="tunit">${u}</span>`};
 function elapsedParts(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.floor(s/86400);return[`${d}d ${pad(Math.floor(s%86400/3600))}:${pad(Math.floor(s%3600/60))}:`,pad(s%60)]}
 // habit days: from the day after sealing (or the sealing day itself if sealed before noon) up to, not including, the closing day
 function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);if(s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
@@ -901,7 +937,7 @@ function renderWeek(animate){
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
   const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:w.sealedAt;
   const [tm,ts]=elapsedParts(now-tFrom);
-  const timer=due?`<div class="timer due">review due</div>`:`<div class="timer"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span></div>`;
+  const timer=due?`<div class="timer due">review due</div>`:`<button class="timer tbtn" id="wkTimerBtn" aria-label="Timer. Tap to see it another way"><span id="wkTimer">${tmMode?altTime(now-tFrom):`<span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span>`}</span></button>`;
   const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
   const doneAll=w.done||{},frac=k=>{const it=dayItems(w,days.find(d=>ymd(d)===k)||new Date(k)),dn=doneAll[k]||{};return it.length?it.filter(x=>dn[x]).length/it.length:0};
   const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK,f=!m&&!fut?frac(k):0;
@@ -918,6 +954,8 @@ function renderWeek(animate){
       ?`<button class="hcard${on?' done':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span><i class="hchk">${ico('ok')}</i></button>`
       :`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`}).join('')}</div>`;
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${pills}${habits}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{tmMode=(tmMode+1)%TM_VIEWS.length;haptic();renderWeek(false)};
+  el.querySelector('.trow .focus')?.addEventListener('click',()=>openCompass(w.focus));
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
   el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
@@ -937,8 +975,9 @@ function renderWeek(animate){
     if(sq)sq.classList.add('pop')}
   if(animate)el.querySelectorAll('.dose b').forEach(b=>countUp(b,+b.textContent));
   bindCaf(el);
-  if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!m||tab!=='week')return clearInterval(tickT);
+  if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!$('wkTimer')||tab!=='week')return clearInterval(tickT);
     if(new Date()>=end)return renderWeek(false);
+    if(tmMode){$('wkTimer').innerHTML=altTime(Date.now()-tFrom);return}
     const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
 }
 function bindCaf(el){
@@ -947,6 +986,34 @@ function bindCaf(el){
 
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready){selK=null;renderWeek(false)}});
+
+/* ---------- hidden compass: tap the focus word. North is a cross. ---------- */
+(function(){let ticks='';for(let a=0;a<360;a+=5){const big=a%30===0,r1=big?126:132,r2=140,t=a*Math.PI/180;
+    ticks+=`<line x1="${(Math.sin(t)*r1).toFixed(1)}" y1="${(-Math.cos(t)*r1).toFixed(1)}" x2="${(Math.sin(t)*r2).toFixed(1)}" y2="${(-Math.cos(t)*r2).toFixed(1)}" class="${big?'tk big':'tk'}"/>`}
+  const lab=(t,a)=>`<text x="${(Math.sin(a*Math.PI/180)*104).toFixed(1)}" y="${(-Math.cos(a*Math.PI/180)*104+7).toFixed(1)}" text-anchor="middle" class="cl">${t}</text>`;
+  $('cpDial').innerHTML=`<circle r="150" class="ring"/>${ticks}${lab('E',90)}${lab('S',180)}${lab('W',270)}
+    <g class="north"><rect x="-5" y="-128" width="10" height="44" rx="2"/><rect x="-17" y="-118" width="34" height="10" rx="2"/></g>
+    <circle r="3" class="pin"/>`})();
+let cpH=0,cpLive=false,cpRAF=0,cpTarget=0,cpVel=0,cpWasN=false,cpDrag=null;
+const cpName=h=>['N','NE','E','SE','S','SW','W','NW'][Math.round(h/45)%8];
+function cpDraw(){const h=((cpH%360)+360)%360;$('cpDial').style.transform=`rotate(${-h}deg)`;
+  const n=h<6||h>354;$('compass').classList.toggle('north',n);if(n&&!cpWasN)haptic();cpWasN=n;
+  $('cpHead').textContent=n?'True north':`${Math.round(h)}° ${cpName(h)}`}
+function cpOrient(e){let h=e.webkitCompassHeading;if(h==null&&e.absolute&&e.alpha!=null)h=360-e.alpha;if(h==null)return;
+  if(!cpLive){cpLive=true;$('cpHint').textContent='Turn to face the cross'}cpTarget=h}
+function cpLoop(){if(cpLive){let d=((cpTarget-cpH+540)%360)-180;cpH+=d*.18}else if(!cpDrag){cpH+=cpVel;cpVel*=.95;if(Math.abs(cpVel)<.02)cpVel=0}cpDraw();cpRAF=requestAnimationFrame(cpLoop)}
+async function openCompass(word){$('cpWord').textContent=word||'';$('compass').hidden=false;requestAnimationFrame(()=>$('compass').classList.add('on'));
+  cpLive=false;cpVel=6;$('cpHint').textContent='Drag the dial to turn it';
+  try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw 0}
+    addEventListener('deviceorientation',cpOrient,true);addEventListener('deviceorientationabsolute',cpOrient,true)}catch(e){}
+  cancelAnimationFrame(cpRAF);cpLoop()}
+function closeCompass(){$('compass').classList.remove('on');removeEventListener('deviceorientation',cpOrient,true);removeEventListener('deviceorientationabsolute',cpOrient,true);
+  setTimeout(()=>{$('compass').hidden=true;cancelAnimationFrame(cpRAF)},300)}
+$('cpClose').onclick=closeCompass;
+{const wrap=document.querySelector('.cpwrap'),ang=e=>{const r=wrap.getBoundingClientRect();return Math.atan2(e.clientX-(r.left+r.width/2),-(e.clientY-(r.top+r.height/2)))*180/Math.PI};
+  wrap.addEventListener('pointerdown',e=>{if(cpLive)return;cpDrag={a:ang(e),h:cpH,t:performance.now()};cpVel=0;wrap.setPointerCapture(e.pointerId)});
+  wrap.addEventListener('pointermove',e=>{if(!cpDrag)return;const a=ang(e),d=((cpDrag.a-a+540)%360)-180,now=performance.now();cpVel=d/Math.max(8,now-cpDrag.t)*16;cpH+=d;cpDrag.a=a;cpDrag.t=now});
+  ['pointerup','pointercancel'].forEach(t=>wrap.addEventListener(t,()=>{cpDrag=null}))}
 
 /* ---------- Prayer (dark) ---------- */
 let PE=null,peNew=false;
