@@ -68,7 +68,9 @@ nav.bar svg.i{width:24px;height:24px}
 .timer{margin-top:18px;display:flex;align-items:center;gap:12px;font-family:var(--cond);font-weight:500;font-size:34px;letter-spacing:.03em;font-variant-numeric:tabular-nums}
 .timer .dot{width:7px;height:7px;border-radius:50%;background:var(--ac)}
 .timer.due{font-family:var(--serif);font-style:italic;font-size:24px;letter-spacing:0;color:var(--ac)}
-.rows{margin-top:36px}
+.rows{margin-top:6px}
+.wkhd{margin-top:34px;display:flex;align-items:center;gap:4px;min-height:44px;color:var(--mu);width:auto}
+.wkhd svg.i{width:16px;height:16px}
 .row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule)}
 .row .ic{color:var(--mu);display:flex}
 .row .nm{flex:1;min-width:0}
@@ -108,7 +110,8 @@ nav.bar svg.i{width:24px;height:24px}
 .fname{font-family:var(--cond);font-weight:600;line-height:.85;letter-spacing:.02em;white-space:nowrap}
 .fastp.grow{animation:grow .6s var(--spring) both}
 @keyframes grow{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
-.rows.tight{margin-top:18px}
+.rows.tight{margin-top:0}
+.fastp~.wkhd{margin-top:14px}
 .row.small{padding:11px 0}.row.small .nm b{font-size:16px;color:#C9C3BA}.row.small .val{font-size:14px}
 /* settings */
 .set h2{margin:0 0 24px;font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em}
@@ -236,6 +239,10 @@ textarea.long:focus{border-color:var(--mu)}
   <div class="lbl group">Close the week</div>
   <div class="card"><div class="it"><span class="grow">From</span>
     <select class="field" id="stDay"></select><select class="field" id="stHour"></select></div></div>
+  <div class="lbl group">Timer counts from</div>
+  <div class="card"><div class="it"><div class="seg" id="stTimer" style="width:100%"><button data-tm="week" style="flex:1">Each new week</button><button data-tm="fixed" style="flex:1">A set date</button></div></div>
+    <div class="it" id="stFromRow"><label class="grow" for="stFrom">Date</label><input class="field" type="datetime-local" id="stFrom" style="width:auto;min-height:40px;padding:6px 10px;font-size:16px;background:var(--card2)"></div></div>
+  <p class="mu" style="font-size:14px;margin:10px 4px" id="stTimerNote"></p>
   <div class="lbl group">Chip library</div>
   <div class="card" id="stLib"></div>
   <p class="mu" style="font-size:14px;margin:10px 4px">Add, edit and remove chips on the plan screen. Long-press a chip to edit it.</p>
@@ -283,7 +290,7 @@ textarea.long:focus{border-color:var(--mu)}
   <div class="acts" id="chActs"></div>
 </div>
 <!-- thoughts sheet (dark) -->
-<div class="sheet dark" id="shThoughts" role="dialog" aria-modal="true"><div class="grab"></div><h3>Plan thoughts</h3><p class="thoughts" id="thText"></p></div>
+<div class="sheet dark" id="shThoughts" role="dialog" aria-modal="true"><div class="grab"></div><h3>This week</h3><p class="thoughts" id="thText"></p></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -351,7 +358,7 @@ const fmtRange=(a,b)=>{const m=d=>d.toLocaleDateString('en-US',{month:'short'}).
 const hourLabel=h=>`${h%12||12} ${h<12?'am':'pm'}`;
 
 /* ---------- state ---------- */
-const D={user:null,settings:{closeDay:6,closeHour:17},library:[],weeks:[],draft:undefined,syncNote:'—'};
+const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null},library:[],weeks:[],draft:undefined,syncNote:'—'};
 window.WD=D;
 let store=null; // data layer chosen at boot
 
@@ -378,7 +385,7 @@ async function firestoreStore(){
       const base=['users',u.uid,'weeklyDirection'];
       paths={settings:F.doc(db,...base,'settings'),draft:F.doc(db,...base,'draft'),library:F.collection(db,...base,'data','library'),weeks:F.collection(db,...base,'data','weeks')};
       const seen=new Set(),done=k=>{seen.add(k);if(seen.size===4)emit('ready')};
-      F.onSnapshot(paths.settings,{includeMetadataChanges:false},s=>{const v=s.data()||{};D.settings={closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded};done('settings');emit('settings')},fail);
+      F.onSnapshot(paths.settings,{includeMetadataChanges:false},s=>{const v=s.data()||{};D.settings={closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded,timerMode:v.timerMode||'week',timerFrom:v.timerFrom||null};done('settings');emit('settings')},fail);
       F.onSnapshot(paths.draft,s=>{D.draft=s.exists()?s.data():null;done('draft');emit('draft')},fail);
       F.onSnapshot(paths.library,{includeMetadataChanges:true},s=>{D.library=s.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>(a.order??0)-(b.order??0));done('library');emit('library');
         if(!s.metadata.fromCache&&s.empty)this.seedIfNeeded()},fail);
@@ -467,7 +474,8 @@ function renderWeek(animate){
   const days=weekDays(w),inWeek=k=>days.some(d=>ymd(d)===k);
   const fast=!due&&w.commitments.find(c=>isFast(c)&&(c.days||[]).includes(now.getDay()));
   const rest=fast?w.commitments.filter(c=>c!==fast):w.commitments;
-  const [tm,ts]=elapsedParts(now-w.sealedAt);
+  const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:w.sealedAt;
+  const [tm,ts]=elapsedParts(now-tFrom);
   const timer=due?`<div class="timer due">review due</div>`:`<div class="timer${fast?' sm':''}"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span>${fast?'':'<span class="dot"></span>'}</div>`;
   const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK;
     return`<button class="dsq${m?' '+m:''}${fut?' fut':''}${k===todayK?' today':''}" data-k="${k}"${fut?' disabled':''} aria-label="${DOWL[d.getDay()]}: ${m==='on'?'on course':m==='drift'?'drifted':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
@@ -482,16 +490,15 @@ function renderWeek(animate){
    ?`<div class="fhead"><span class="ffocus">${esc(w.focus)}</span>${timer}</div>
      <section class="fastp${animate?' grow':''}" aria-label="${esc(fast.name)} today"><div class="ftop"><span class="cond">${DOWL[now.getDay()].toUpperCase()}</span>${ico(fast.icon||'moon')}</div>
        <div class="fname" style="font-size:${Math.max(30,Math.min(132,Math.floor(Math.min(innerWidth,560)*.78/(fname.length*.62))))}px">${esc(fname)}</div></section>
-     ${squares}${ask}<div class="rows tight">${rest.map((c,i)=>row(c,i,true)).join('')}</div>`
+     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows tight">${rest.map((c,i)=>row(c,i,true)).join('')}</div>`
    :`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}
-     ${squares}${ask}<div class="rows">${rest.map((c,i)=>row(c,i,false)).join('')}</div>`;
-  el.innerHTML+=w.planThoughts?`<button class="linkrow" id="wkThoughts"><span>Plan thoughts</span>${ico('chev')}</button>`:'';
+     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows">${rest.map((c,i)=>row(c,i,false)).join('')}</div>`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
   el.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>store.mark(w,b.dataset.k,b.dataset.ask));
   if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!m||tab!=='week')return clearInterval(tickT);
     if(new Date()>=end)return renderWeek(false);
-    const [a,b]=elapsedParts(Date.now()-w.sealedAt);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
+    const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready)renderWeek(false)});
 
@@ -504,8 +511,14 @@ function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textConten
 function renderSettings(){renderSettingsAccount();
   $('stDay').innerHTML=DOWL.map((n,i)=>`<option value="${i}"${i===D.settings.closeDay?' selected':''}>${n}</option>`).join('');
   $('stHour').innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}"${h===D.settings.closeHour?' selected':''}>${hourLabel(h)}</option>`).join('');
+  const fx=D.settings.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
+  $('stFromRow').hidden=!fx;if(fx&&document.activeElement!==$('stFrom'))$('stFrom').value=localInput(new Date(D.settings.timerFrom||Date.now()));
+  $('stTimerNote').textContent=fx?'The timer keeps counting from this date across weeks. Your weeks still open and close on schedule.':'The timer restarts at zero each time you seal a new week.';
   $('stLib').innerHTML=SPHERES.map(s=>{const l=D.library.filter(c=>c.sphere===s.id);return`<div class="it">${ico(s.icon)}<div class="grow">${s.name}<small>${l.length?l.map(c=>esc(c.name)).join(', '):'No chips'}</small></div></div>`}).join('')}
 $('stDay').onchange=e=>store.setSettings({closeDay:+e.target.value});
+$('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;const v={timerMode:b.dataset.tm};
+  if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
+$('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
 $('stHour').onchange=e=>store.setSettings({closeHour:+e.target.value});
 $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything stays in your account.')){await store.auth.signOut();location.reload()}};
 
