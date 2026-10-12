@@ -342,7 +342,6 @@ nav.bar{padding-top:2px;padding-bottom:calc(var(--sb) + 4px)}
 @keyframes enter{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 nav.bar button{transition:color .2s,transform .12s}
 nav.bar button:active{transform:scale(.88)}
-nav.bar button.on svg{animation:tabpop .35s var(--spring)}
 @keyframes tabpop{0%{transform:scale(.85)}100%{transform:none}}
 .hcard{transition:transform .12s ease}
 .hcard.glow{animation:cardglow .9s ease both}
@@ -439,6 +438,17 @@ textarea.long.dk{background:#161618;border-color:#2A2A2E;color:var(--tx);min-hei
 svg.ph{fill:currentColor;stroke:none}
 nav.bar svg.ph{width:25px;height:25px}
 .hcard .ic svg.ph{width:21px;height:21px}
+
+/* app shell: the page never scrolls; each screen scrolls inside its own frame, the tab bar is pinned */
+html,body{height:100%;overflow:hidden;overscroll-behavior:none}
+.scr{position:fixed;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;max-width:none;margin:0;min-height:0;
+  padding-left:max(24px,calc(50vw - 256px))!important;padding-right:max(24px,calc(50vw - 256px))!important}
+nav.bar{background:var(--bg);gap:52px;padding-top:4px;padding-bottom:calc(var(--sb) + 4px);border-top:1px solid #161618;transform:translateZ(0)}
+nav.bar button{width:56px;height:52px}
+nav.bar svg.i{width:28px;height:28px}
+nav.bar svg.ph{width:30px;height:30px}
+nav.bar button:active{transform:scale(.92)}
+#sWeek{padding-bottom:calc(var(--sb) + 66px)}
 </style>
 </head>
 <body>
@@ -704,7 +714,7 @@ function show(name){tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hid
   document.querySelectorAll('nav.bar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
   if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer')renderPrayer(true);if(name==='history')renderHistory();if(name==='settings')renderSettings();
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
-  scrollTo(0,0)}
+  sc.scrollTop=0}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
 
 /* fade between dark and paper (600 ms, eased) */
