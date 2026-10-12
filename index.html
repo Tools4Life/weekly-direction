@@ -257,11 +257,79 @@ nav.bar{gap:36px}
 .unit{font-family:var(--cond);font-size:14px;letter-spacing:.06em;color:var(--mu);min-width:30px}
 #shCaf .field{font-size:17px}
 .cfsched{margin:10px 0 0;border-radius:16px;background:var(--card);padding:6px 16px}
-.cfl{display:grid;grid-template-columns:72px 1fr auto;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:15px}
+.cfl{display:grid;grid-template-columns:92px 1fr auto;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:15px}
 .cfl:last-child{border-bottom:0}
 .cfl b{font-family:var(--cond);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums}
 .cfl small{font-family:var(--cond);font-size:13px;color:var(--mu2)}
 .cfl.past{opacity:.4}.cfl.cur b{color:var(--ac)}
+/* v3: one-screen home, raised habit cards, tactile pills */
+#sWeek{padding-top:calc(var(--st) + 14px);padding-bottom:calc(var(--sb) + 76px)}
+.wtop{display:flex;align-items:center;justify-content:space-between;min-height:36px}
+.gear{width:40px;height:40px;margin-right:-8px;display:flex;align-items:center;justify-content:center;color:var(--mu2)}
+.gear svg.i{width:21px;height:21px}
+#sWeek .focus{margin-top:2px;font-size:48px}
+#sWeek .timer{margin-top:8px;font-size:28px}
+#sWeek .timer.due{font-size:22px}
+#sWeek .days{margin-top:16px;gap:8px}
+#sWeek .dsq{gap:5px;min-height:0}
+#sWeek .dsq i{max-width:none;aspect-ratio:auto;height:34px;border-radius:9px}
+#sWeek .pills{margin-top:12px}
+.pill{height:50px;border:1px solid #2E2E33;background:linear-gradient(180deg,#1E1E21 0%,#141416 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07),inset 0 -2px 0 rgba(0,0,0,.35),0 6px 14px rgba(0,0,0,.55),0 1px 2px rgba(0,0,0,.6);transition:transform .1s ease,box-shadow .1s ease,background .15s,color .15s}
+.pill:active{transform:translateY(2px) scale(.985);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),inset 0 2px 6px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.5)}
+.pill.x.on{background:linear-gradient(180deg,#FFFFFF 0%,#E3DFD7 100%);border-color:#FFFFFF;color:#0B0B0C;
+  box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(0,0,0,.12),0 6px 16px rgba(242,239,234,.16),0 1px 2px rgba(0,0,0,.6)}
+.pill.ok.on{background:linear-gradient(180deg,#F28D55 0%,#DD6A30 100%);border-color:#F08A50;color:#0B0B0C;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.18),0 6px 18px rgba(232,116,59,.35),0 1px 2px rgba(0,0,0,.6)}
+.pill.on:active{transform:translateY(2px) scale(.985)}
+#sWeek .wkbar{margin-top:18px}
+#sWeek .wkhd{min-height:32px}
+.hcards{display:grid;gap:6px;margin-top:4px}
+.hcard{display:flex;align-items:center;gap:13px;min-height:46px;padding:0 14px;border-radius:13px;background:#18181B;border:1px solid #26262A;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+.hcard .ic{display:flex;color:#B5B0A8}
+.hcard .ic svg.i{width:19px;height:19px}
+.hcard .nm{font-size:16.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sWeek .caf{margin-top:14px;padding:12px 14px 13px;border-radius:16px;background:#18181B;border:1px solid #26262A}
+.cafh .cafsub em{font-style:normal;color:var(--ac)}
+.cafrow{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cafrow .cafn{margin:0;display:flex;align-items:baseline;gap:5px;min-height:40px}
+.cafrow .cafn b{font-size:32px}
+.cafrow .cafn span{font-size:15px}
+#sWeek .cafbtns{margin:0;flex-wrap:nowrap;gap:6px}
+#sWeek .cafbtns button{min-height:40px;padding:0 12px;font-size:14.5px;gap:5px;background:#202024;border-color:#2E2E33}
+#sWeek .cafbtns button[data-caf="other"]{padding:0 10px}
+#sWeek .cbar{margin-top:10px;height:5px}
+.clrow{display:grid;grid-template-columns:1fr auto auto 36px;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule)}
+.clrow b{font-family:var(--cond);font-weight:600;font-variant-numeric:tabular-nums}
+.clrow small{font-family:var(--cond);color:var(--mu2)}
+.clrow button{width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:var(--mu)}
+#sHistory .row{border-bottom-color:var(--rule)}
+
+/* v3b: tighter fit */
+#sWeek .focus{font-size:44px}
+#sWeek .timer{margin-top:6px;font-size:26px}
+#sWeek .days{margin-top:14px}
+#sWeek .dsq i{height:30px;border-radius:8px}
+#sWeek .pills{margin-top:12px}
+#sWeek .pill{height:46px}
+#sWeek .wkbar{margin-top:12px}
+#sWeek .wkhd{min-height:30px}
+.hcard{min-height:42px;border-radius:12px}
+#sWeek .caf{margin-top:12px;padding:10px 14px 12px}
+.cafrow .cafn{white-space:nowrap;min-height:36px}
+.cafrow .cafn b{font-size:28px}
+#sWeek .cafbtns button{min-height:36px}
+nav.bar{padding-top:2px;padding-bottom:calc(var(--sb) + 4px)}
+#sWeek{padding-bottom:calc(var(--sb) + 60px)}
+
+/* v3c: caffeine dose reminder, roomier habit cards */
+.hcard{min-height:46px}
+.dose{margin-top:8px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dose>div{display:flex;align-items:baseline;gap:6px;padding:8px 12px;border-radius:11px;background:#202024;border:1px solid #2E2E33}
+.dose span{font-family:var(--cond);font-size:13px;letter-spacing:.16em;color:var(--mu)}
+.dose b{margin-left:auto;font-family:var(--cond);font-weight:600;font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+.dose small{font-family:var(--cond);font-size:13px;color:var(--mu)}
+.cfree{margin:8px 0 0;font-family:var(--serif);font-style:italic;color:var(--mu)}
 </style>
 </head>
 <body>
@@ -290,13 +358,14 @@ nav.bar{gap:36px}
 </section>
 
 <!-- History -->
-<section class="scr" id="sHistory" data-mode="paper" hidden>
+<section class="scr" id="sHistory" data-mode="dark" hidden>
   <h2 class="ttl">History</h2>
   <div id="hList" style="margin-top:24px"></div>
 </section>
 
 <!-- Settings -->
-<section class="scr set" id="sSettings" data-mode="dark" hidden>
+<section class="scr set noBar" id="sSettings" data-mode="dark" hidden>
+  <div class="ptop"><button class="x" id="stDone"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>This week</button></div>
   <h2>Settings</h2>
   <div class="lbl group">Account</div>
   <div class="card">
@@ -305,12 +374,11 @@ nav.bar{gap:36px}
   </div>
   <div id="stWeekBox"><div class="lbl group">This week</div>
   <div class="card"><button class="it" id="stReplan"><span class="grow" id="stReplanT"></span></button></div></div>
-  <div class="lbl group">Caffeine wean</div>
+  <div class="lbl group">Caffeine wean · AM / PM dose</div>
   <div class="card">
     <div class="it"><label class="grow" for="cfStart">Starting limit</label><input class="field num" id="cfStart" type="number" inputmode="numeric" min="0" step="10"><span class="unit">mg</span></div>
     <div class="it"><label class="grow" for="cfStep">Drop by</label><input class="field num" id="cfStep" type="number" inputmode="numeric" min="0" step="10"><span class="unit">mg</span></div>
     <div class="it"><label class="grow" for="cfDays">Reach 0 in</label><input class="field num" id="cfDays" type="number" inputmode="numeric" min="1" step="1"><span class="unit">days</span></div>
-    <div class="it"><label class="grow" for="cfPill">Pill size</label><input class="field num" id="cfPill" type="number" inputmode="numeric" min="1" step="5"><span class="unit">mg</span></div>
     <div class="it"><label class="grow" for="cfFrom">Started</label><input class="field" id="cfFrom" type="date" style="width:auto;min-height:40px;padding:6px 10px;background:var(--card2)"></div>
   </div>
   <div class="cfsched" id="cfSched"></div>
@@ -350,9 +418,8 @@ nav.bar{gap:36px}
 
 <nav class="bar" id="bar" hidden>
   <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="16.5" y="9.5" width="5" height="5" rx="1"/></svg></button>
-  <button data-tab="prayer" aria-label="Prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 21V11M12 11c0-3 1-6 3-7 1 2 1 5-1 7M12 11c0-3-1-6-3-7-1 2-1 5 1 7"/><path d="M8 21h8"/></svg></button>
+  <button data-tab="prayer" aria-label="Prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 3c-1.5.4-2.4 2.4-2.4 4.6v2.1C7.7 11 6.5 13 6.2 15.2l-.2 1.6 3.3 3.7"/><path d="M12 3c1.5.4 2.4 2.4 2.4 4.6v2.1c1.9 1.3 3.1 3.3 3.4 5.5l.2 1.6-3.3 3.7"/><path d="M12 3.6v11.9"/><path d="M9.6 9.7l.9 3.4M14.4 9.7l-.9 3.4"/><path d="M3.8 17.4l4 4M20.2 17.4l-4 4"/></svg></button>
   <button data-tab="history" aria-label="History"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
-  <button data-tab="settings" aria-label="Settings"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
 </nav>
 
 <div class="scrim" id="scrim"></div>
@@ -375,6 +442,9 @@ nav.bar{gap:36px}
   <input class="field" id="cfName" maxlength="40" placeholder="What (e.g. Iced coffee)" autocomplete="off">
   <div style="display:flex;align-items:center;gap:10px;margin-top:10px"><input class="field" id="cfMg" type="number" inputmode="numeric" min="1" step="5" placeholder="mg"><span class="unit">mg</span></div>
   <div class="acts"><button class="btn pri" id="cfAdd">Add</button></div></div>
+<div class="sheet dark" id="shCafLog" role="dialog" aria-modal="true" aria-labelledby="clT"><div class="grab"></div><h3 id="clT">Caffeine today</h3>
+  <p class="mu" id="clTotal" style="margin:-8px 0 12px"></p><div id="clList"></div>
+  <div class="acts"><button class="btn ghost" id="clOther">Add something else</button></div></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -393,7 +463,8 @@ const RM=matchMedia('(prefers-reduced-motion: reduce)');
 /* ---------- icons ---------- */
 const IC={
  book:'<path d="M4 5.5A1.5 1.5 0 0 1 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5z"/><path d="M20 5.5A1.5 1.5 0 0 0 18.5 4H13v16h5.5a1.5 1.5 0 0 0 1.5-1.5z"/>',
- hands:'<path d="M12 21V11M12 11c0-3 1-6 3-7 1 2 1 5-1 7M12 11c0-3-1-6-3-7-1 2-1 5 1 7"/><path d="M8 21h8"/>',
+ hands:'<path d="M12 3c-1.5.4-2.4 2.4-2.4 4.6v2.1C7.7 11 6.5 13 6.2 15.2l-.2 1.6 3.3 3.7"/><path d="M12 3c1.5.4 2.4 2.4 2.4 4.6v2.1c1.9 1.3 3.1 3.3 3.4 5.5l.2 1.6-3.3 3.7"/><path d="M12 3.6v11.9"/><path d="M9.6 9.7l.9 3.4M14.4 9.7l-.9 3.4"/><path d="M3.8 17.4l4 4M20.2 17.4l-4 4"/>',
+ gear:'<circle cx="12" cy="12" r="3"/><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6"/>',
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
  pen:'<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/>',
@@ -517,7 +588,7 @@ let tab='week',ready=false;
 const SCREENS={week:'sWeek',prayer:'sPrayer',history:'sHistory',settings:'sSettings',plan:'sPlan'};
 function setMode(m){document.documentElement.dataset.mode=m;$('themeColor').content=m==='paper'?'#F3EEE4':'#0B0B0C'}
 function show(name){tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hidden=k!==name);
-  setMode($(SCREENS[name]).dataset.mode);$('bar').hidden=name==='plan';
+  setMode($(SCREENS[name]).dataset.mode);$('bar').hidden=name==='plan'||name==='settings';
   document.querySelectorAll('nav.bar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
   if(name==='week')renderWeek(true);if(name==='prayer')renderPrayer();if(name==='history')renderHistory();if(name==='settings')renderSettings();
   scrollTo(0,0)}
@@ -555,15 +626,20 @@ function cafLimit(day=new Date()){const plan=cafPlan(),i=dayDiff(cafFromDate(),d
 const cafToday=()=>D.caf[ymd(new Date())]||[];
 const cafTotal=items=>items.reduce((a,b)=>a+(+b.mg||0),0);
 function addCaf(label,mg){const k=ymd(new Date());store.setCaf(k,[...(D.caf[k]||[]),{id:uid(),label,mg:Math.round(mg),t:Date.now()}])}
+// today's dose split morning / evening, in whole steps; the morning gets the larger half
+function cafSplit(mg){const st=Math.max(1,D.settings.cafStep||50),am=Math.min(mg,Math.ceil(mg/2/st)*st);return[am,mg-am]}
 function cafCard(){
-  const L=cafLimit(),items=cafToday(),tot=cafTotal(items),pct=L.limit?Math.min(100,tot/L.limit*100):100,over=tot-L.limit;
+  const L=cafLimit(),[am,pm]=cafSplit(L.limit);
   return`<section class="caf" aria-label="Caffeine today">
-    <div class="cafh"><span class="lbl">Caffeine</span><span class="cafsub">${L.next?`${L.nextLimit} mg from ${fmtDate(L.next)}`:L.limit===0?'Caffeine-free':''}</span></div>
-    <div class="cafn"><b>${tot}</b><span> / ${L.limit} mg</span>${over>0?`<em>${over} over</em>`:''}</div>
-    <div class="cbar${over>0?' over':''}"><i style="width:${pct}%"></i></div>
-    <div class="cafbtns">${CAF_PRESETS().map(([l,mg])=>`<button data-caf="${mg}" data-l="${l}">${l} <small>${mg}</small></button>`).join('')}<button data-caf="other" aria-label="Other caffeine">${ico('plus')}</button></div>
-    ${items.length?`<div class="caflog">${items.map(i=>`<button data-rmcaf="${i.id}" aria-label="Remove ${esc(i.label)} ${i.mg} mg">${esc(i.label)} ${i.mg} ${ico('x')}</button>`).join('')}</div>`:''}
+    <div class="cafh"><span class="lbl">Caffeine today</span><span class="cafsub">${L.next?`${L.nextLimit} mg from ${fmtDate(L.next)}`:L.limit===0?'Caffeine-free':''}</span></div>
+    ${L.limit>0?`<div class="dose"><div><span>AM</span><b>${am}</b><small>mg</small></div><div><span>PM</span><b>${pm}</b><small>mg</small></div></div>`:`<p class="cfree">Caffeine-free. Done.</p>`}
   </section>`}
+function renderCafLog(){const items=cafToday();
+  $('clList').innerHTML=items.length?items.map(i=>`<div class="clrow"><span>${esc(i.label)}</span><b>${i.mg} mg</b><small>${new Date(i.t).toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}</small><button data-rmcaf="${i.id}" aria-label="Remove ${esc(i.label)}">${ico('x')}</button></div>`).join('')
+    :'<p class="mu" style="font-style:italic">Nothing logged today.</p>';
+  $('clTotal').textContent=`${cafTotal(items)} of ${cafLimit().limit} mg`;
+  $('clList').querySelectorAll('[data-rmcaf]').forEach(b=>b.onclick=()=>{const k=ymd(new Date());store.setCaf(k,(D.caf[k]||[]).filter(i=>i.id!==b.dataset.rmcaf));setTimeout(renderCafLog,30)})}
+$('clOther').onclick=()=>{closeSheet();setTimeout(()=>{$('cfName').value='';$('cfMg').value='';openSheet($('shCaf'));setTimeout(()=>$('cfName').focus(),320)},250)};
 $('cfAdd').onclick=()=>{const mg=+$('cfMg').value;if(!(mg>0)){$('cfMg').focus();return}addCaf($('cfName').value.trim()||'Other',mg);closeSheet()};
 
 /* ---------- This Week (dark, home) ---------- */
@@ -574,13 +650,14 @@ function elapsedParts(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.fl
 function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);if(s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
   const last=new Date(e);last.setHours(12,0,0,0);const out=[];while(d<last&&out.length<14){out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 const NEXT={undefined:'on',on:'drift',drift:undefined};
+const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
   if(!w){const resume=D.draft&&D.draft.step==='plan'&&!D.draft.replan,first=!D.weeks.length;
     el.innerHTML=`<div class="first"><div class="lbl">${first?'Weekly Direction':'No week in progress'}</div>
       <h1>${resume?'Your plan is waiting.':first?'Plan your first week.':'Plan the next week.'}</h1>
       <p>${resume?'Pick up where you left off.':'One word and a few daily habits. Seal it, then just live it.'}</p>
-      <div><button class="btn pri" id="wkPlan">${resume?'Resume planning':first?'Plan your first week':'Plan the week'}</button></div></div>${cafCard()}`;
+      <div><button class="btn pri" id="wkPlan">${resume?'Resume planning':first?'Plan your first week':'Plan the week'}</button></div></div>${cafCard()}`;el.insertAdjacentHTML('afterbegin',`<div class="wtop"><span></span>${gearBtn}</div>`);
     $('wkPlan').onclick=()=>openPlan();bindCaf(el);return}
   const now=new Date(),start=new Date(w.sealedAt),end=weekEnd(start),due=now>=end,marks=w.marks||{},todayK=ymd(now);
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
@@ -595,8 +672,8 @@ function renderWeek(animate){
     <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="Today: kept">${ico('ok')}</button></div>`
     :!due&&now.getDay()===D.settings.closeDay?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}</div>
-    <div class="rows">${w.commitments.map((c,i)=>`<div class="row${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm"><b>${esc(c.name)}</b></span></div>`).join('')}</div>`;
-  el.innerHTML=`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}${squares}${pills}${habits}${cafCard()}`;
+    <div class="hcards">${w.commitments.map((c,i)=>`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`).join('')}</div>`;
+  el.innerHTML=`<div class="wtop"><span class="cond wk-range">${fmtRange(start,end)}</span>${gearBtn}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}${squares}${pills}${habits}${cafCard()}`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
   el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill;store.mark(w,todayK,(w.marks||{})[todayK]===v?undefined:v)});
@@ -606,9 +683,9 @@ function renderWeek(animate){
     const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
 }
 function bindCaf(el){
-  el.querySelectorAll('[data-caf]').forEach(b=>b.onclick=()=>{if(b.dataset.caf==='other'){$('cfName').value='';$('cfMg').value='';openSheet($('shCaf'));setTimeout(()=>$('cfName').focus(),320);return}
-    addCaf(b.dataset.l,+b.dataset.caf)});
-  el.querySelectorAll('[data-rmcaf]').forEach(b=>b.onclick=()=>{const k=ymd(new Date());store.setCaf(k,(D.caf[k]||[]).filter(i=>i.id!==b.dataset.rmcaf))});
+  el.querySelectorAll('[data-gear]').forEach(b=>b.onclick=()=>show('settings'));
+
+
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready)renderWeek(false)});
 
@@ -634,22 +711,23 @@ function renderSettings(){renderSettingsAccount();const s=D.settings,act=documen
   const fx=s.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
   $('stFromRow').hidden=!fx;if(fx&&act!==$('stFrom'))$('stFrom').value=localInput(new Date(s.timerFrom||Date.now()));
   $('stTimerNote').textContent=fx?'The timer keeps counting from this date across weeks. Your weeks still open and close on schedule.':'The timer restarts at zero each time you seal a new week.';
-  [['cfStart','cafStart'],['cfStep','cafStep'],['cfDays','cafDays'],['cfPill','cafPill']].forEach(([id,k])=>{if(act!==$(id))$(id).value=s[k]});
+  [['cfStart','cafStart'],['cfStep','cafStep'],['cfDays','cafDays']].forEach(([id,k])=>{if(act!==$(id))$(id).value=s[k]});
   if(act!==$('cfFrom'))$('cfFrom').value=ymd(cafFromDate());
   const L=cafLimit(),today=dayDiff(cafFromDate(),new Date());
   $('cfSched').innerHTML=cafPlan().map(l=>{const a=addDays(cafFromDate(),l.from),b=addDays(cafFromDate(),l.from+l.len-1),cur=today>=l.from&&today<l.from+l.len;
-    return`<div class="cfl${cur?' cur':''}${today>=l.from+l.len?' past':''}"><b>${l.mg} mg</b><span>${fmtDate(a)}${l.len>1?` – ${fmtDate(b)}`:''}</span><small>${l.len} ${l.len===1?'day':'days'}</small></div>`}).join('')
+    const [am,pm]=cafSplit(l.mg);return`<div class="cfl${cur?' cur':''}${today>=l.from+l.len?' past':''}"><b>${am} / ${pm}</b><span>${fmtDate(a)}${l.len>1?` – ${fmtDate(b)}`:''}</span><small>${l.len} ${l.len===1?'day':'days'}</small></div>`}).join('')
     +`<div class="cfl${L.limit===0&&!L.next?' cur':''}"><b>0 mg</b><span>from ${fmtDate(addDays(cafFromDate(),cafPlan().reduce((a,l)=>a+l.len,0)))}</span><small></small></div>`;
   const aw=active();$('stWeekBox').hidden=!aw;
   if(aw){const resuming=D.draft&&D.draft.replan===aw.id;$('stReplanT').innerHTML=`${resuming?'Resume re-planning':'Re-plan this week'}<small>Change the word, habits or notes, then seal again. Day marks are kept.</small>`}
   $('stLib').textContent=D.library.map(c=>c.name).join(', ')||'No habits yet'}
+$('stDone').onclick=()=>show('week');
 $('stReplan').onclick=()=>{const aw=active();if(aw)openPlan(aw)};
 $('stDay').onchange=e=>store.setSettings({closeDay:+e.target.value});
 $('stHour').onchange=e=>store.setSettings({closeHour:+e.target.value});
 $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;const v={timerMode:b.dataset.tm};
   if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
 $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
-[['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1],['cfPill','cafPill',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
+[['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
 $('cfFrom').onchange=e=>{const t=new Date(e.target.value+'T00:00').getTime();if(!isNaN(t)){store.setSettings({cafFrom:t});D.settings.cafFrom=t;renderSettings()}};
 $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything stays in your account.')){await store.auth.signOut();location.reload()}};
 
@@ -743,6 +821,7 @@ function onData(kind){
     if(D.draft&&D.draft.step==='plan'&&!D.draft.replan&&!active()){show('week');openPlan()}else show('week');return}
   if(!ready)return;
   if(tab==='week'&&kind!=='library'&&kind!=='prayers')renderWeek(false);
+  if(kind==='caffeine'&&openSheetEl===$('shCafLog'))renderCafLog();
   if(tab==='prayer'&&kind==='prayers')renderPrayer();
   if(tab==='history'&&kind==='weeks')renderHistory();
   if(tab==='settings')renderSettings();
