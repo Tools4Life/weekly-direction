@@ -446,6 +446,17 @@ nav.bar svg.i{width:28px;height:28px}
 nav.bar svg.ph{width:30px;height:30px}
 nav.bar button:active{opacity:.6}
 #sWeek{padding-bottom:calc(var(--sb) + 66px)}
+
+/* one title position for every tab: same top padding, same row height, same size */
+#sWeek,#sPrayer,#sHistory{padding-top:calc(var(--st) + 30px)}
+.trow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:52px}
+.trow .ttl,#sWeek .trow .focus{margin:0;font-family:var(--serif);font-weight:400;font-size:44px;line-height:52px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .gear{margin-right:-8px;flex:none}
+.tline2{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+#sWeek .tline2 .timer{margin:0}
+.tline2 .wk-range{font-size:12px;letter-spacing:.18em;color:var(--mu2);white-space:nowrap}
+#sPrayer .pradd{margin-top:16px}
+#hList{margin-top:16px!important}
 </style>
 </head>
 <body>
@@ -468,14 +479,14 @@ nav.bar button:active{opacity:.6}
 
 <!-- Prayer -->
 <section class="scr" id="sPrayer" data-mode="dark" hidden>
-  <h2 class="ttl">Prayer</h2>
+  <div class="trow"><h2 class="ttl">Prayer</h2></div>
   <form class="pradd" id="prForm" autocomplete="off"><input class="field" id="prIn" maxlength="240" placeholder="What are you praying for?" enterkeyhint="done"><button class="btn pri sq" type="submit" aria-label="Add prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></form>
   <div id="prList"></div>
 </section>
 
 <!-- History -->
 <section class="scr" id="sHistory" data-mode="dark" hidden>
-  <h2 class="ttl">History</h2>
+  <div class="trow"><h2 class="ttl">History</h2></div>
   <div id="hList" style="margin-top:24px"></div>
 </section>
 
@@ -790,7 +801,7 @@ function renderWeek(animate){
     el.innerHTML=`<div class="first"><div class="lbl">${first?'Weekly Direction':'No week in progress'}</div>
       <h1>${resume?'Your plan is waiting.':first?'Plan your first week.':'Plan the next week.'}</h1>
       <p>${resume?'Pick up where you left off.':'One word and a few daily habits. Seal it, then just live it.'}</p>
-      <div><button class="btn pri" id="wkPlan">${resume?'Resume planning':first?'Plan your first week':'Plan the week'}</button></div></div>${cafCard()}`;el.insertAdjacentHTML('afterbegin',`<div class="wtop"><span></span>${gearBtn}</div>`);
+      <div><button class="btn pri" id="wkPlan">${resume?'Resume planning':first?'Plan your first week':'Plan the week'}</button></div></div>${cafCard()}`;el.insertAdjacentHTML('afterbegin',`<div class="trow"><h1 class="ttl">This week</h1>${gearBtn}</div>`);
     $('wkPlan').onclick=()=>openPlan();bindCaf(el);return}
   const now=new Date(),start=new Date(w.sealedAt),end=weekEnd(start),due=now>=end,marks=w.marks||{},todayK=ymd(now);
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
@@ -809,7 +820,7 @@ function renderWeek(animate){
     :!due&&now.getDay()===D.settings.closeDay?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
     <div class="hcards${tm0==='on'?' kept':''}">${w.commitments.map((c,i)=>`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`).join('')}</div>`;
-  el.innerHTML=`<div class="wtop"><span class="cond wk-range">${fmtRange(start,end)}</span>${gearBtn}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}${squares}${pills}${habits}${cafCard(animate)}`;
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${pills}${habits}${cafCard(animate)}`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
   el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
@@ -1008,6 +1019,7 @@ function onData(kind){
   if(tab==='settings')renderSettings();
   if(tab==='plan'&&kind==='library'&&P)renderChips();
 }
+['gEmail','gPass'].forEach(id=>$(id).addEventListener('input',()=>{$('gErr').textContent=''}));
 const MSG={'auth/invalid-credential':'That email and password don’t match. Try again, or tap Forgot password.','auth/user-not-found':'No account with that email.','auth/invalid-email':'That email address doesn’t look right.','auth/missing-password':'Type your password.','auth/network-request-failed':'No internet connection. Try again when you have signal.','auth/too-many-requests':'Too many tries. Wait a minute and try again.'};
 (async()=>{
   try{store=window.__WD_MOCK?memoryStore():await firestoreStore()}
