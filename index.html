@@ -81,6 +81,35 @@ nav.bar svg.i{width:24px;height:24px}
 .first h1{margin:0;font-family:var(--serif);font-weight:400;font-size:44px;line-height:1.05;letter-spacing:-.02em}
 .first p{margin:0;color:var(--mu);max-width:30ch}
 
+.timer.sm{margin:0;font-size:20px;color:var(--mu);gap:0}
+.sec{display:inline-block;overflow:hidden;vertical-align:top;height:1.2em;line-height:1.2em}
+#wkTimer{line-height:1.2em}
+.sec span{display:inline-block}.sec span.in{animation:tk .28s var(--ease)}
+@keyframes tk{from{transform:translateY(-55%);opacity:0}to{transform:none;opacity:1}}
+.days{margin-top:26px;display:flex;gap:6px}
+.dsq{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;min-height:44px;padding:2px 0}
+.dsq i{display:block;width:100%;max-width:34px;aspect-ratio:1;border-radius:8px;border:1.5px dashed #3A3A3E;transition:background .15s,border-color .15s,transform .12s}
+.dsq span{font-family:var(--cond);font-size:12px;letter-spacing:.1em;color:var(--mu2)}
+.dsq.today span{color:var(--tx)}
+.dsq.on i{background:var(--ac);border:1.5px solid var(--ac)}
+.dsq.drift i{background:#2E2E32;border:1.5px solid #2E2E32}
+.dsq.fut i{border:1.5px solid var(--rule)}
+.dsq.press i{transform:scale(.88)}
+.dsq:disabled{cursor:default}
+.ask{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card)}
+.askb{display:flex;gap:8px}
+.btn.sm{min-height:42px;padding:0 14px;font-size:15px;border-radius:10px}
+.fhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px}
+.ffocus{font-family:var(--serif);font-size:28px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fastp{overflow:hidden;margin:20px -4px 0;min-height:44vh;border-radius:22px;border:1px solid var(--ac);background:#170E09;padding:26px;display:flex;flex-direction:column;justify-content:space-between;color:var(--ac);transform-origin:top center}
+.fastp .ftop{display:flex;justify-content:space-between;align-items:center}
+.fastp .ftop .cond{font-size:14px;letter-spacing:.22em}
+.fastp svg.i{width:28px;height:28px}
+.fname{font-family:var(--cond);font-weight:600;line-height:.85;letter-spacing:.02em;white-space:nowrap}
+.fastp.grow{animation:grow .6s var(--spring) both}
+@keyframes grow{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
+.rows.tight{margin-top:18px}
+.row.small{padding:11px 0}.row.small .nm b{font-size:16px;color:#C9C3BA}.row.small .val{font-size:14px}
 /* settings */
 .set h2{margin:0 0 24px;font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em}
 .group{margin:28px 0 8px}
@@ -367,7 +396,8 @@ async function firestoreStore(){
     delChip:id=>F.deleteDoc(F.doc(paths.library,id)).catch(fail),
     putWeek:w=>{const {id,...v}=w;return F.setDoc(F.doc(paths.weeks,id),v).catch(fail)},
     putDraft:v=>F.setDoc(paths.draft,v).catch(fail),
-    delDraft:()=>F.deleteDoc(paths.draft).catch(fail)
+    delDraft:()=>F.deleteDoc(paths.draft).catch(fail),
+    mark:(w,k,v)=>F.setDoc(F.doc(paths.weeks,w.id),{marks:{[k]:v??F.deleteField()}},{merge:true}).catch(fail)
   };
 }
 
@@ -375,12 +405,13 @@ async function firestoreStore(){
 function memoryStore(){
   let emit=()=>{};const m=window.__WD_MOCK;
   return{auth:{onChange:cb=>setTimeout(()=>cb(m.user===false?null:{uid:'demo',email:'demo@example.com'})),signIn:async()=>{},reset:async()=>{},signOut:async()=>location.reload()},
-    attach(u,e){emit=e;D.syncNote='Preview data';D.library=SEED.map(([sphere,name,type,def,icon],i)=>({id:'c'+i,sphere,name,type,default:def,icon,order:i}));D.weeks=m.weeks||[];D.draft=m.draft||null;setTimeout(()=>emit('ready'))},
+    attach(u,e){emit=e;D.syncNote='Preview data';D.library=SEED.map(([sphere,name,type,def,icon],i)=>({id:'c'+i,sphere,name,type,default:def,icon,order:i}));D.weeks=m.weeks||[];if(m.settings)Object.assign(D.settings,m.settings);D.draft=m.draft||null;setTimeout(()=>emit('ready'))},
     setSettings:v=>{Object.assign(D.settings,v);emit('settings')},
     putChip:c=>{const i=D.library.findIndex(x=>x.id===c.id);i<0?D.library.push(c):D.library[i]=c;D.library.sort((a,b)=>a.order-b.order);emit('library')},
     delChip:id=>{D.library=D.library.filter(x=>x.id!==id);emit('library')},
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
-    putDraft:v=>{D.draft=v;emit('draft')},delDraft:()=>{D.draft=null;emit('draft')}};
+    putDraft:v=>{D.draft=v;emit('draft')},delDraft:()=>{D.draft=null;emit('draft')},
+    mark:(w,k,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')}};
 }
 
 /* ---------- navigation & modes ---------- */
@@ -414,10 +445,15 @@ document.querySelectorAll('.sheet').forEach(sh=>{let y0=null,dy=0;
   sh.addEventListener('touchmove',e=>{if(y0==null)return;dy=Math.max(0,e.touches[0].clientY-y0);sh.style.transform=`translateY(${dy}px)`},{passive:true});
   sh.addEventListener('touchend',()=>{if(y0==null)return;sh.style.transition='';sh.style.transform='';if(dy>90)closeSheet();y0=null})});
 
-/* ---------- This Week (foundation version; full home is the next build step) ---------- */
+/* ---------- This Week (dark, home) ---------- */
 const active=()=>D.weeks.find(w=>w.status==='active');
+const isFast=c=>c.type==='fixed'&&(c.icon==='moon'||/\bfast/i.test(c.name));
 let tickT=null;
-function fmtElapsed(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.floor(s/86400);return`${d}d ${pad(Math.floor(s%86400/3600))}:${pad(Math.floor(s%3600/60))}:${pad(s%60)}`}
+function elapsedParts(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.floor(s/86400);return[`${d}d ${pad(Math.floor(s%86400/3600))}:${pad(Math.floor(s%3600/60))}:`,pad(s%60)]}
+// the days a week is lived: from the day after sealing (or the sealing day itself if sealed before noon) through the closing day
+function weekDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);if(s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
+  const last=new Date(e);last.setHours(12,0,0,0);const out=[];while(d<=last&&out.length<14){out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
+const NEXT={undefined:'on',on:'drift',drift:undefined};
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
   if(!w){const resume=D.draft&&D.draft.step==='plan',first=!D.weeks.length;
@@ -426,16 +462,38 @@ function renderWeek(animate){
       <p>${resume?'Pick up where you left off.':'Choose one word, a few commitments, and seal it. Then just live it.'}</p>
       <div><button class="btn pri" id="wkPlan">${resume?'Resume planning':first?'Plan your first week':'Plan the week'}</button></div></div>`;
     $('wkPlan').onclick=()=>openPlan();return}
-  const start=new Date(w.sealedAt),end=weekEnd(start),due=Date.now()>=end.getTime();
-  el.innerHTML=`<div class="cond wk-range">${fmtRange(start,end)}</div>
-    <h1 class="focus">${esc(w.focus)}</h1>
-    ${due?`<div class="timer due">review due</div>`:`<div class="timer"><span id="wkTimer">${fmtElapsed(Date.now()-w.sealedAt)}</span><span class="dot"></span></div>`}
-    <div class="rows">${w.commitments.map((c,i)=>`<div class="row${c.icon==='moon'&&c.type==='fixed'?' fast':''}${animate?' rise':''}" style="animation-delay:${i*40}ms">
-      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b><small>${esc(sphereOf(c.sphere).name)}</small></span><span class="val">${settingLabel(c)}</span></div>`).join('')}</div>
-    ${w.planThoughts?`<button class="linkrow" id="wkThoughts"><span>Plan thoughts</span>${ico('chev')}</button>`:''}`;
+  const now=new Date(),start=new Date(w.sealedAt),end=weekEnd(start),due=now>=end,marks=w.marks||{};
+  const todayK=ymd(now),yd=new Date(now);yd.setDate(yd.getDate()-1);const ydK=ymd(yd);
+  const days=weekDays(w),inWeek=k=>days.some(d=>ymd(d)===k);
+  const fast=!due&&w.commitments.find(c=>isFast(c)&&(c.days||[]).includes(now.getDay()));
+  const rest=fast?w.commitments.filter(c=>c!==fast):w.commitments;
+  const [tm,ts]=elapsedParts(now-w.sealedAt);
+  const timer=due?`<div class="timer due">review due</div>`:`<div class="timer${fast?' sm':''}"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span>${fast?'':'<span class="dot"></span>'}</div>`;
+  const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK;
+    return`<button class="dsq${m?' '+m:''}${fut?' fut':''}${k===todayK?' today':''}" data-k="${k}"${fut?' disabled':''} aria-label="${DOWL[d.getDay()]}: ${m==='on'?'on course':m==='drift'?'drifted':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
+  let askK=null,askL='';
+  if(!due&&inWeek(todayK)&&!marks[todayK]&&now.getHours()>=17){askK=todayK;askL='Today'}
+  else if(inWeek(ydK)&&!marks[ydK]&&(now.getHours()<17||marks[todayK])){askK=ydK;askL='Yesterday'}
+  const ask=askK?`<div class="ask"><span class="lbl">${askL}</span><div class="askb"><button class="btn sm pri" data-ask="on" data-k="${askK}">On course</button><button class="btn sm ghost" data-ask="drift" data-k="${askK}">Drifted</button></div></div>`:'';
+  const row=(c,i,small)=>`<div class="row${small?' small':''}${isFast(c)?' fast':''}${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">
+      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b>${small?'':`<small>${esc(sphereOf(c.sphere).name)}</small>`}</span><span class="val">${settingLabel(c)}</span></div>`;
+  const fname=fast?fast.name.toUpperCase():'';
+  el.innerHTML=fast
+   ?`<div class="fhead"><span class="ffocus">${esc(w.focus)}</span>${timer}</div>
+     <section class="fastp${animate?' grow':''}" aria-label="${esc(fast.name)} today"><div class="ftop"><span class="cond">${DOWL[now.getDay()].toUpperCase()}</span>${ico(fast.icon||'moon')}</div>
+       <div class="fname" style="font-size:${Math.max(30,Math.min(132,Math.floor(Math.min(innerWidth,560)*.78/(fname.length*.62))))}px">${esc(fname)}</div></section>
+     ${squares}${ask}<div class="rows tight">${rest.map((c,i)=>row(c,i,true)).join('')}</div>`
+   :`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}
+     ${squares}${ask}<div class="rows">${rest.map((c,i)=>row(c,i,false)).join('')}</div>`;
+  el.innerHTML+=w.planThoughts?`<button class="linkrow" id="wkThoughts"><span>Plan thoughts</span>${ico('chev')}</button>`:'';
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
-  if(!due)tickT=setInterval(()=>{const t=$('wkTimer');if(!t||tab!=='week')return clearInterval(tickT);t.textContent=fmtElapsed(Date.now()-w.sealedAt)},1000);
+  el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
+  el.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>store.mark(w,b.dataset.k,b.dataset.ask));
+  if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!m||tab!=='week')return clearInterval(tickT);
+    if(new Date()>=end)return renderWeek(false);
+    const [a,b]=elapsedParts(Date.now()-w.sealedAt);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
 }
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready)renderWeek(false)});
 
 /* ---------- History (placeholder until its build step) ---------- */
 function renderHistory(){const closed=D.weeks.filter(w=>w.status==='closed');
