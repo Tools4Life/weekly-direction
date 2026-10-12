@@ -505,6 +505,22 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .pw-tags button svg{width:17px;height:17px}
 .pw-tags button.on{color:var(--tx);border-color:#CFCAC2;background:#232327}
 .pw-body{min-height:32vh}
+
+/* per-item check-off */
+.hcard{width:100%;text-align:left;color:var(--tx);font:inherit}
+.hcard .hchk{margin-left:auto;flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid #3A3A40;display:flex;align-items:center;justify-content:center;color:transparent;transition:background .2s,border-color .2s,color .2s,transform .15s}
+.hcard .hchk svg{width:14px;height:14px;stroke-width:2.6}
+.hcard.done{background:linear-gradient(90deg,rgba(232,116,59,.17) 0%,rgba(232,116,59,.05) 70%,rgba(232,116,59,.03) 100%),#18181B;border-color:rgba(232,116,59,.32)}
+.hcard.done .ic{color:var(--ac)}
+.hcard.done .hchk{background:var(--ac);border-color:var(--ac);color:#0B0B0C;animation:sqpop .4s var(--spring)}
+.hcard:active{transform:scale(.985)}
+.dose>button,.dose>div{position:relative;display:flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:11px;background:#202024;border:1px solid #2E2E33;color:var(--tx);font:inherit;text-align:left}
+.dose .dchk{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--ac);color:#0B0B0C}
+.dose .dchk svg{width:11px;height:11px;stroke-width:3}
+.dose>.done{opacity:1!important;border-color:rgba(232,116,59,.6);background:linear-gradient(180deg,rgba(232,116,59,.16),rgba(232,116,59,.06)),#202024}
+.dose>.done .dchk{display:flex;animation:sqpop .4s var(--spring)}
+.dose>.zero{opacity:.35!important}
+.dsq.part i{background:linear-gradient(to top,rgba(232,116,59,.55) var(--pf),transparent var(--pf));border-style:solid;border-color:rgba(232,116,59,.45)}
 </style>
 </head>
 <body>
@@ -739,6 +755,7 @@ async function firestoreStore(){
     putDraft:v=>F.setDoc(paths.draft,v).catch(fail),
     delDraft:()=>F.deleteDoc(paths.draft).catch(fail),
     mark:(w,k,v)=>F.setDoc(F.doc(paths.weeks,w.id),{marks:{[k]:v??F.deleteField()}},{merge:true}).catch(fail),
+    setDay:(w,k,items,v)=>F.setDoc(F.doc(paths.weeks,w.id),{done:{[k]:items},marks:{[k]:v??F.deleteField()}},{merge:true}).catch(fail),
     putPrayer:p=>{const {id,...v}=p;return F.setDoc(F.doc(paths.prayers,id),v).catch(fail)},
     delPrayer:id=>F.deleteDoc(F.doc(paths.prayers,id)).catch(fail),
     setCaf:(k,items)=>(items.length?F.setDoc(F.doc(paths.caffeine,k),{items}):F.deleteDoc(F.doc(paths.caffeine,k))).catch(fail)
@@ -758,6 +775,7 @@ function memoryStore(){
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
     putDraft:v=>{D.draft=v;emit('draft');if(m.echoReady)emit('ready')},delDraft:()=>{D.draft=null;emit('draft')},
     mark:(w,k,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
+    setDay:(w,k,items,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.done={...(x.done||{}),[k]:{...((x.done||{})[k]||{}),...items}};x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
     putPrayer:p=>{D.prayers=[p,...D.prayers.filter(x=>x.id!==p.id)].sort((a,b)=>b.created-a.created);emit('prayers')},
     delPrayer:id=>{D.prayers=D.prayers.filter(x=>x.id!==id);emit('prayers')},
     setCaf:(k,items)=>{D.caf={...D.caf,[k]:items};if(!items.length)delete D.caf[k];emit('caffeine')}};
@@ -809,11 +827,14 @@ const cafTotal=items=>items.reduce((a,b)=>a+(+b.mg||0),0);
 function addCaf(label,mg){const k=ymd(new Date());store.setCaf(k,[...(D.caf[k]||[]),{id:uid(),label,mg:Math.round(mg),t:Date.now()}])}
 // today's dose split morning / evening, in whole steps; the morning gets the larger half
 function cafSplit(mg){const st=Math.max(1,D.settings.cafStep||50),am=Math.min(mg,Math.ceil(mg/2/st)*st);return[am,mg-am]}
-function cafCard(anim){
-  const L=cafLimit(),[am,pm]=cafSplit(L.limit);
+function dayItems(w,day){const [am,pm]=cafSplit(cafLimit(day).limit);return[...w.commitments.map(c=>c.id),...(am>0?['am']:[]),...(pm>0?['pm']:[])]}
+function cafCard(anim,day,dn,can){day=day||new Date();dn=dn||{};
+  const L=cafLimit(day),[am,pm]=cafSplit(L.limit),isToday=ymd(day)===ymd(new Date()),h=new Date().getHours();
+  const dose=(k,lbl,mg,now)=>mg>0?`<${can?`button data-dose="${k}" aria-pressed="${!!dn[k]}"`:'div'} class="${now?'now':''}${dn[k]?' done':''}"><span>${lbl}</span><b>${mg}</b><small>mg</small><i class="dchk">${ico('ok')}</i></${can?'button':'div'}>`
+    :`<div class="zero"><span>${lbl}</span><b>0</b><small>mg</small></div>`;
   return`<section class="caf${anim?' in':''}" aria-label="Caffeine today">
-    <div class="cafh"><span class="lbl">Caffeine today</span><span class="cafsub">${L.next?`${L.nextLimit} mg from ${fmtDate(L.next)}`:L.limit===0?'Caffeine-free':''}</span></div>
-    ${L.limit>0?`<div class="dose"><div class="${new Date().getHours()<12?'now':''}"><span>AM</span><b>${am}</b><small>mg</small></div><div class="${new Date().getHours()>=12?'now':''}"><span>PM</span><b>${pm}</b><small>mg</small></div></div>`:`<p class="cfree">Caffeine-free. Done.</p>`}
+    <div class="cafh"><span class="lbl">Caffeine${isToday?' today':` · ${DOWL[day.getDay()]}`}</span><span class="cafsub">${L.next?`${L.nextLimit} mg from ${fmtDate(L.next)}`:L.limit===0?'Caffeine-free':''}</span></div>
+    ${L.limit>0?`<div class="dose">${dose('am','AM',am,isToday&&h<12)}${dose('pm','PM',pm,isToday&&h>=12)}</div>`:`<p class="cfree">Caffeine-free. Done.</p>`}
     ${cafLadder()}
   </section>`}
 // the wean as a journey: one segment per step; finished steps are filled (completion = color)
@@ -859,9 +880,10 @@ function renderWeek(animate){
   const [tm,ts]=elapsedParts(now-tFrom);
   const timer=due?`<div class="timer due">review due</div>`:`<div class="timer"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span><span class="dot"></span></div>`;
   const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
-  const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK;
-    return`<button class="dsq${m?' '+m:''}${fut?' fut':''}${k===todayK?' today':''}${k===selKey?' sel':''}" data-k="${k}"${fut?' disabled':''} aria-pressed="${k===selKey}" aria-label="${DOWL[d.getDay()]}: ${m==='on'?'kept':m==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
-  const tm0=selKey?marks[selKey]:undefined,cel=celebrate;celebrate=null;
+  const doneAll=w.done||{},frac=k=>{const it=dayItems(w,days.find(d=>ymd(d)===k)||new Date(k)),dn=doneAll[k]||{};return it.length?it.filter(x=>dn[x]).length/it.length:0};
+  const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK,f=!m&&!fut?frac(k):0;
+    return`<button style="--pf:${Math.round(f*100)}%" class="dsq${m?' '+m:''}${f>0&&f<1?' part':''}${fut?' fut':''}${k===todayK?' today':''}${k===selKey?' sel':''}" data-k="${k}"${fut?' disabled':''} aria-pressed="${k===selKey}" aria-label="${DOWL[d.getDay()]}: ${m==='on'?'kept':m==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
+  const tm0=selKey?marks[selKey]:undefined,cel=celebrate,selDn=selKey?(doneAll[selKey]||{}):{};celebrate=null;
   const dn=selKey===todayK?'Today':selDay?DOWL[selDay.getDay()]:'';
   const selNote=selKey&&selKey!==todayK?`<span class="selnote">${dn} · <button data-today>${habitToday?'today':'done'}</button></span>`:'';
   const pills=selKey?`<div class="pills" role="group" aria-label="${dn}">
@@ -869,13 +891,23 @@ function renderWeek(animate){
     <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="${dn}: kept">${cel&&cel.v==='on'?`<svg class="i draw" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`:ico('ok')}</button></div>`
     :!due&&now.getDay()===D.settings.closeDay?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
-    <div class="hcards${tm0==='on'?' kept':''}">${w.commitments.map((c,i)=>`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`).join('')}</div>`;
-  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${pills}${habits}${cafCard(animate)}`;
+    <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];return selKey
+      ?`<button class="hcard${on?' done':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span><i class="hchk">${ico('ok')}</i></button>`
+      :`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`}).join('')}</div>`;
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${pills}${habits}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
   el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
+  const items=selKey?dayItems(w,selDay):[];
   el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill,cur=(w.marks||{})[selKey],nv=cur===v?undefined:v;
-    celebrate=nv?{v:nv}:null;haptic();store.mark(w,selKey,nv)});
+    celebrate=nv?{v:nv}:null;haptic();
+    if(v==='on'){const all={};items.forEach(x=>all[x]=nv==='on');store.setDay(w,selKey,all,nv)}else store.mark(w,selKey,nv)});
+  // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
+  const toggleItem=k=>{const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
+    let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
+    haptic();store.setDay(w,selKey,{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
+  el.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.h));
+  el.querySelectorAll('[data-dose]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.dose));
   if(cel){const pb=el.querySelector(`[data-pill="${cel.v}"]`),sq=el.querySelector('.dsq.sel');
     if(pb){pb.classList.add('cel');if(cel.v==='on'){const r=pb.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2);
       el.querySelectorAll('.hcard').forEach((c,i)=>{c.style.animationDelay=(120+i*70)+'ms';c.classList.add('glow')})}}
