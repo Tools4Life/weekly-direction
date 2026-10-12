@@ -521,6 +521,16 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .dose>.done .dchk{display:flex;animation:sqpop .4s var(--spring)}
 .dose>.zero{opacity:.35!important}
 .dsq.part i{background:linear-gradient(to top,rgba(232,116,59,.55) var(--pf),transparent var(--pf));border-style:solid;border-color:rgba(232,116,59,.45)}
+
+/* quiet per-item checks: nothing shows until an item is done; the big check stays the main action */
+.hcard .hchk{border:0!important;background:none!important;width:20px;height:20px;color:transparent}
+.hcard.done .hchk{color:var(--ac);animation:none}
+.hcard .hchk svg{width:16px;height:16px;stroke-width:2.4}
+.hcard.done{background:linear-gradient(90deg,rgba(232,116,59,.12) 0%,rgba(232,116,59,.03) 80%),#18181B;border-color:rgba(232,116,59,.22)}
+.dose .dchk{position:static;display:none;width:auto;height:auto;margin-left:4px;background:none;color:var(--ac);align-self:center}
+.dose .dchk svg{width:13px;height:13px;stroke-width:2.6}
+.dose>.done{border-color:rgba(232,116,59,.35);background:#202024}
+.dose>.done .dchk{display:inline-flex;animation:none}
 </style>
 </head>
 <body>
