@@ -397,6 +397,24 @@ svg.draw path{stroke-dasharray:24;stroke-dashoffset:24;animation:draw .38s .08s 
 .hwp{margin:0;font-family:var(--serif);font-size:17px;line-height:1.5;white-space:pre-wrap;color:var(--tx)}
 textarea.long.dk{background:#161618;border-color:#2A2A2E;color:var(--tx);min-height:110px}
 #shWeek{max-height:90vh}
+
+/* trend line chart */
+.tchart{padding:6px 0 8px;border-bottom:1px solid var(--rule)}
+.tchart svg{display:block;overflow:visible}
+.tg{stroke:#232326;stroke-width:1}
+.tl,.tx{font-family:var(--cond);font-size:11px;letter-spacing:.04em;fill:var(--mu2)}
+.tv{font-family:var(--cond);font-size:13px;font-weight:600;fill:var(--tx)}
+.tline{fill:none;stroke:var(--ac);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:tdraw .9s .15s var(--ease) forwards}
+.tline.live{stroke-dasharray:4 5;stroke-dashoffset:0;animation:fadein .4s .9s both;opacity:.8}
+@keyframes tdraw{to{stroke-dashoffset:0}}
+@keyframes fadein{from{opacity:0}}
+.tpt{cursor:pointer;animation:fadein .35s both}
+.tpt .hit{fill:transparent}
+.tpt .dot{fill:var(--ac);stroke:var(--bg);stroke-width:2}
+.tpt.live .dot{fill:var(--bg);stroke:var(--ac);stroke-width:2}
+.tipbg{fill:#26262A;stroke:#34343A}
+.tipt{font-family:var(--cond);font-size:12px;letter-spacing:.04em;fill:var(--tx)}
+.tempty{margin:4px 0 12px;font-family:var(--serif);font-style:italic;color:var(--mu)}
 </style>
 </head>
 <body>
@@ -790,12 +808,29 @@ function weekStats(w){const days=habitDays(w),m=w.marks||{},now=ymd(new Date());
 const mini=(w,days)=>`<span class="mini">${days.map(d=>{const v=(w.marks||{})[ymd(d)];return`<i class="${v||''}"></i>`}).join('')}</span>`;
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
-  const trend=weeks.slice(0,12).reverse();
-  $('hList').innerHTML=`<div class="trend" aria-label="Weekly percentages">${trend.map((w,i)=>{const st=weekStats(w);return`<span class="tb${w.status==='active'?' live':''}" style="--h:${Math.max(4,st.pct)}%;animation-delay:${i*50}ms" title="${esc(w.focus)} ${st.pct}%"></span>`}).join('')}</div>`
+  const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
+  $('hList').innerHTML=`<div class="tchart" id="tChart"></div>`
     +weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
       return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}</span>
         <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`}).join('');
-  $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openWeekSheet(D.weeks.find(w=>w.id===b.dataset.w)))}
+  $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openWeekSheet(D.weeks.find(w=>w.id===b.dataset.w)));
+  drawTrend(trend)}
+// line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
+function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=150,L=30,R=14,T=22,B=24,n=weeks.length;
+  const pts=weeks.map((w,i)=>{const st=weekStats(w);return{w,pct:st.pct,live:w.status==='active',x:n===1?L+(W-L-R)/2:L+i*(W-L-R)/(n-1),y:T+(1-st.pct/100)*(H-T-B)}});
+  const closed=pts.filter(p=>!p.live),live=pts.find(p=>p.live),pathOf=a=>a.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const grid=[0,50,100].map(v=>{const y=T+(1-v/100)*(H-T-B);return`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="tg"/><text x="${L-8}" y="${y+4}" class="tl" text-anchor="end">${v}</text>`}).join('');
+  const last=closed[closed.length-1];
+  const labels=pts.map(p=>`<text x="${p.x}" y="${H-6}" class="tx" text-anchor="middle">${new Date(p.w.sealedAt+864e5).toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</text>`).filter((_,i)=>n<=7||i%2===(n-1)%2).join('');
+  box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Weekly percentage trend: ${pts.map(p=>p.pct+'%').join(', ')}">
+    ${grid}${closed.length>1?`<path d="${pathOf(closed)}" class="tline" pathLength="1"/>`:''}
+    ${live&&last?`<path d="M${last.x} ${last.y} L${live.x} ${live.y}" class="tline live"/>`:''}
+    ${pts.map((p,i)=>`<g class="tpt${p.live?' live':''}" data-i="${i}" style="animation-delay:${300+i*60}ms"><circle cx="${p.x}" cy="${p.y}" r="16" class="hit"/><circle cx="${p.x}" cy="${p.y}" r="4.5" class="dot"/></g>`).join('')}
+    ${last?`<text x="${last.x}" y="${last.y-11}" class="tv" text-anchor="middle">${last.pct}%</text>`:''}
+    ${labels}<g id="tTip"></g></svg>`;
+  box.querySelectorAll('.tpt').forEach(g=>g.onclick=()=>{const p=pts[+g.dataset.i],tx=Math.min(Math.max(p.x,L+40),W-R-40),ty=Math.max(14,p.y-34);
+    $('tTip').innerHTML=`<rect x="${tx-44}" y="${ty-14}" width="88" height="24" rx="7" class="tipbg"/><text x="${tx}" y="${ty+2}" class="tipt" text-anchor="middle">${esc(p.w.focus).slice(0,10)} · ${p.pct}%</text>`;
+    clearTimeout(drawTrend.t);drawTrend.t=setTimeout(()=>{const t=$('tTip');if(t)t.innerHTML=''},2600)})}
 function openWeekSheet(w){if(!w)return;const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',m=w.marks||{};
   const c0=cafLimit(st.days[0]||s0).limit,c1=cafLimit(st.days[st.days.length-1]||e).limit;
   $('hwBody').innerHTML=`<div class="cond hdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h3 id="hwFocus" class="hwf">${esc(w.focus)}</h3>
