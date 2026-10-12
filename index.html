@@ -10,7 +10,7 @@
 <meta name="theme-color" content="#0B0B0C" id="themeColor">
 <title>Weekly Direction</title>
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png?v=2">
 <link rel="icon" href="icon-192.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -498,8 +498,6 @@ nav.bar svg.ph{width:25px;height:25px}
   <div class="card"><div class="it"><div class="seg" id="stTimer" style="width:100%"><button data-tm="week" style="flex:1">Each new week</button><button data-tm="fixed" style="flex:1">A set date</button></div></div>
     <div class="it" id="stFromRow"><label class="grow" for="stFrom">Date</label><input class="field" type="datetime-local" id="stFrom" style="width:auto;min-height:40px;padding:6px 10px;font-size:16px;background:var(--card2)"></div></div>
   <p class="mu" style="font-size:14px;margin:10px 4px" id="stTimerNote"></p>
-  <div class="lbl group">Habit library</div>
-  <div class="card"><div class="it"><div class="grow"><span id="stLib"></span><small>Add, edit and remove habits on the plan screen. Long-press one to edit it.</small></div></div></div>
 </section>
 
 <!-- Plan the week -->
@@ -895,7 +893,7 @@ function renderSettings(){renderSettingsAccount();const s=D.settings,act=documen
     +`<div class="cfl${L.limit===0&&!L.next?' cur':''}"><b>0 mg</b><span>from ${fmtDate(addDays(cafFromDate(),cafPlan().reduce((a,l)=>a+l.len,0)))}</span><small></small></div>`;
   const aw=active();$('stWeekBox').hidden=!aw;
   if(aw){const resuming=D.draft&&D.draft.replan===aw.id;$('stReplanT').innerHTML=`${resuming?'Resume re-planning':'Re-plan this week'}<small>Change the word, habits or notes, then seal again. Day marks are kept.</small>`}
-  $('stLib').textContent=D.library.map(c=>c.name).join(', ')||'No habits yet'}
+}
 $('stDone').onclick=()=>show('week');
 $('stReplan').onclick=()=>{const aw=active();if(aw)openPlan(aw)};
 $('stDay').onchange=e=>store.setSettings({closeDay:+e.target.value});
