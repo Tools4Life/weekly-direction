@@ -415,6 +415,14 @@ textarea.long.dk{background:#161618;border-color:#2A2A2E;color:var(--tx);min-hei
 .tipbg{fill:#26262A;stroke:#34343A}
 .tipt{font-family:var(--cond);font-size:12px;letter-spacing:.04em;fill:var(--tx)}
 .tempty{margin:4px 0 12px;font-family:var(--serif);font-style:italic;color:var(--mu)}
+
+/* day squares select a day; pills act on it */
+#sWeek .dsq i{transition:background .15s,border-color .15s,transform .12s,box-shadow .15s}
+#sWeek .dsq.sel i{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #F2EFEA}
+#sWeek .dsq.sel span{color:var(--tx)}
+#sWeek .dsq.today:not(.sel) span{color:var(--mu)}
+.selnote{font-size:14px;color:var(--mu);white-space:nowrap}
+.selnote button{color:var(--ac);font-size:14px;padding:4px 0}
 </style>
 </head>
 <body>
@@ -678,7 +686,7 @@ function setMode(m){document.documentElement.dataset.mode=m;$('themeColor').cont
 function show(name){tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hidden=k!==name);
   setMode($(SCREENS[name]).dataset.mode);$('bar').hidden=name==='plan'||name==='settings';
   document.querySelectorAll('nav.bar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
-  if(name==='week')renderWeek(true);if(name==='prayer')renderPrayer(true);if(name==='history')renderHistory();if(name==='settings')renderSettings();
+  if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer')renderPrayer(true);if(name==='history')renderHistory();if(name==='settings')renderSettings();
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
   scrollTo(0,0)}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
@@ -741,7 +749,7 @@ function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);if
 const NEXT={undefined:'on',on:'drift',drift:undefined};
 // light haptic: iOS 18+ Safari ticks when a native switch toggles; elsewhere use vibrate if present
 function haptic(){try{if(navigator.vibrate){navigator.vibrate(12);return}$('hapIn').click()}catch(e){}}
-let celebrate=null; // {v:'on'|'drift'} set on a pill tap, consumed by the next render
+let celebrate=null,selK=null; // selK: the day the pills act on (null = today) // {v:'on'|'drift'} set on a pill tap, consumed by the next render
 function burst(x,y){if(RM.matches)return;const fx=$('fx'),n=10;
   for(let i=0;i<n;i++){const d=document.createElement('i'),a=(Math.PI*2*i/n)+(Math.random()-.5)*.5,r=34+Math.random()*26;
     d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--dx',Math.cos(a)*r+'px');d.style.setProperty('--dy',Math.sin(a)*r+'px');
@@ -761,21 +769,25 @@ function renderWeek(animate){
   const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:w.sealedAt;
   const [tm,ts]=elapsedParts(now-tFrom);
   const timer=due?`<div class="timer due">review due</div>`:`<div class="timer"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span><span class="dot"></span></div>`;
+  const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
   const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK;
-    return`<button class="dsq${m?' '+m:''}${fut?' fut':''}${k===todayK?' today':''}" data-k="${k}"${fut?' disabled':''} aria-label="${DOWL[d.getDay()]}: ${m==='on'?'kept':m==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
-  const tm0=marks[todayK],cel=celebrate;celebrate=null;
-  const pills=!due&&habitToday?`<div class="pills" role="group" aria-label="Today">
-    <button class="pill x${tm0==='drift'?' on':''}" data-pill="drift" aria-pressed="${tm0==='drift'}" aria-label="Today: missed">${ico('x')}</button>
-    <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="Today: kept">${cel&&cel.v==='on'?`<svg class="i draw" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`:ico('ok')}</button></div>`
+    return`<button class="dsq${m?' '+m:''}${fut?' fut':''}${k===todayK?' today':''}${k===selKey?' sel':''}" data-k="${k}"${fut?' disabled':''} aria-pressed="${k===selKey}" aria-label="${DOWL[d.getDay()]}: ${m==='on'?'kept':m==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
+  const tm0=selKey?marks[selKey]:undefined,cel=celebrate;celebrate=null;
+  const dn=selKey===todayK?'Today':selDay?DOWL[selDay.getDay()]:'';
+  const selNote=selKey&&selKey!==todayK?`<span class="selnote">${dn} · <button data-today>${habitToday?'today':'done'}</button></span>`:'';
+  const pills=selKey?`<div class="pills" role="group" aria-label="${dn}">
+    <button class="pill x${tm0==='drift'?' on':''}" data-pill="drift" aria-pressed="${tm0==='drift'}" aria-label="${dn}: missed">${ico('x')}</button>
+    <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="${dn}: kept">${cel&&cel.v==='on'?`<svg class="i draw" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`:ico('ok')}</button></div>`
     :!due&&now.getDay()===D.settings.closeDay?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
-  const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}</div>
+  const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
     <div class="hcards">${w.commitments.map((c,i)=>`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`).join('')}</div>`;
   el.innerHTML=`<div class="wtop"><span class="cond wk-range">${fmtRange(start,end)}</span>${gearBtn}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}${squares}${pills}${habits}${cafCard(animate)}`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
-  el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
-  el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill,cur=(w.marks||{})[todayK],nv=cur===v?undefined:v;
-    celebrate=nv?{v:nv}:null;haptic();store.mark(w,todayK,nv)});
-  if(cel){const pb=el.querySelector(`[data-pill="${cel.v}"]`),sq=el.querySelector('.dsq.today');
+  el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
+  el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
+  el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill,cur=(w.marks||{})[selKey],nv=cur===v?undefined:v;
+    celebrate=nv?{v:nv}:null;haptic();store.mark(w,selKey,nv)});
+  if(cel){const pb=el.querySelector(`[data-pill="${cel.v}"]`),sq=el.querySelector('.dsq.sel');
     if(pb){pb.classList.add('cel');if(cel.v==='on'){const r=pb.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2);
       el.querySelectorAll('.hcard').forEach((c,i)=>{c.style.animationDelay=(120+i*70)+'ms';c.classList.add('glow')})}}
     if(sq)sq.classList.add('pop')}
@@ -790,7 +802,7 @@ function bindCaf(el){
 
 
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready)renderWeek(false)});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready){selK=null;renderWeek(false)}});
 
 /* ---------- Prayer (dark) ---------- */
 let PE=null;
