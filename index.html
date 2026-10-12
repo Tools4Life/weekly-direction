@@ -531,6 +531,19 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .dose .dchk svg{width:13px;height:13px;stroke-width:2.6}
 .dose>.done{border-color:rgba(232,116,59,.35);background:#202024}
 .dose>.done .dchk{display:inline-flex;animation:none}
+/* fill-only: a done habit or dose fills its card; no check marks */
+.hcard .hchk,.dose .dchk{display:none!important}
+.hcard{position:relative;overflow:hidden}
+.hcard::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(232,116,59,.30),rgba(232,116,59,.18));transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease);pointer-events:none}
+.hcard>*{position:relative}
+.hcard.done{background:#18181B!important;border-color:rgba(232,116,59,.5)!important}
+.hcard.done::before{transform:scaleX(1)}
+.hcard.done .nm{color:#FFF}
+.dose>button,.dose>div{overflow:hidden}
+.dose>button::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(232,116,59,.30),rgba(232,116,59,.18));transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
+.dose>button>*{position:relative}
+.dose>.done{border-color:rgba(232,116,59,.5)!important}
+.dose>.done::before{transform:scaleX(1)}
 </style>
 </head>
 <body>
