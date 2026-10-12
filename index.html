@@ -457,6 +457,14 @@ nav.bar button:active{opacity:.6}
 .tline2 .wk-range{font-size:12px;letter-spacing:.18em;color:var(--mu2);white-space:nowrap}
 #sPrayer .pradd{margin-top:16px}
 #hList{margin-top:16px!important}
+
+/* steadier tab bar: instant highlight, no slide on screen change, no rubber-band bounce of the whole app */
+html,body{overscroll-behavior:none}
+nav.bar button{transition:none!important}
+nav.bar button:active{opacity:1}
+nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+@keyframes enter{from{opacity:0}to{opacity:1}}
+.scr.enter{animation:enter .22s ease both}
 </style>
 </head>
 <body>
