@@ -476,6 +476,22 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .pvb{font-family:var(--serif);font-size:19px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding-bottom:12px}
 .pet{font-family:var(--serif);font-size:22px!important;background:#161618;border-color:#2A2A2E}
 .peb{margin-top:10px;min-height:38vh!important;font-size:18px!important;line-height:1.6!important}
+
+/* prayer: name it, then go deeper; one writing surface */
+.addp{width:44px;height:44px;margin-right:-6px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--onAc);background:var(--ac);flex:none;box-shadow:0 4px 14px rgba(232,116,59,.25)}
+.addp svg.i{width:22px;height:22px;stroke-width:2}
+.addp:active{transform:scale(.94)}
+#prList{margin-top:14px}
+.prow span{font-size:21px}
+.prempty{margin-top:18px;font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.5;color:var(--mu)}
+.prempty b{font-style:normal;color:var(--ac)}
+.pvdone{color:var(--ac);font-size:16px;font-weight:600;padding:6px 0 6px 12px}
+.pw-sub{display:block;width:100%;margin-top:4px;padding:0;border:0;background:none;resize:none;overflow:hidden;outline:none;color:var(--tx);
+  font-family:var(--serif);font-size:30px;line-height:1.2;letter-spacing:-.01em}
+.pw-body{display:block;width:100%;min-height:40vh;margin-top:14px;padding:0;border:0;background:none;resize:none;outline:none;color:var(--tx);
+  font-family:var(--serif);font-size:19px;line-height:1.6}
+.pw-sub::placeholder,.pw-body::placeholder{color:#55524D}
+.pw-del{display:block;margin:10px auto 0}
 </style>
 </head>
 <body>
@@ -498,8 +514,7 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 
 <!-- Prayer -->
 <section class="scr" id="sPrayer" data-mode="dark" hidden>
-  <div class="trow"><h2 class="ttl">Prayer</h2></div>
-  <form class="pradd" id="prForm" autocomplete="off"><input class="field" id="prIn" maxlength="240" placeholder="New prayer title" enterkeyhint="done"><button class="btn pri sq" type="submit" aria-label="Add prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></form>
+  <div class="trow"><h2 class="ttl">Prayer</h2><button class="addp" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
   <div id="prList"></div>
 </section>
 
@@ -578,12 +593,11 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 <!-- notes sheet (dark) -->
 <div class="sheet dark" id="shThoughts" role="dialog" aria-modal="true"><div class="grab"></div><h3>This week</h3><p class="thoughts" id="thText"></p></div>
 <!-- prayer edit (dark) -->
-<div class="sheet dark prsheet" id="shPrayer" role="dialog" aria-modal="true" aria-labelledby="pvT"><div class="grab"></div>
-  <div id="pView"><div class="pvtop"><span class="cond pvdate" id="pvDate"></span><button class="pvedit" id="pvEdit">Edit</button></div>
-    <h3 class="pvt" id="pvT"></h3><div class="pvb" id="pvB"></div></div>
-  <div id="pEdit" hidden><input class="field pet" id="peTitle" maxlength="120" placeholder="Title" autocomplete="off">
-    <textarea class="long dk peb" id="peBody" placeholder="Write the prayer…"></textarea>
-    <div class="acts"><button class="btn pri" id="peSave">Save</button><button class="danger" id="peDel">Remove from list</button></div></div></div>
+<div class="sheet dark prsheet" id="shPrayer" role="dialog" aria-modal="true" aria-label="Prayer"><div class="grab"></div>
+  <div class="pvtop"><span class="cond pvdate" id="pvDate"></span><button class="pvdone" id="pvDone">Done</button></div>
+  <textarea class="pw-sub" id="peTitle" rows="1" maxlength="120" placeholder="What are you praying for?"></textarea>
+  <textarea class="pw-body" id="peBody" placeholder="Go deeper. What exactly are you asking for, and why does it matter to you?"></textarea>
+  <button class="danger pw-del" id="peDel">Remove from list</button></div>
 <!-- other caffeine (dark) -->
 <div class="sheet dark" id="shCaf" role="dialog" aria-modal="true" aria-labelledby="cfT"><div class="grab"></div><h3 id="cfT">Add caffeine</h3>
   <input class="field" id="cfName" maxlength="40" placeholder="What (e.g. Iced coffee)" autocomplete="off">
@@ -759,7 +773,7 @@ function crossTo(name){
 /* ---------- sheets ---------- */
 let openSheetEl=null;
 function openSheet(el){openSheetEl=el;$('scrim').classList.add('on');el.classList.add('on')}
-function closeSheet(){if(!openSheetEl)return;openSheetEl.classList.remove('on');$('scrim').classList.remove('on');openSheetEl=null}
+function closeSheet(){if(!openSheetEl)return;const el=openSheetEl;el.classList.remove('on');$('scrim').classList.remove('on');openSheetEl=null;if(el.onClose)el.onClose()}
 $('scrim').onclick=closeSheet;
 document.querySelectorAll('.sheet').forEach(sh=>{let y0=null,dy=0;
   sh.addEventListener('touchstart',e=>{if(sh.scrollTop>0||e.target.closest('input,textarea,select,.icons'))return;y0=e.touches[0].clientY;dy=0;sh.style.transition='none'},{passive:true});
@@ -866,24 +880,28 @@ function bindCaf(el){
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready){selK=null;renderWeek(false)}});
 
 /* ---------- Prayer (dark) ---------- */
-let PE=null;
+let PE=null,peNew=false;
 const firstLine=t=>(t||'').trim().split(/\n+/)[0]||'';
 function renderPrayer(anim){
-  $('prList').innerHTML=D.prayers.length?D.prayers.map((p,i)=>`<button class="prow${anim?' in':''}" data-p="${p.id}" style="animation-delay:${Math.min(i,8)*40}ms"><span>${esc(p.text)}</span>${p.body?`<em>${esc(firstLine(p.body))}</em>`:''}<small>${fmtDate(new Date(p.created))}</small></button>`).join('')
-    :`<p class="mu" style="font-style:italic;margin-top:18px">Nothing on the list yet. Give a prayer a title, tap +, then write it out.</p>`;
-  $('prList').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>openPrayer(b.dataset.p,false))}
-// one prayer: read it first; Edit switches to title + body fields
-function openPrayer(id,edit){PE=D.prayers.find(p=>p.id===id)||PE;if(!PE)return;
-  $('pvDate').textContent=fmtDate(new Date(PE.created)).toUpperCase()+(PE.edited?' · EDITED':'');$('pvT').textContent=PE.text;
-  $('pvB').innerHTML=PE.body?esc(PE.body):'<span class="mu" style="font-style:italic">No prayer written yet. Tap Edit to write it.</span>';
-  $('peTitle').value=PE.text;$('peBody').value=PE.body||'';
-  $('pView').hidden=!!edit;$('pEdit').hidden=!edit;openSheet($('shPrayer'));if(edit)setTimeout(()=>$('peBody').focus(),340)}
-$('pvEdit').onclick=()=>{$('pView').hidden=true;$('pEdit').hidden=false;setTimeout(()=>$('peBody').focus(),60)};
-$('prForm').onsubmit=e=>{e.preventDefault();const t=$('prIn').value.trim();if(!t)return;const p={id:uid(),text:t,body:'',created:Date.now()};
-  store.putPrayer(p);$('prIn').value='';$('prIn').blur();PE=p;setTimeout(()=>openPrayer(p.id,true),60)};
-$('peSave').onclick=()=>{const t=$('peTitle').value.trim(),bd=$('peBody').value.replace(/\s+$/,'');if(!PE)return;if(!t){$('peTitle').focus();return}
-  const np={...PE,text:t,body:bd};if(t!==PE.text||(PE.body&&bd!==PE.body))np.edited=Date.now();store.putPrayer(np);PE=np;openPrayer(np.id,false)};
-$('peDel').onclick=()=>{if(PE&&confirm('Remove this prayer from your list?')){store.delPrayer(PE.id);PE=null;closeSheet()}};
+  $('prList').innerHTML=D.prayers.length?D.prayers.map((p,i)=>`<button class="prow${anim?' in':''}" data-p="${p.id}" style="animation-delay:${Math.min(i,8)*40}ms"><span>${esc(p.text)}</span>${p.body?`<em>${esc(firstLine(p.body))}</em>`:''}</button>`).join('')
+    :`<p class="prempty">What are you praying for? Tap <b>+</b> to name it, then go as deep as you want.</p>`;
+  $('prList').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>openPrayer(D.prayers.find(p=>p.id===b.dataset.p)))}
+const growSub=()=>{const t=$('peTitle');t.style.height='auto';t.style.height=t.scrollHeight+'px'};
+// one surface for reading and writing; it saves itself when you leave it
+function openPrayer(p){peNew=!p;PE=p||{id:uid(),text:'',body:'',created:Date.now()};
+  $('pvDate').textContent=peNew?'NEW PRAYER':fmtDate(new Date(PE.created)).toUpperCase();
+  $('peTitle').value=PE.text;$('peBody').value=PE.body||'';$('peDel').hidden=peNew;
+  openSheet($('shPrayer'));setTimeout(growSub,0);if(peNew)setTimeout(()=>$('peTitle').focus(),340)}
+function savePrayer(){if(!PE)return;const t=$('peTitle').value.trim(),bd=$('peBody').value.replace(/\s+$/,'');
+  if(!t&&!bd){PE=null;return}
+  const np={...PE,text:t||firstLine(bd).slice(0,60),body:bd};
+  if(np.text!==PE.text||bd!==(PE.body||'')){if(!peNew&&PE.body)np.edited=Date.now();store.putPrayer(np)}PE=null}
+$('shPrayer').onClose=savePrayer;
+$('pvDone').onclick=()=>closeSheet();
+$('prNew').onclick=()=>openPrayer(null);
+$('peTitle').addEventListener('input',growSub);
+$('peTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('peBody').focus()}});
+$('peDel').onclick=()=>{if(PE&&!peNew&&confirm('Remove this prayer from your list?')){store.delPrayer(PE.id);PE=null;closeSheet()}};
 
 /* ---------- History (placeholder until its build step) ---------- */
 function weekStats(w){const days=habitDays(w),m=w.marks||{},now=ymd(new Date());const kept=days.filter(d=>m[ymd(d)]==='on').length,past=days.filter(d=>ymd(d)<=now).length;
