@@ -1,5 +1,5 @@
 // Weekly Direction service worker: lets the home-screen app open with no signal.
-const CACHE='wd-v25';
+const CACHE='wd-v26';
 const FB='https://www.gstatic.com/firebasejs/10.12.2/';
 const SHELL=['./','./index.html','./manifest.json','./apple-touch-icon.png','./icon-192.png','./icon-512.png'];
 const SDK=[FB+'firebase-app.js',FB+'firebase-auth.js',FB+'firebase-firestore.js'];
