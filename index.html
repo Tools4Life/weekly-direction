@@ -583,7 +583,7 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .lifer{position:fixed;inset:0;z-index:96;background:#0B0B0C;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transition:opacity .3s ease}
 .lifer.on{opacity:1}
 .lifer .cx{position:fixed;top:calc(var(--st) + 12px);right:12px;z-index:2;background:rgba(11,11,12,.8);border-radius:50%}
-.lrin{max-width:34em;margin:0 auto;padding:calc(var(--st) + 7vh) max(22px,6vw) calc(var(--sb) + 14vh)}
+.lrin{max-width:34em;margin:0 auto;padding:calc(var(--st) + 12vh) max(22px,6vw) calc(var(--sb) + 14vh)}
 .lrsince{display:flex;flex-direction:column;align-items:center;margin-bottom:6vh;font-family:var(--cond);font-variant-numeric:tabular-nums}
 .lrsince .lrd{font-size:16px;letter-spacing:.14em;color:var(--mu)}
 .lrsince .lrt2{font-size:clamp(40px,12vw,54px);font-weight:500;line-height:1;letter-spacing:.02em;color:var(--tx)}
@@ -719,7 +719,7 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 </div>
 <div class="lifer" id="lifeR" hidden role="dialog" aria-modal="true" aria-label="Life prayer">
   <button class="cx" id="lrClose" aria-label="Close">&times;</button>
-  <div class="lrin"><div class="lrsince" id="lrSince"></div><div id="lrBody"></div></div></div>
+  <div class="lrin"><div id="lrBody"></div></div></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -1046,7 +1046,7 @@ const PR_ICONS=[['compass','Direction'],['family','Family'],['heart','Relationsh
 const firstLine=t=>(t||'').trim().split(/\n+/)[0]||'';
 function renderPrayer(anim){
   const life=D.prayers.find(p=>p.pinned),rest=D.prayers.filter(p=>!p.pinned);
-  $('prLife').innerHTML=life?`<button class="lifecard${anim?' in':''}" id="lifeOpen"><span class="cond lifelbl">Life prayer</span><b>${esc(life.text)}</b><span class="lifesince" id="lifeSince">${life.since?sinceDays(life.since):''}</span></button>`
+  $('prLife').innerHTML=life?`<button class="lifecard${anim?' in':''}" id="lifeOpen"><span class="cond lifelbl">Life prayer</span><b>${esc(life.text)}</b></button>`
     :`<button class="lifecard empty" id="lifeAdd"><span class="cond lifelbl">Life prayer</span><b>Add the prayer that covers your whole life</b></button>`;
   if($('lifeOpen'))$('lifeOpen').onclick=()=>openLife(life);
   if($('lifeAdd'))$('lifeAdd').onclick=()=>openPrayer(null,{pinned:true});
@@ -1078,8 +1078,6 @@ const sinceDays=t=>{const d=Math.floor((Date.now()-t)/864e5);return`${d} ${d===1
 let lifeTick=null,lifeLock=null;
 function openLife(p){if(!p)return;const paras=(p.body||'').split(/\n{2,}/).filter(x=>x.trim());
   $('lrBody').innerHTML=`<h1 class="lrt">${esc(p.text)}</h1><hr class="lrrule">`+paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')+`<div class="lramen">AMEN</div><button class="lrrev" id="lrRev">Revise</button>`;
-  const ctr=()=>{if(!p.since){$('lrSince').textContent='';return}const t=Math.max(0,Math.floor((Date.now()-p.since)/1e3)),d=Math.floor(t/86400);$('lrSince').innerHTML=`<span class="lrd">${d} ${d===1?'day':'days'}</span><span class="lrt2">${pad(Math.floor(t%86400/3600))}:${pad(Math.floor(t%3600/60))}:${pad(t%60)}</span>`};
-  ctr();clearInterval(lifeTick);lifeTick=setInterval(ctr,1000);
   $('lifeR').hidden=false;$('lifeR').scrollTop=0;requestAnimationFrame(()=>$('lifeR').classList.add('on'));
   try{if('wakeLock' in navigator)navigator.wakeLock.request('screen').then(l=>lifeLock=l).catch(()=>{})}catch(e){}
   $('lrRev').onclick=()=>{if(confirm('Revise your life prayer?')){closeLife();setTimeout(()=>openPrayer(p),320)}}}
