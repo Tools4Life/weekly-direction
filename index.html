@@ -74,7 +74,17 @@ nav.bar svg.i{width:24px;height:24px}
 .gh svg.i{width:16px;height:16px}
 .grp .row:last-child{border-bottom:0}
 .rows.tight .grp+.grp{margin-top:14px}
-.wkhd{margin-top:34px;display:flex;align-items:center;gap:4px;min-height:44px;color:var(--mu);width:auto}
+.wkbar{margin-top:34px;display:flex;align-items:center;justify-content:space-between}
+.fastp~.wkbar{margin-top:14px}
+.strip{display:grid;grid-template-columns:repeat(7,11px);gap:5px;flex:none}
+.strip i{width:11px;height:11px;border-radius:3px;background:#1E1E21;box-sizing:border-box}
+.strip i.p{background:#CFCAC2}
+.row.fast .strip i.p{background:var(--ac)}
+.strip i.t{outline:1.5px solid var(--mu);outline-offset:1.5px}
+.strip.lt b{font-family:var(--cond);font-weight:500;font-size:11px;text-align:center;color:var(--mu2);width:11px}
+.strip.lt b.t{color:var(--tx)}
+.row.off .nm b{color:var(--mu)}.row.off .ic{opacity:.6}
+.wkhd{display:flex;align-items:center;gap:4px;min-height:44px;color:var(--mu);width:auto}
 .wkhd svg.i{width:16px;height:16px}
 .row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--rule)}
 .row .ic{color:var(--mu);display:flex}
@@ -116,7 +126,6 @@ nav.bar svg.i{width:24px;height:24px}
 .fastp.grow{animation:grow .6s var(--spring) both}
 @keyframes grow{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
 .rows.tight{margin-top:0}
-.fastp~.wkhd{margin-top:14px}
 .row.small{padding:11px 0}.row.small .nm b{font-size:16px;color:#C9C3BA}.row.small .val{font-size:14px}
 /* settings */
 .set h2{margin:0 0 24px;font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em}
@@ -162,8 +171,8 @@ select.field{appearance:none;-webkit-appearance:none;min-height:40px;padding:6px
 .step button{width:40px;height:36px;font-size:20px;color:var(--tx)}
 .step button:disabled{opacity:.3}
 .step span{min-width:70px;text-align:center;font-family:var(--cond);font-size:15px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
-.dows{display:flex;gap:4px;flex-wrap:wrap}
-.dows button{width:36px;height:34px;border-radius:9px;border:1px solid var(--line);font-family:var(--cond);font-size:14px;letter-spacing:.04em;color:var(--mu);background:var(--bg)}
+.dows{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:100%;max-width:300px}
+.dows button{width:100%;height:36px;border-radius:9px;border:1px solid var(--line);font-family:var(--cond);font-size:14px;letter-spacing:.04em;color:var(--mu);background:var(--bg)}
 .dows button.on{background:var(--tx);border-color:var(--tx);color:var(--bg)}
 .tag{font-family:var(--cond);font-size:13px;letter-spacing:.14em;color:var(--mu)}
 .sphere{margin-top:22px}
@@ -350,8 +359,11 @@ const SEED=[
  ['work','On time to every site','frequency',5,'clock'],['work','Focused work blocks','frequency',5,'target'],['work','End-of-day performance reflection','frequency',5,'pen'],['work','BuilderTrend seminar','task',null,'cap']
 ];
 const settingLabel=c=>c.type==='frequency'?`${c.target} ${c.target===1?'DAY':'DAYS'}`:c.type==='fixed'?(c.days||[]).slice().sort().map(d=>DOWS[d]).join(' · ')||'PICK DAY':c.type==='abstain'?'ABSTAIN':'TASK';
+// a starting spread for "N days a week", Sun=0: the user then moves days around in the tray
+const SPREAD={1:[1],2:[1,4],3:[1,3,5],4:[1,2,4,5],5:[1,2,3,4,5],6:[1,2,3,4,5,6],7:[0,1,2,3,4,5,6]};
+const spread=n=>SPREAD[Math.min(7,Math.max(1,+n||5))].slice();
 const fromChip=ch=>({id:uid(),chipId:ch.id||null,sphere:ch.sphere,name:ch.name,type:ch.type,icon:ch.icon,
-  target:ch.type==='frequency'?(+ch.default||5):null,days:ch.type==='fixed'?(Array.isArray(ch.default)&&ch.default.length?ch.default.slice():[new Date().getDay()]):null,outcome:null});
+  target:ch.type==='frequency'?spread(ch.default).length:null,days:ch.type==='frequency'?spread(ch.default):ch.type==='fixed'?(Array.isArray(ch.default)&&ch.default.length?ch.default.slice():[new Date().getDay()]):null,outcome:null});
 
 /* time helpers */
 const pad=n=>String(n).padStart(2,'0');
@@ -490,16 +502,20 @@ function renderWeek(animate){
   const ask=askK?`<div class="ask"><span class="lbl">${askL}</span><div class="askb"><button class="btn sm pri" data-ask="on" data-k="${askK}">On course</button><button class="btn sm ghost" data-ask="drift" data-k="${askK}">Drifted</button></div></div>`:'';
   const grouped=list=>{let i=0;return[...SPHERES,ONCE].map(sp=>{const g=list.filter(c=>(SPHERES.some(x=>x.id===c.sphere)?c.sphere:'once')===sp.id);if(!g.length)return'';
     return`<div class="grp"><div class="gh${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">${ico(sp.icon)}<span>${sp.id==='once'?'One-offs':sp.name}</span></div>${g.map(c=>row(c,i++,!!fast)).join('')}</div>`}).join('')};
-  const row=(c,i,small)=>`<div class="row${small?' small':''}${isFast(c)?' fast':''}${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">
-      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b></span><span class="val">${settingLabel(c)}</span></div>`;
+  const dow=now.getDay(),hasDays=c=>(c.type==='frequency'||c.type==='fixed')&&Array.isArray(c.days)&&c.days.length;
+  const strip=c=>`<span class="strip" aria-label="${c.days.slice().sort().map(d=>DOWL[d]).join(', ')}">${DOW.map((_,d)=>`<i class="${c.days.includes(d)?'p':''}${d===dow&&!due?' t':''}"></i>`).join('')}</span>`;
+  const off=c=>!due&&hasDays(c)&&!c.days.includes(dow);
+  const row=(c,i,small)=>`<div class="row${small?' small':''}${isFast(c)?' fast':''}${off(c)?' off':''}${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">
+      <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b></span>${hasDays(c)?strip(c):`<span class="val">${settingLabel(c)}</span>`}</div>`;
+  const letters=`<span class="strip lt" aria-hidden="true">${DOW.map((l,d)=>`<b class="${d===dow&&!due?'t':''}">${l}</b>`).join('')}</span>`;
   const fname=fast?fast.name.toUpperCase():'';
   el.innerHTML=fast
    ?`<div class="fhead"><span class="ffocus">${esc(w.focus)}</span>${timer}</div>
      <section class="fastp${animate?' grow':''}" aria-label="${esc(fast.name)} today"><div class="ftop"><span class="cond">${DOWL[now.getDay()].toUpperCase()}</span>${ico(fast.icon||'moon')}</div>
        <div class="fname" style="font-size:${Math.max(30,Math.min(132,Math.floor(Math.min(innerWidth,560)*.78/(fname.length*.62))))}px">${esc(fname)}</div></section>
-     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows tight">${grouped(rest)}</div>`
+     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div><div class="rows tight">${grouped(rest)}</div>`
    :`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}
-     ${squares}${ask}${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}<div class="rows">${grouped(rest)}</div>`;
+     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div><div class="rows">${grouped(rest)}</div>`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
   el.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>store.mark(w,b.dataset.k,b.dataset.ask));
@@ -533,7 +549,7 @@ $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything sta
 let P=null,saveT=null;
 function openPlan(){
   const d=D.draft&&D.draft.step==='plan'?D.draft:null,first=!D.weeks.length;
-  P={step:'plan',focus:d?.focus||'',tray:d?.tray?d.tray.map(c=>({...c})):[],thoughts:d?.thoughts||'',start:d?.start||(first?lastClose().getTime():null),first};
+  P={step:'plan',focus:d?.focus||'',tray:d?.tray?d.tray.map(c=>c.type==='frequency'&&!Array.isArray(c.days)?{...c,days:spread(c.target),target:spread(c.target).length}:{...c}):[],thoughts:d?.thoughts||'',start:d?.start||(first?lastClose().getTime():null),first};
   $('plFocus').value=P.focus;$('plThoughts').value=P.thoughts;
   $('plStartBox').hidden=!first;if(first)$('plStart').value=localInput(new Date(P.start));
   $('plProg').hidden=first;$('plTitle').textContent=first?'Plan your first week':'Plan the next week';
@@ -549,17 +565,16 @@ $('plLeave').onclick=()=>{if(P){clearTimeout(saveT);if(P.focus||P.tray.length||P
 
 function renderTray(){const t=$('plTray');$('plCount').textContent=P.tray.length;t.classList.toggle('full',P.tray.length>7);
   if(!P.tray.length){t.innerHTML='<div class="empty">Tap a chip below to add it.</div>';return}
-  t.innerHTML=P.tray.map(c=>`<div class="tiw${c.id===P.justAdded?' in':''}" data-id="${c.id}"><div class="ti"><span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm">${esc(c.name)}</span>
+  t.innerHTML=P.tray.map(c=>`<div class="tiw${c.id===P.justAdded?' in':''}" data-id="${c.id}"><div class="ti"><span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm">${esc(c.name)}</span>${c.type==='frequency'?`<span class="tag">${c.days.length} ${c.days.length===1?'DAY':'DAYS'}</span>`:''}
     <button class="rm" data-rm aria-label="Remove ${esc(c.name)}">${ico('x')}</button></div>${trayControl(c)}</div>`).join('');P.justAdded=null}
 function trayControl(c){
-  if(c.type==='frequency')return`<div class="ti set"><div class="step"><button data-dec aria-label="Fewer days"${c.target<=1?' disabled':''}>−</button><span>${c.target} ${c.target===1?'DAY':'DAYS'}</span><button data-inc aria-label="More days"${c.target>=7?' disabled':''}>+</button></div></div>`;
-  if(c.type==='fixed')return`<div class="ti set"><div class="dows">${DOW.map((d,i)=>`<button data-day="${i}" class="${c.days.includes(i)?'on':''}" aria-label="${DOWL[i]}" aria-pressed="${c.days.includes(i)}">${d}</button>`).join('')}</div></div>`;
+  if(c.type==='frequency'||c.type==='fixed')return`<div class="ti set"><div class="dows">${DOW.map((d,i)=>`<button data-day="${i}" class="${c.days.includes(i)?'on':''}" aria-label="${DOWL[i]}" aria-pressed="${c.days.includes(i)}">${d}</button>`).join('')}</div></div>`;
   return`<div class="ti set"><span class="tag">${c.type==='abstain'?'ABSTAIN ALL WEEK':'ONE-TIME TASK'}</span></div>`}
 $('plTray').addEventListener('click',e=>{const w=e.target.closest('.tiw');if(!w)return;const c=P.tray.find(x=>x.id===w.dataset.id);if(!c)return;
   if(e.target.closest('[data-rm]')){P.tray=P.tray.filter(x=>x!==c);renderTray();renderSpheres();updateSeal();saveDraft();return}
   if(e.target.closest('[data-inc]'))c.target=Math.min(7,c.target+1);
   else if(e.target.closest('[data-dec]'))c.target=Math.max(1,c.target-1);
-  else{const b=e.target.closest('[data-day]');if(!b)return;const d=+b.dataset.day;if(c.days.includes(d)){if(c.days.length>1)c.days=c.days.filter(x=>x!==d)}else c.days=[...c.days,d].sort()}
+  else{const b=e.target.closest('[data-day]');if(!b)return;const d=+b.dataset.day;if(c.days.includes(d)){if(c.days.length>1)c.days=c.days.filter(x=>x!==d)}else c.days=[...c.days,d].sort();if(c.type==='frequency')c.target=c.days.length}
   renderTray();saveDraft()});
 
 function renderSpheres(){const inTray=new Set(P.tray.map(c=>c.chipId).filter(Boolean));
