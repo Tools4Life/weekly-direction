@@ -110,7 +110,16 @@ nav.bar svg.i{width:24px;height:24px}
 .dsq span{font-family:var(--cond);font-size:12px;letter-spacing:.1em;color:var(--mu2)}
 .dsq.today span{color:var(--tx)}
 .dsq.on i{background:var(--ac);border:1.5px solid var(--ac)}
-.dsq.drift i{background:#2E2E32;border:1.5px solid #2E2E32}
+.dsq.drift i{background:#F2EFEA;border:1.5px solid #F2EFEA}
+.pills{margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.pill{height:52px;border-radius:999px;border:1.5px solid #2C2C30;display:flex;align-items:center;justify-content:center;color:var(--mu);transition:background .15s,color .15s,border-color .15s,transform .12s}
+.pill svg.i{width:22px;height:22px;stroke-width:2}
+.pill:active{transform:scale(.97)}
+.pill.x.on{background:#F2EFEA;border-color:#F2EFEA;color:#0B0B0C}
+.pill.ok.on{background:var(--ac);border-color:var(--ac);color:#0B0B0C}
+.notday{margin-top:14px;width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--mu2);font-size:14px;text-align:left}
+.notday span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.notday svg.i{width:16px;height:16px;transition:transform .2s;flex:none}.notday.open svg.i{transform:rotate(90deg)}
 .dsq.fut i{border:1.5px solid var(--rule)}
 .dsq.press i{transform:scale(.88)}
 .dsq:disabled{cursor:default}
@@ -251,6 +260,8 @@ textarea.long:focus{border-color:var(--mu)}
     <div class="it"><div class="grow"><span id="acEmail">Not signed in</span><small id="acSync">—</small></div></div>
     <button class="it" id="acOut"><span class="grow">Sign out on this device</span></button>
   </div>
+  <div id="stWeekBox"><div class="lbl group">This week</div>
+  <div class="card"><button class="it" id="stReplan"><span class="grow" id="stReplanT">Re-plan this week<small>Change the word, commitments, days or notes, then seal again. Day marks are kept.</small></span></button></div></div>
   <div class="lbl group">Close the week</div>
   <div class="card"><div class="it"><span class="grow">From</span>
     <select class="field" id="stDay"></select><select class="field" id="stHour"></select></div></div>
@@ -344,7 +355,7 @@ const IC={
  home:'<path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/>',
  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
  cap:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c2 2 10 2 12 0v-5"/>',
- plus:'<path d="M12 5v14M5 12h14"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',chev:'<path d="M9 6l6 6-6 6"/>'
+ plus:'<path d="M12 5v14M5 12h14"/>',ok:'<path d="M5 12.5l4.5 4.5L19 7"/>',x:'<path d="M6 6l12 12M18 6L6 18"/>',chev:'<path d="M9 6l6 6-6 6"/>'
 };
 const ico=(n,c='i')=>`<svg class="${c}" viewBox="0 0 24 24" aria-hidden="true">${IC[n]||IC.check}</svg>`;
 const ICON_CHOICES=['book','hands','moon','eye','sun','dumbbell','walk','bed','cup','briefcase','clock','target','pen','cap','phone','home','heart','check'];
@@ -476,7 +487,7 @@ document.querySelectorAll('.sheet').forEach(sh=>{let y0=null,dy=0;
 /* ---------- This Week (dark, home) ---------- */
 const active=()=>D.weeks.find(w=>w.status==='active');
 const isFast=c=>c.type==='fixed'&&(c.icon==='moon'||/\bfast/i.test(c.name));
-let tickT=null;
+let tickT=null,showAll=false;
 function elapsedParts(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.floor(s/86400);return[`${d}d ${pad(Math.floor(s%86400/3600))}:${pad(Math.floor(s%3600/60))}:`,pad(s%60)]}
 // the days a week is lived: from the day after sealing (or the sealing day itself if sealed before noon) through the closing day
 function weekDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);if(s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
@@ -500,10 +511,10 @@ function renderWeek(animate){
   const timer=due?`<div class="timer due">review due</div>`:`<div class="timer${fast?' sm':''}"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span>${fast?'':'<span class="dot"></span>'}</div>`;
   const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK;
     return`<button class="dsq${m?' '+m:''}${fut?' fut':''}${k===todayK?' today':''}" data-k="${k}"${fut?' disabled':''} aria-label="${DOWL[d.getDay()]}: ${m==='on'?'on course':m==='drift'?'drifted':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
-  let askK=null,askL='';
-  if(!due&&inWeek(todayK)&&!marks[todayK]&&now.getHours()>=17){askK=todayK;askL='Today'}
-  else if(inWeek(ydK)&&!marks[ydK]&&(now.getHours()<17||marks[todayK])){askK=ydK;askL='Yesterday'}
-  const ask=askK?`<div class="ask"><span class="lbl">${askL}</span><div class="askb"><button class="btn sm pri" data-ask="on" data-k="${askK}">On course</button><button class="btn sm ghost" data-ask="drift" data-k="${askK}">Drifted</button></div></div>`:'';
+  const tm0=marks[todayK];
+  const ask=!due&&inWeek(todayK)?`<div class="pills" role="group" aria-label="Today">
+    <button class="pill x${tm0==='drift'?' on':''}" data-pill="drift" aria-pressed="${tm0==='drift'}" aria-label="Today: drifted">${ico('x')}</button>
+    <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="Today: on course">${ico('ok')}</button></div>`:'';
   const grouped=list=>{let i=0;return[...SPHERES,ONCE].map(sp=>{const g=list.filter(c=>(SPHERES.some(x=>x.id===c.sphere)?c.sphere:'once')===sp.id);if(!g.length)return'';
     return`<div class="grp"><div class="gh${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">${ico(sp.icon)}<span>${sp.id==='once'?'One-offs':sp.name}</span></div>${g.map(c=>row(c,i++,!!fast)).join('')}</div>`}).join('')};
   const dow=now.getDay(),hasDays=c=>(c.type==='frequency'||c.type==='fixed')&&Array.isArray(c.days)&&c.days.length;
@@ -513,18 +524,23 @@ function renderWeek(animate){
   const row=(c,i,small)=>`<${legacy(c)?`button data-plan="${c.id}"`:'div'} class="row${legacy(c)?' plan':''}${small?' small':''}${isFast(c)?' fast':''}${off(c)?' off':''}${animate?' rise':''}" style="animation-delay:${(fast?120:0)+i*40}ms">
       <span class="ic">${ico(c.icon||sphereOf(c.sphere).icon)}</span><span class="nm"><b>${esc(c.name)}</b></span>${hasDays(c)?strip(c):`<span class="val">${settingLabel(c)}${legacy(c)?' ›':''}</span>`}</${legacy(c)?'button':'div'}>`;
   const letters=`<span class="strip lt" aria-hidden="true">${DOW.map((l,d)=>`<b class="${d===dow&&!due?'t':''}">${l}</b>`).join('')}</span>`;
+  const isToday=c=>due||!hasDays(c)||c.days.includes(dow);
+  const shown=rest.filter(isToday),hidden=rest.filter(c=>!isToday(c));
+  const list=(tight)=>`<div class="rows${tight?' tight':''}">${shown.length?grouped(shown):'<p class="mu" style="font-style:italic;margin:10px 0">Nothing else planned for today.</p>'}</div>`
+    +(hidden.length?`<button class="notday${showAll?' open':''}" id="wkMore" aria-expanded="${showAll}"><span>Not today · ${hidden.map(c=>esc(c.name)).join(', ')}</span>${ico('chev')}</button>${showAll?`<div class="rows">${grouped(hidden)}</div>`:''}`:'');
   const fname=fast?fast.name.toUpperCase():'';
   el.innerHTML=fast
    ?`<div class="fhead"><span class="ffocus">${esc(w.focus)}</span>${timer}</div>
      <section class="fastp${animate?' grow':''}" aria-label="${esc(fast.name)} today"><div class="ftop"><span class="cond">${DOWL[now.getDay()].toUpperCase()}</span>${ico(fast.icon||'moon')}</div>
        <div class="fname" style="font-size:${Math.max(30,Math.min(132,Math.floor(Math.min(innerWidth,560)*.78/(fname.length*.62))))}px">${esc(fname)}</div></section>
-     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div><div class="rows tight">${grouped(rest)}</div>`
+     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div>${list(true)}`
    :`<div class="cond wk-range">${fmtRange(start,end)}</div><h1 class="focus">${esc(w.focus)}</h1>${timer}
-     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div><div class="rows">${grouped(rest)}</div>`;
+     ${squares}${ask}<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">This week</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">This week</span></div>`}${w.commitments.some(hasDays)?letters:''}</div>${list(false)}`;
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{const k=b.dataset.k,v=NEXT[(w.marks||{})[k]];b.classList.add('press');store.mark(w,k,v)});
   el.querySelectorAll('[data-plan]').forEach(b=>b.onclick=()=>openDays(w,w.commitments.find(c=>c.id===b.dataset.plan)));
-  el.querySelectorAll('[data-ask]').forEach(b=>b.onclick=()=>store.mark(w,b.dataset.k,b.dataset.ask));
+  el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill;store.mark(w,todayK,(w.marks||{})[todayK]===v?undefined:v)});
+  if($('wkMore'))$('wkMore').onclick=()=>{showAll=!showAll;renderWeek(false)};
   if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!m||tab!=='week')return clearInterval(tickT);
     if(new Date()>=end)return renderWeek(false);
     const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
@@ -553,7 +569,10 @@ function renderSettings(){renderSettingsAccount();
   const fx=D.settings.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
   $('stFromRow').hidden=!fx;if(fx&&document.activeElement!==$('stFrom'))$('stFrom').value=localInput(new Date(D.settings.timerFrom||Date.now()));
   $('stTimerNote').textContent=fx?'The timer keeps counting from this date across weeks. Your weeks still open and close on schedule.':'The timer restarts at zero each time you seal a new week.';
+  const aw=active();$('stWeekBox').hidden=!aw;
+  if(aw){const resuming=D.draft&&D.draft.replan===aw.id;$('stReplanT').innerHTML=`${resuming?'Resume re-planning':'Re-plan this week'}<small>Change the word, commitments, days or notes, then seal again. Day marks are kept.</small>`}
   $('stLib').innerHTML=SPHERES.map(s=>{const l=D.library.filter(c=>c.sphere===s.id);return`<div class="it">${ico(s.icon)}<div class="grow">${s.name}<small>${l.length?l.map(c=>esc(c.name)).join(', '):'No chips'}</small></div></div>`}).join('')}
+$('stReplan').onclick=()=>{const aw=active();if(aw)openPlan(aw)};
 $('stDay').onchange=e=>store.setSettings({closeDay:+e.target.value});
 $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;const v={timerMode:b.dataset.tm};
   if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
@@ -563,21 +582,24 @@ $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything sta
 
 /* ---------- Plan the week ---------- */
 let P=null,saveT=null;
-function openPlan(){
-  const d=D.draft&&D.draft.step==='plan'?D.draft:null,first=!D.weeks.length;
-  P={step:'plan',focus:d?.focus||'',tray:d?.tray?d.tray.map(c=>c.type==='frequency'&&!Array.isArray(c.days)?{...c,days:spread(c.target),target:spread(c.target).length}:{...c}):[],thoughts:d?.thoughts||'',start:d?.start||(first?lastClose().getTime():null),first};
+function openPlan(rw){
+  let d=D.draft&&D.draft.step==='plan'?D.draft:null;
+  if(!rw&&d?.replan&&!D.weeks.some(w=>w.id===d.replan&&w.status==='active'))d=null;
+  if(rw&&!(d&&d.replan===rw.id))d={focus:rw.focus,tray:rw.commitments.map(({outcome,...x})=>x),thoughts:rw.planThoughts||'',start:rw.sealedAt,replan:rw.id,marks:rw.marks||{},fresh:true};
+  const replan=d?.replan||null,first=!replan&&!D.weeks.length;
+  P={step:'plan',focus:d?.focus||'',tray:d?.tray?d.tray.map(c=>c.type==='frequency'&&!Array.isArray(c.days)?{...c,days:spread(c.target),target:spread(c.target).length}:{...c}):[],thoughts:d?.thoughts||'',start:d?.start||(first?lastClose().getTime():null),first,replan,marks:d?.marks||null};
   $('plFocus').value=P.focus;$('plThoughts').value=P.thoughts;
-  $('plStartBox').hidden=!first;if(first)$('plStart').value=localInput(new Date(P.start));
-  $('plProg').hidden=first;$('plTitle').textContent=first?'Plan your first week':'Plan the next week';
-  $('plSaved').textContent=d?'DRAFT RESUMED':'';
+  $('plStartBox').hidden=!(first||replan);if(first||replan)$('plStart').value=localInput(new Date(P.start));
+  $('plProg').hidden=first||!!replan;$('plTitle').textContent=replan?'Re-plan this week':first?'Plan your first week':'Plan the next week';
+  $('plSaved').textContent=d&&!d.fresh?'DRAFT RESUMED':'';
   renderTray();renderSpheres();updateSeal();crossTo('plan');
 }
 function saveDraft(){clearTimeout(saveT);saveT=setTimeout(()=>{if(!P)return;
-  store.putDraft({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,start:P.start,updatedAt:Date.now()});$('plSaved').textContent='DRAFT SAVED'},500)}
+  store.putDraft({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()});$('plSaved').textContent='DRAFT SAVED'},500)}
 $('plFocus').addEventListener('input',e=>{const v=e.target.value.replace(/\s+/g,'');if(v!==e.target.value)e.target.value=v;P.focus=v;saveDraft();updateSeal()});
 $('plThoughts').addEventListener('input',e=>{P.thoughts=e.target.value;saveDraft()});
 $('plStart').addEventListener('change',e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){P.start=t;saveDraft()}});
-$('plLeave').onclick=()=>{if(P){clearTimeout(saveT);if(P.focus||P.tray.length||P.thoughts)store.putDraft({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,start:P.start,updatedAt:Date.now()})}P=null;crossTo('week')};
+$('plLeave').onclick=()=>{if(P){clearTimeout(saveT);if(P.focus||P.tray.length||P.thoughts)store.putDraft({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()})}P=null;crossTo('week')};
 
 function renderTray(){const t=$('plTray');$('plCount').textContent=P.tray.length;t.classList.toggle('full',P.tray.length>7);
   if(!P.tray.length){t.innerHTML='<div class="empty">Tap a chip below to add it.</div>';return}
@@ -617,9 +639,9 @@ function updateSeal(){const ok=!!P.focus&&P.tray.length>0;$('plSeal').disabled=!
   $('plHint').textContent=ok?'':!P.focus&&!P.tray.length?'Choose a focus word and at least one commitment.':!P.focus?'Choose a focus word.':'Add at least one commitment.'}
 $('plSeal').onclick=async()=>{
   if(!P||!P.focus||!P.tray.length)return;
-  const sealedAt=P.first?P.start:Date.now();
-  let id=ymd(new Date(sealedAt));if(D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
-  const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({...c,outcome:null})),percentage:null,reflection:'',planThoughts:P.thoughts.trim(),editedAt:null,createdAt:Date.now()};
+  const sealedAt=P.first||P.replan?P.start:Date.now(),old=P.replan&&D.weeks.find(w=>w.id===P.replan);
+  let id=P.replan||ymd(new Date(sealedAt));if(!P.replan&&D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
+  const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({...c,outcome:null})),percentage:null,reflection:'',planThoughts:P.thoughts.trim(),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
   clearTimeout(saveT);store.putWeek(week);store.delDraft();P=null;
   await crossTo('week');
 };
