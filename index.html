@@ -571,6 +571,28 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .cphead{font-family:var(--cond);font-size:26px;letter-spacing:.1em;color:var(--tx);min-height:32px}
 .compass.north .cphead{color:var(--ac)}
 .cphint{display:none}
+
+/* life prayer */
+.lifecard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;margin:16px 0 6px;padding:16px 18px;border-radius:16px;text-align:left;
+  background:linear-gradient(160deg,#1C1A18,#141416);border:1px solid #2E2B27;color:var(--tx)}
+.lifecard .lifelbl{font-size:12px;letter-spacing:.2em;color:var(--mu)}
+.lifecard b{font-family:var(--serif);font-weight:400;font-size:23px;line-height:1.2}
+.lifecard .lifesince{font-family:var(--cond);font-size:13px;letter-spacing:.1em;color:var(--mu2);text-transform:uppercase}
+.lifecard.empty{background:transparent;border-style:dashed;border-color:#34343A}
+.lifecard.empty b{font-size:18px;color:var(--mu);font-style:italic}
+.lifer{position:fixed;inset:0;z-index:96;background:#0B0B0C;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transition:opacity .3s ease}
+.lifer.on{opacity:1}
+.lifer .cx{position:fixed;top:calc(var(--st) + 12px);right:12px;z-index:2;background:rgba(11,11,12,.8);border-radius:50%}
+.lrin{max-width:34em;margin:0 auto;padding:calc(var(--st) + 7vh) max(22px,6vw) calc(var(--sb) + 14vh)}
+.lrsince{display:flex;flex-direction:column;align-items:center;margin-bottom:6vh;font-family:var(--cond);font-variant-numeric:tabular-nums}
+.lrsince .lrd{font-size:16px;letter-spacing:.14em;color:var(--mu)}
+.lrsince .lrt2{font-size:clamp(40px,12vw,54px);font-weight:500;line-height:1;letter-spacing:.02em;color:var(--tx)}
+.lrt{margin:0;font-family:var(--serif);font-weight:400;font-size:clamp(32px,9vw,44px);line-height:1.12;text-wrap:balance}
+.lrrule{width:44px;height:1px;background:#2A2A2E;border:0;margin:30px 0 34px}
+#lrBody p{margin:0 0 1.15em;font-family:var(--serif);font-size:clamp(19px,5.3vw,22px);line-height:1.68}
+#lrBody p:first-of-type{font-size:clamp(21px,5.8vw,24px);line-height:1.55}
+.lramen{margin-top:3.2em;text-align:center;font-family:var(--cond);font-size:14px;letter-spacing:.4em;padding-left:.4em;color:var(--mu)}
+.lrrev{display:block;margin:6vh auto 0;color:var(--mu2);font-size:14px;letter-spacing:.06em}
 </style>
 </head>
 <body>
@@ -594,7 +616,7 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 <!-- Prayer -->
 <section class="scr" id="sPrayer" data-mode="dark" hidden>
   <div class="trow"><h2 class="ttl">Prayer</h2><button class="addp" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
-  <div id="prList"></div>
+  <div id="prLife"></div><div id="prList"></div>
 </section>
 
 <!-- History -->
@@ -695,6 +717,9 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
   <div class="cpwrap"><div class="lubber"></div><svg class="dial" id="cpDial" viewBox="-160 -160 320 320" aria-hidden="true"></svg></div>
   <div class="cphead" id="cpHead">—</div><div class="cphint" id="cpHint"></div>
 </div>
+<div class="lifer" id="lifeR" hidden role="dialog" aria-modal="true" aria-label="Life prayer">
+  <button class="cx" id="lrClose" aria-label="Close">&times;</button>
+  <div class="lrin"><div class="lrsince" id="lrSince"></div><div id="lrBody"></div></div></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -1020,17 +1045,22 @@ let PE=null,peNew=false;
 const PR_ICONS=[['compass','Direction'],['family','Family'],['heart','Relationships'],['work','Work'],['church','Church'],['health','Health'],['money','Provision'],['self','Myself'],['world','Others']];
 const firstLine=t=>(t||'').trim().split(/\n+/)[0]||'';
 function renderPrayer(anim){
-  $('prList').innerHTML=D.prayers.length?D.prayers.map((p,i)=>`<button class="prow${anim?' in':''}" data-p="${p.id}" style="animation-delay:${Math.min(i,8)*40}ms"><i class="pri${p.icon?'':' none'}">${ico(p.icon||'hands')}</i><span>${esc(p.text)}</span></button>`).join('')
-    :`<p class="prempty">What are you praying for? Tap <b>+</b> to name it, then go as deep as you want.</p>`;
+  const life=D.prayers.find(p=>p.pinned),rest=D.prayers.filter(p=>!p.pinned);
+  $('prLife').innerHTML=life?`<button class="lifecard${anim?' in':''}" id="lifeOpen"><span class="cond lifelbl">Life prayer</span><b>${esc(life.text)}</b><span class="lifesince" id="lifeSince">${life.since?sinceDays(life.since):''}</span></button>`
+    :`<button class="lifecard empty" id="lifeAdd"><span class="cond lifelbl">Life prayer</span><b>Add the prayer that covers your whole life</b></button>`;
+  if($('lifeOpen'))$('lifeOpen').onclick=()=>openLife(life);
+  if($('lifeAdd'))$('lifeAdd').onclick=()=>openPrayer(null,{pinned:true});
+  $('prList').innerHTML=rest.length?rest.map((p,i)=>`<button class="prow${anim?' in':''}" data-p="${p.id}" style="animation-delay:${Math.min(i,8)*40}ms"><i class="pri${p.icon?'':' none'}">${ico(p.icon||'hands')}</i><span>${esc(p.text)}</span></button>`).join('')
+    :`<p class="prempty">What else are you praying for? Tap <b>+</b> to name it, then go as deep as you want.</p>`;
   $('prList').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>openPrayer(D.prayers.find(p=>p.id===b.dataset.p)))}
 let peIcon=null;
 function renderTags(){$('peTags').innerHTML=PR_ICONS.map(([k,l])=>`<button data-tag="${k}" class="${peIcon===k?'on':''}" aria-pressed="${peIcon===k}" aria-label="${l}">${ico(k)}<span>${l}</span></button>`).join('')}
 $('peTags').onclick=e=>{const b=e.target.closest('[data-tag]');if(!b)return;peIcon=peIcon===b.dataset.tag?null:b.dataset.tag;renderTags()};
 const growSub=()=>{const t=$('peTitle');t.style.height='auto';t.style.height=t.scrollHeight+'px'};
 // one surface for reading and writing; it saves itself when you leave it
-function openPrayer(p){peNew=!p;PE=p||{id:uid(),text:'',body:'',created:Date.now()};
+function openPrayer(p,o){peNew=!p;PE=p||(o&&o.pinned?{id:'life',pinned:true,text:'',body:'',created:Date.now(),since:Date.now()}:{id:uid(),text:'',body:'',created:Date.now()});
   $('pvDate').textContent=peNew?'NEW PRAYER':fmtDate(new Date(PE.created)).toUpperCase();
-  $('peTitle').value=PE.text;$('peBody').value=PE.body||'';$('peDel').hidden=peNew;peIcon=PE.icon||null;renderTags();
+  $('peTitle').value=PE.text;$('peBody').value=PE.body||'';$('peDel').hidden=peNew||!!PE.pinned;$('peTags').hidden=!!PE.pinned;peIcon=PE.icon||null;renderTags();
   openSheet($('shPrayer'));setTimeout(growSub,0);if(peNew)setTimeout(()=>$('peTitle').focus(),340)}
 function savePrayer(){if(!PE)return;const t=$('peTitle').value.trim(),bd=$('peBody').value.replace(/\s+$/,'');
   if(!t&&!bd){PE=null;return}
@@ -1042,6 +1072,25 @@ $('prNew').onclick=()=>openPrayer(null);
 $('peTitle').addEventListener('input',growSub);
 $('peTitle').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('peBody').focus()}});
 $('peDel').onclick=()=>{if(PE&&!peNew&&confirm('Remove this prayer from your list?')){store.delPrayer(PE.id);PE=null;closeSheet()}};
+
+/* ---------- life prayer: full-screen reader, protected; imported once from a private link ---------- */
+const sinceDays=t=>{const d=Math.floor((Date.now()-t)/864e5);return`${d} ${d===1?'day':'days'}`};
+let lifeTick=null,lifeLock=null;
+function openLife(p){if(!p)return;const paras=(p.body||'').split(/\n{2,}/).filter(x=>x.trim());
+  $('lrBody').innerHTML=`<h1 class="lrt">${esc(p.text)}</h1><hr class="lrrule">`+paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')+`<div class="lramen">AMEN</div><button class="lrrev" id="lrRev">Revise</button>`;
+  const ctr=()=>{if(!p.since){$('lrSince').textContent='';return}const t=Math.max(0,Math.floor((Date.now()-p.since)/1e3)),d=Math.floor(t/86400);$('lrSince').innerHTML=`<span class="lrd">${d} ${d===1?'day':'days'}</span><span class="lrt2">${pad(Math.floor(t%86400/3600))}:${pad(Math.floor(t%3600/60))}:${pad(t%60)}</span>`};
+  ctr();clearInterval(lifeTick);lifeTick=setInterval(ctr,1000);
+  $('lifeR').hidden=false;$('lifeR').scrollTop=0;requestAnimationFrame(()=>$('lifeR').classList.add('on'));
+  try{if('wakeLock' in navigator)navigator.wakeLock.request('screen').then(l=>lifeLock=l).catch(()=>{})}catch(e){}
+  $('lrRev').onclick=()=>{if(confirm('Revise your life prayer?')){closeLife();setTimeout(()=>openPrayer(p),320)}}}
+function closeLife(){$('lifeR').classList.remove('on');clearInterval(lifeTick);try{lifeLock&&lifeLock.release()}catch(e){}lifeLock=null;setTimeout(()=>$('lifeR').hidden=true,300)}
+$('lrClose').onclick=closeLife;
+async function importLifeFromLink(){const h=location.hash;if(!h.startsWith('#life='))return;history.replaceState(null,'',location.pathname+location.search);
+  try{const b=h.slice(6).replace(/-/g,'+').replace(/_/g,'/'),bin=Uint8Array.from(atob(b+'==='.slice((b.length+3)%4)),c=>c.charCodeAt(0));
+    const txt=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text(),d=JSON.parse(txt);
+    const cur=D.prayers.find(p=>p.pinned);if(cur&&!confirm('Replace your current life prayer with this one?'))return;
+    const lp={id:'life',pinned:true,text:d.t,body:d.b,created:cur?.created||Date.now(),since:d.s?new Date(d.s).getTime():Date.now()};
+    store.putPrayer(lp);show('prayer');setTimeout(()=>openLife(lp),400)}catch(e){console.warn(e);alert('That prayer link could not be read.')}}
 
 /* ---------- History (placeholder until its build step) ---------- */
 function weekStats(w){const days=habitDays(w),m=w.marks||{},now=ymd(new Date());const kept=days.filter(d=>m[ymd(d)]==='on').length,past=days.filter(d=>ymd(d)<=now).length;
@@ -1200,6 +1249,7 @@ $('chName').addEventListener('input',e=>e.target.style.borderColor='');
 function onData(kind){
   if(kind==='ready'){if(ready)return;ready=true;$('boot').hidden=true;
     if(!D.settings.cafFrom)store.setSettings({cafFrom:midnight(new Date()).getTime()});
+    setTimeout(importLifeFromLink,300);
     if(D.draft&&D.draft.step==='plan'&&!D.draft.replan&&!active()){show('week');openPlan()}else show('week');return}
   if(!ready)return;
   if(tab==='week'&&kind!=='library'&&kind!=='prayers')renderWeek(false);
