@@ -901,7 +901,7 @@ function renderWeek(animate){
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
   const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:w.sealedAt;
   const [tm,ts]=elapsedParts(now-tFrom);
-  const timer=due?`<div class="timer due">review due</div>`:`<div class="timer"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span><span class="dot"></span></div>`;
+  const timer=due?`<div class="timer due">review due</div>`:`<div class="timer"><span id="wkTimer"><span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span></span></div>`;
   const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
   const doneAll=w.done||{},frac=k=>{const it=dayItems(w,days.find(d=>ymd(d)===k)||new Date(k)),dn=doneAll[k]||{};return it.length?it.filter(x=>dn[x]).length/it.length:0};
   const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK,f=!m&&!fut?frac(k):0;
