@@ -416,7 +416,7 @@ async function firestoreStore(){
       // users/{uid}/weeklyDirection/{settings|draft|data}, with data/library and data/weeks as collections
       const base=['users',u.uid,'weeklyDirection'];
       paths={settings:F.doc(db,...base,'settings'),draft:F.doc(db,...base,'draft'),library:F.collection(db,...base,'data','library'),weeks:F.collection(db,...base,'data','weeks')};
-      const seen=new Set(),done=k=>{seen.add(k);if(seen.size===4)emit('ready')};
+      const seen=new Set();let fired=false;const done=k=>{seen.add(k);if(seen.size===4&&!fired){fired=true;emit('ready')}};
       F.onSnapshot(paths.settings,{includeMetadataChanges:false},s=>{const v=s.data()||{};D.settings={closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded,timerMode:v.timerMode||'week',timerFrom:v.timerFrom||null};done('settings');emit('settings')},fail);
       F.onSnapshot(paths.draft,s=>{D.draft=s.exists()?s.data():null;done('draft');emit('draft')},fail);
       F.onSnapshot(paths.library,{includeMetadataChanges:true},s=>{D.library=s.docs.map(d=>({...d.data(),id:d.id})).sort((a,b)=>(a.order??0)-(b.order??0));done('library');emit('library');
@@ -449,7 +449,7 @@ function memoryStore(){
     putChip:c=>{const i=D.library.findIndex(x=>x.id===c.id);i<0?D.library.push(c):D.library[i]=c;D.library.sort((a,b)=>a.order-b.order);emit('library')},
     delChip:id=>{D.library=D.library.filter(x=>x.id!==id);emit('library')},
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
-    putDraft:v=>{D.draft=v;emit('draft')},delDraft:()=>{D.draft=null;emit('draft')},
+    putDraft:v=>{D.draft=v;emit('draft');if(m.echoReady)emit('ready')},delDraft:()=>{D.draft=null;emit('draft')},
     mark:(w,k,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')}};
 }
 
@@ -684,7 +684,7 @@ $('chName').addEventListener('input',e=>e.target.style.borderColor='');
 
 /* ---------- boot ---------- */
 function onData(kind){
-  if(kind==='ready'){ready=true;$('boot').hidden=true;
+  if(kind==='ready'){if(ready)return;ready=true;$('boot').hidden=true;
     if(D.draft&&D.draft.step==='plan'&&!active()){show('week');openPlan()}else show('week');return}
   if(!ready)return;
   if(tab==='week'&&(kind==='weeks'||kind==='draft'||kind==='settings'))renderWeek(false);
