@@ -256,6 +256,12 @@ nav.bar{gap:36px}
 .field.num{width:84px;min-height:40px;padding:6px 10px;text-align:right;background:var(--card2);font-family:var(--cond);font-size:17px}
 .unit{font-family:var(--cond);font-size:14px;letter-spacing:.06em;color:var(--mu);min-width:30px}
 #shCaf .field{font-size:17px}
+.cfsched{margin:10px 0 0;border-radius:16px;background:var(--card);padding:6px 16px}
+.cfl{display:grid;grid-template-columns:72px 1fr auto;align-items:baseline;gap:10px;padding:9px 0;border-bottom:1px solid var(--rule);font-size:15px}
+.cfl:last-child{border-bottom:0}
+.cfl b{font-family:var(--cond);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums}
+.cfl small{font-family:var(--cond);font-size:13px;color:var(--mu2)}
+.cfl.past{opacity:.4}.cfl.cur b{color:var(--ac)}
 </style>
 </head>
 <body>
@@ -303,10 +309,11 @@ nav.bar{gap:36px}
   <div class="card">
     <div class="it"><label class="grow" for="cfStart">Starting limit</label><input class="field num" id="cfStart" type="number" inputmode="numeric" min="0" step="10"><span class="unit">mg</span></div>
     <div class="it"><label class="grow" for="cfStep">Drop by</label><input class="field num" id="cfStep" type="number" inputmode="numeric" min="0" step="10"><span class="unit">mg</span></div>
-    <div class="it"><label class="grow" for="cfEvery">Every</label><input class="field num" id="cfEvery" type="number" inputmode="numeric" min="1" step="1"><span class="unit">days</span></div>
+    <div class="it"><label class="grow" for="cfDays">Reach 0 in</label><input class="field num" id="cfDays" type="number" inputmode="numeric" min="1" step="1"><span class="unit">days</span></div>
+    <div class="it"><label class="grow" for="cfPill">Pill size</label><input class="field num" id="cfPill" type="number" inputmode="numeric" min="1" step="5"><span class="unit">mg</span></div>
     <div class="it"><label class="grow" for="cfFrom">Started</label><input class="field" id="cfFrom" type="date" style="width:auto;min-height:40px;padding:6px 10px;background:var(--card2)"></div>
   </div>
-  <p class="mu" style="font-size:14px;margin:10px 4px" id="cfNote"></p>
+  <div class="cfsched" id="cfSched"></div>
   <div class="lbl group">Close the week</div>
   <div class="card"><div class="it"><span class="grow">From</span>
     <select class="field" id="stDay"></select><select class="field" id="stHour"></select></div></div>
@@ -411,7 +418,7 @@ const DOW=['S','M','T','W','T','F','S'],DOWL=['Sunday','Monday','Tuesday','Wedne
 const SEED=[['Morning devotion','sun'],['Prayer','hands'],['Scripture reading','book'],['Scripture memory','pen'],['Evening prayer','moon'],['Worship','music'],['Fast','moon'],['No YouTube on phone','phone']];
 const OLD_SEEDED=['Strength training','Walk','In bed by 10','No caffeine','On time to every site','Focused work blocks','End-of-day performance reflection','BuilderTrend seminar'];
 const habitOf=ch=>({id:uid(),chipId:ch.id||null,name:ch.name,icon:ch.icon||'check'});
-const CAF_PRESETS=[['Coffee',95],['Espresso',64],['Energy drink',160]];
+const CAF_PRESETS=()=>[['Pill',D.settings.cafPill||50],['Coffee',95],['Energy drink',160]];
 
 /* time helpers */
 const pad=n=>String(n).padStart(2,'0');
@@ -426,11 +433,11 @@ const hourLabel=h=>`${h%12||12} ${h<12?'am':'pm'}`;
 const fmtDate=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
 /* ---------- state ---------- */
-const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafEvery:21,cafFrom:null},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
+const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
 window.WD=D;
 let store=null; // data layer chosen at boot
 const readSettings=v=>({closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded,libV:v.libV||1,timerMode:v.timerMode||'week',timerFrom:v.timerFrom||null,
-  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafEvery:v.cafEvery??21,cafFrom:v.cafFrom||null});
+  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null});
 
 /* ---------- data layer: Firestore (live) ---------- */
 async function firestoreStore(){
@@ -537,18 +544,24 @@ document.querySelectorAll('.sheet').forEach(sh=>{let y0=null,dy=0;
 
 /* ---------- caffeine wean ---------- */
 function cafFromDate(){return D.settings.cafFrom?new Date(D.settings.cafFrom):midnight(new Date())}
-function cafLimit(day=new Date()){const s=D.settings,n=Math.max(0,Math.floor(dayDiff(cafFromDate(),day)/Math.max(1,s.cafEvery)));return{limit:Math.max(0,s.cafStart-s.cafStep*n),step:n,
-  next:s.cafStart-s.cafStep*n>0?new Date(midnight(cafFromDate()).getTime()+(n+1)*Math.max(1,s.cafEvery)*864e5):null,nextLimit:Math.max(0,s.cafStart-s.cafStep*(n+1))}}
+// taper: from the starting amount down to 0 in fixed steps over a set number of days; spare days go to the lower (harder) levels
+function cafPlan(){const s=D.settings,step=Math.max(1,s.cafStep),n=Math.max(1,Math.ceil(s.cafStart/step)),days=Math.max(n,s.cafDays||n),base=Math.floor(days/n),rem=days%n,out=[];let d=0;
+  for(let i=0;i<n;i++){const len=base+(i>=n-rem?1:0);out.push({mg:Math.max(0,s.cafStart-step*i),from:d,len});d+=len}return out}
+const addDays=(t,n)=>new Date(midnight(t).getTime()+n*864e5+36e5*2);
+function cafLimit(day=new Date()){const plan=cafPlan(),i=dayDiff(cafFromDate(),day);
+  if(i<0)return{limit:plan[0].mg,next:addDays(cafFromDate(),0),nextLimit:plan[0].mg};
+  const k=plan.findIndex(l=>i>=l.from&&i<l.from+l.len);if(k<0)return{limit:0,next:null,nextLimit:0};
+  const nx=plan[k+1];return{limit:plan[k].mg,next:addDays(cafFromDate(),plan[k].from+plan[k].len),nextLimit:nx?nx.mg:0}}
 const cafToday=()=>D.caf[ymd(new Date())]||[];
 const cafTotal=items=>items.reduce((a,b)=>a+(+b.mg||0),0);
 function addCaf(label,mg){const k=ymd(new Date());store.setCaf(k,[...(D.caf[k]||[]),{id:uid(),label,mg:Math.round(mg),t:Date.now()}])}
 function cafCard(){
   const L=cafLimit(),items=cafToday(),tot=cafTotal(items),pct=L.limit?Math.min(100,tot/L.limit*100):100,over=tot-L.limit;
   return`<section class="caf" aria-label="Caffeine today">
-    <div class="cafh"><span class="lbl">Caffeine</span><span class="cafsub">${L.next?`${L.nextLimit} mg from ${fmtDate(L.next)}`:'Weaned'}</span></div>
+    <div class="cafh"><span class="lbl">Caffeine</span><span class="cafsub">${L.next?`${L.nextLimit} mg from ${fmtDate(L.next)}`:L.limit===0?'Caffeine-free':''}</span></div>
     <div class="cafn"><b>${tot}</b><span> / ${L.limit} mg</span>${over>0?`<em>${over} over</em>`:''}</div>
     <div class="cbar${over>0?' over':''}"><i style="width:${pct}%"></i></div>
-    <div class="cafbtns">${CAF_PRESETS.map(([l,mg])=>`<button data-caf="${mg}" data-l="${l}">${l} <small>${mg}</small></button>`).join('')}<button data-caf="other" aria-label="Other caffeine">${ico('plus')}</button></div>
+    <div class="cafbtns">${CAF_PRESETS().map(([l,mg])=>`<button data-caf="${mg}" data-l="${l}">${l} <small>${mg}</small></button>`).join('')}<button data-caf="other" aria-label="Other caffeine">${ico('plus')}</button></div>
     ${items.length?`<div class="caflog">${items.map(i=>`<button data-rmcaf="${i.id}" aria-label="Remove ${esc(i.label)} ${i.mg} mg">${esc(i.label)} ${i.mg} ${ico('x')}</button>`).join('')}</div>`:''}
   </section>`}
 $('cfAdd').onclick=()=>{const mg=+$('cfMg').value;if(!(mg>0)){$('cfMg').focus();return}addCaf($('cfName').value.trim()||'Other',mg);closeSheet()};
@@ -621,9 +634,12 @@ function renderSettings(){renderSettingsAccount();const s=D.settings,act=documen
   const fx=s.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
   $('stFromRow').hidden=!fx;if(fx&&act!==$('stFrom'))$('stFrom').value=localInput(new Date(s.timerFrom||Date.now()));
   $('stTimerNote').textContent=fx?'The timer keeps counting from this date across weeks. Your weeks still open and close on schedule.':'The timer restarts at zero each time you seal a new week.';
-  [['cfStart','cafStart'],['cfStep','cafStep'],['cfEvery','cafEvery']].forEach(([id,k])=>{if(act!==$(id))$(id).value=s[k]});
+  [['cfStart','cafStart'],['cfStep','cafStep'],['cfDays','cafDays'],['cfPill','cafPill']].forEach(([id,k])=>{if(act!==$(id))$(id).value=s[k]});
   if(act!==$('cfFrom'))$('cfFrom').value=ymd(cafFromDate());
-  const L=cafLimit();$('cfNote').textContent=`Today's limit: ${L.limit} mg.`+(L.next?` Drops to ${L.nextLimit} mg on ${fmtDate(L.next)}.`:'');
+  const L=cafLimit(),today=dayDiff(cafFromDate(),new Date());
+  $('cfSched').innerHTML=cafPlan().map(l=>{const a=addDays(cafFromDate(),l.from),b=addDays(cafFromDate(),l.from+l.len-1),cur=today>=l.from&&today<l.from+l.len;
+    return`<div class="cfl${cur?' cur':''}${today>=l.from+l.len?' past':''}"><b>${l.mg} mg</b><span>${fmtDate(a)}${l.len>1?` – ${fmtDate(b)}`:''}</span><small>${l.len} ${l.len===1?'day':'days'}</small></div>`}).join('')
+    +`<div class="cfl${L.limit===0&&!L.next?' cur':''}"><b>0 mg</b><span>from ${fmtDate(addDays(cafFromDate(),cafPlan().reduce((a,l)=>a+l.len,0)))}</span><small></small></div>`;
   const aw=active();$('stWeekBox').hidden=!aw;
   if(aw){const resuming=D.draft&&D.draft.replan===aw.id;$('stReplanT').innerHTML=`${resuming?'Resume re-planning':'Re-plan this week'}<small>Change the word, habits or notes, then seal again. Day marks are kept.</small>`}
   $('stLib').textContent=D.library.map(c=>c.name).join(', ')||'No habits yet'}
@@ -633,7 +649,7 @@ $('stHour').onchange=e=>store.setSettings({closeHour:+e.target.value});
 $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;const v={timerMode:b.dataset.tm};
   if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
 $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
-[['cfStart','cafStart',0],['cfStep','cafStep',0],['cfEvery','cafEvery',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
+[['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1],['cfPill','cafPill',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
 $('cfFrom').onchange=e=>{const t=new Date(e.target.value+'T00:00').getTime();if(!isNaN(t)){store.setSettings({cafFrom:t});D.settings.cafFrom=t;renderSettings()}};
 $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything stays in your account.')){await store.auth.signOut();location.reload()}};
 
