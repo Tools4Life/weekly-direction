@@ -2,7 +2,7 @@
 <html lang="en" data-mode="dark">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -605,6 +605,11 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 /* iOS home-screen app sometimes shrinks the page by the status-bar height and centres it,
    which floats the tab bar about half that amount above the real bottom edge */
 nav.bar{bottom:calc(-1 * var(--barfix,0px))}
+
+/* no double-tap anything: no zoom, no word selection, no callout; typing fields still work normally */
+html,body,*{touch-action:manipulation}
+body,button,a,div,span,p,h1,h2,h3,label,i,svg{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
 </style>
 </head>
 <body>
@@ -886,6 +891,7 @@ function show(name){tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hid
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
   scrollTo(0,0)}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+['gesturestart','gesturechange','dblclick'].forEach(t=>document.addEventListener(t,e=>{if(!e.target.closest('input,textarea'))e.preventDefault()},{passive:false}));
 
 
 /* fade between dark and paper (600 ms, eased) */
