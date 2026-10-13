@@ -601,9 +601,6 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .days.cl .dsq{cursor:pointer}
 #clBody .ed{color:var(--mu2)}
 .clnote{margin:8px 0 0;font-size:14px;color:var(--mu)}
-
-/* home-screen app: if iOS leaves a strip under the page, pin the tab bar to the true bottom edge */
-nav.bar{bottom:calc(-1 * var(--barfix,0px))}
 </style>
 </head>
 <body>
@@ -645,6 +642,8 @@ nav.bar{bottom:calc(-1 * var(--barfix,0px))}
     <div class="it"><div class="grow"><span id="acEmail">Not signed in</span><small id="acSync">—</small></div></div>
     <button class="it" id="acOut"><span class="grow">Sign out on this device</span></button>
   </div>
+  <p class="cond" id="stDiag" style="margin:10px 4px 0;font-size:13px;letter-spacing:.06em;color:var(--mu2)"></p>
+  <div id="sbProbe" style="position:fixed;left:0;bottom:0;width:1px;height:0;padding-bottom:env(safe-area-inset-bottom,0px);visibility:hidden;pointer-events:none"></div>
   <div id="stWeekBox"><div class="lbl group">This week</div>
   <div class="card"><button class="it" id="stReplan"><span class="grow" id="stReplanT"></span></button></div></div>
   <div class="lbl group">Caffeine wean · AM / PM dose</div>
@@ -885,12 +884,6 @@ function show(name){tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hid
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
   scrollTo(0,0)}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
-// iOS home-screen apps can report a page shorter than the screen, which floats the fixed tab bar
-// up by that gap. Measure the gap and push the bar down by it so it sits on the real bottom edge.
-(function(){const fix=()=>{const sa=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
-  const portrait=innerHeight>innerWidth,sh=portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width);
-  const gap=sa?Math.round(sh-innerHeight):0;document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap:0)+'px')};
-  fix();addEventListener('resize',fix);addEventListener('orientationchange',()=>setTimeout(fix,300));setTimeout(fix,500)})();
 
 
 /* fade between dark and paper (600 ms, eased) */
@@ -1173,7 +1166,10 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
 
 /* ---------- Settings ---------- */
 function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textContent=D.user?D.user.email:'Not signed in';$('acSync').textContent=D.syncNote}
-function renderSettings(){renderSettingsAccount();const s=D.settings,act=document.activeElement;
+function diag(){const el=$('stDiag');if(!el)return;const pr=$("sbProbe").getBoundingClientRect();
+  el.textContent=`SCREEN ${screen.width}×${screen.height} · PAGE ${innerWidth}×${innerHeight} · VV ${Math.round(visualViewport?visualViewport.height:0)} · SAFE ${Math.round(pr.height)} · DOC ${document.documentElement.clientHeight} · FIXED ${Math.round(pr.bottom)} · ${navigator.standalone?'APP':'WEB'}`}
+addEventListener('resize',diag);
+function renderSettings(){renderSettingsAccount();diag();const s=D.settings,act=document.activeElement;
   $('stDay').innerHTML=DOWL.map((n,i)=>`<option value="${i}"${i===s.closeDay?' selected':''}>${n}</option>`).join('');
   $('stHour').innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}"${h===s.closeHour?' selected':''}>${hourLabel(h)}</option>`).join('');
   const fx=s.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
