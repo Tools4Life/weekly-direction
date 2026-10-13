@@ -601,6 +601,10 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .days.cl .dsq{cursor:pointer}
 #clBody .ed{color:var(--mu2)}
 .clnote{margin:8px 0 0;font-size:14px;color:var(--mu)}
+
+/* iOS home-screen app sometimes shrinks the page by the status-bar height and centres it,
+   which floats the tab bar about half that amount above the real bottom edge */
+nav.bar{bottom:calc(-1 * var(--barfix,0px))}
 </style>
 </head>
 <body>
@@ -1167,8 +1171,12 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
 /* ---------- Settings ---------- */
 function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textContent=D.user?D.user.email:'Not signed in';$('acSync').textContent=D.syncNote}
 function diag(){const el=$('stDiag');if(!el)return;const pr=$("sbProbe").getBoundingClientRect();
-  el.textContent=`SCREEN ${screen.width}×${screen.height} · PAGE ${innerWidth}×${innerHeight} · VV ${Math.round(visualViewport?visualViewport.height:0)} · SAFE ${Math.round(pr.height)} · DOC ${document.documentElement.clientHeight} · FIXED ${Math.round(pr.bottom)} · ${navigator.standalone?'APP':'WEB'}`}
+  el.textContent=`SCREEN ${screen.width}×${screen.height} · PAGE ${innerWidth}×${innerHeight} · VV ${Math.round(visualViewport?visualViewport.height:0)} · SAFE ${Math.round(pr.height)} · DOC ${document.documentElement.clientHeight} · FIXED ${Math.round(pr.bottom)} · SHIFT ${getComputedStyle(document.documentElement).getPropertyValue('--barfix')} · ${navigator.standalone?'APP':'WEB'}`}
 addEventListener('resize',diag);
+(function(){const fix=()=>{const sa=navigator.standalone||matchMedia('(display-mode: standalone)').matches,portrait=innerHeight>innerWidth;
+  const sh=portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width),gap=sa?sh-innerHeight:0;
+  document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap/2:0)+'px')};
+  fix();addEventListener('resize',fix);visualViewport&&visualViewport.addEventListener('resize',fix);setTimeout(fix,500)})();
 function renderSettings(){renderSettingsAccount();diag();const s=D.settings,act=document.activeElement;
   $('stDay').innerHTML=DOWL.map((n,i)=>`<option value="${i}"${i===s.closeDay?' selected':''}>${n}</option>`).join('');
   $('stHour').innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}"${h===s.closeHour?' selected':''}>${hourLabel(h)}</option>`).join('');
