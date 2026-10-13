@@ -601,6 +601,9 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .days.cl .dsq{cursor:pointer}
 #clBody .ed{color:var(--mu2)}
 .clnote{margin:8px 0 0;font-size:14px;color:var(--mu)}
+
+/* home-screen app: if iOS leaves a strip under the page, pin the tab bar to the true bottom edge */
+nav.bar{bottom:calc(-1 * var(--barfix,0px))}
 </style>
 </head>
 <body>
@@ -882,6 +885,13 @@ function show(name){tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hid
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
   scrollTo(0,0)}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
+// iOS home-screen apps can report a page shorter than the screen, which floats the fixed tab bar
+// up by that gap. Measure the gap and push the bar down by it so it sits on the real bottom edge.
+(function(){const fix=()=>{const sa=navigator.standalone||matchMedia('(display-mode: standalone)').matches;
+  const portrait=innerHeight>innerWidth,sh=portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width);
+  const gap=sa?Math.round(sh-innerHeight):0;document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap:0)+'px')};
+  fix();addEventListener('resize',fix);addEventListener('orientationchange',()=>setTimeout(fix,300));setTimeout(fix,500)})();
+
 
 /* fade between dark and paper (600 ms, eased) */
 function crossTo(name){
