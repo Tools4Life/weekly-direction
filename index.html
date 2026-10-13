@@ -593,6 +593,14 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 #lrBody p:first-of-type{font-size:clamp(21px,5.8vw,24px);line-height:1.55}
 .lramen{margin-top:3.2em;text-align:center;font-family:var(--cond);font-size:14px;letter-spacing:.4em;padding-left:.4em;color:var(--mu)}
 .lrrev{display:block;margin:6vh auto 0;color:var(--mu2);font-size:14px;letter-spacing:.06em}
+
+/* close the week */
+.closewk{display:flex;align-items:center;justify-content:space-between;width:100%;margin:14px 0 4px;padding:14px 16px;border-radius:14px;background:#1A1A1D;border:1px solid #2C2C31;color:var(--tx);text-align:left}
+.closewk span{display:flex;flex-direction:column;gap:2px}.closewk b{font-size:18px;font-weight:600}.closewk small{font-family:var(--cond);font-size:13px;letter-spacing:.08em;color:var(--mu);text-transform:uppercase}
+.closewk .i{width:20px;height:20px;color:var(--mu)}
+.days.cl .dsq{cursor:pointer}
+#clBody .ed{color:var(--mu2)}
+.clnote{margin:8px 0 0;font-size:14px;color:var(--mu)}
 </style>
 </head>
 <body>
@@ -708,6 +716,7 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 <div class="sheet dark" id="shCafLog" role="dialog" aria-modal="true" aria-labelledby="clT"><div class="grab"></div><h3 id="clT">Caffeine today</h3>
   <p class="mu" id="clTotal" style="margin:-8px 0 12px"></p><div id="clList"></div>
   <div class="acts"><button class="btn ghost" id="clOther">Add something else</button></div></div>
+<div class="sheet dark" id="shClose" role="dialog" aria-modal="true" aria-labelledby="clFocus"><div class="grab"></div><div id="clBody"></div></div>
 <div class="sheet dark" id="shWeek" role="dialog" aria-modal="true" aria-labelledby="hwFocus"><div class="grab"></div><div id="hwBody"></div></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <label class="hap" aria-hidden="true"><input type="checkbox" switch id="hapIn" tabindex="-1"></label>
@@ -973,12 +982,14 @@ function renderWeek(animate){
   const pills=selKey?`<div class="pills" role="group" aria-label="${dn}">
     <button class="pill x${tm0==='drift'?' on':''}" data-pill="drift" aria-pressed="${tm0==='drift'}" aria-label="${dn}: missed">${ico('x')}</button>
     <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="${dn}: kept">${cel&&cel.v==='on'?`<svg class="i draw" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`:ico('ok')}</button></div>`
-    :!due&&now.getDay()===D.settings.closeDay?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
+    :!due&&now.getDay()===D.settings.closeDay&&ymd(start)!==todayK?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
     <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];return selKey
       ?`<button class="hcard${on?' done':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span><i class="hchk">${ico('ok')}</i></button>`
       :`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`}).join('')}</div>`;
-  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${pills}${habits}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{tmMode=(tmMode+1)%TM_VIEWS.length;haptic();renderWeek(false)};
   el.querySelector('.trow .focus')?.addEventListener('click',()=>openCompass(w.focus));
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
@@ -1132,6 +1143,24 @@ function openWeekSheet(w){if(!w)return;const st=weekStats(w),s0=new Date(w.seale
   if(!live)$('hwSave').onclick=()=>{const r=$('hwRef').value,n=$('hwNotes').value;if(r!==(w.reflection||'')||n!==(w.planThoughts||''))store.putWeek({...w,reflection:r,planThoughts:n,editedAt:Date.now()});closeSheet()};
   openSheet($('shWeek'))}
 
+/* ---------- Close the week (quick, one screen) ---------- */
+let closeRef='';
+function openClose(id){closeRef='';renderClose(id);openSheet($('shClose'))}
+function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),m=w.marks||{};
+  const nx=new Date();nx.setDate(nx.getDate()+1);const lim=cafLimit(nx).limit,[am,pm]=cafSplit(lim),unm=st.days.filter(d=>!m[ymd(d)]).length;
+  $('clBody').innerHTML=`<div class="cond hdate">${fmtRange(s0,e)}</div><h3 id="clFocus" class="hwf">${esc(w.focus)}</h3>
+    <div class="hwpct"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept</span></div>
+    <div class="days big cl">${st.days.map(d=>{const k=ymd(d),v=m[k];return`<button class="dsq ${v||''}" data-ck="${k}" aria-label="${DOWL[d.getDay()]}: ${v==='on'?'kept':v==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>
+    <p class="clnote">${unm?`${unm} ${unm===1?'day isn’t':'days aren’t'} marked. Tap a day to fix it, or leave it as missed.`:'Tap a day to change it.'}</p>
+    <div class="lbl hwl">Caffeine next week</div><p class="hwp">${lim?`Starts at ${lim} mg · AM ${am} · PM ${pm}`:'Caffeine-free'}</p>
+    <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="How did the week go?">${esc(closeRef)}</textarea>
+    <div class="acts"><button class="btn pri" id="clGo">Close &amp; plan next week</button></div>`;
+  $('clRef').oninput=ev=>closeRef=ev.target.value;
+  $('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
+  $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
+    store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:closeRef.trim()});
+    closeSheet();setTimeout(()=>openPlan(null,cur),280)}}
+
 /* ---------- Settings ---------- */
 function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textContent=D.user?D.user.email:'Not signed in';$('acSync').textContent=D.syncNote}
 function renderSettings(){renderSettingsAccount();const s=D.settings,act=document.activeElement;
@@ -1163,10 +1192,11 @@ $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything sta
 /* ---------- Plan the week (paper) ---------- */
 let P=null,saveT=null;
 const draftOf=()=>({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()});
-function openPlan(rw){
+function openPlan(rw,carry){
   let d=D.draft&&D.draft.step==='plan'?D.draft:null;
   if(!rw&&d?.replan&&!D.weeks.some(w=>w.id===d.replan&&w.status==='active'))d=null;
   if(rw&&!(d&&d.replan===rw.id))d={focus:rw.focus,tray:rw.commitments,thoughts:rw.planThoughts||'',start:rw.sealedAt,replan:rw.id,marks:rw.marks||{},fresh:true};
+  if(!d&&carry)d={focus:'',tray:carry.commitments.map(c=>({...c,id:uid()})),thoughts:'',fresh:true};
   const replan=d?.replan||null,first=!replan&&!D.weeks.length;
   P={step:'plan',focus:d?.focus||'',tray:(d?.tray||[]).map(c=>({id:c.id||uid(),chipId:c.chipId||null,name:c.name,icon:c.icon||'check'})),thoughts:d?.thoughts||'',
     start:d?.start||(first?lastClose().getTime():null),first,replan,marks:d?.marks||null};
