@@ -705,6 +705,21 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
 #chDays{gap:4px;flex-wrap:nowrap}#chDays button{min-height:38px;padding:0 10px;font-size:14px}
 .rvq{margin:18px 0 8px;font-family:var(--serif);font-size:17px;line-height:1.4;color:var(--tx)}
 textarea.long.rva{min-height:64px}
+/* vision page */
+.visr .lrin{padding-top:calc(var(--st) + 9vh)}
+.vdate{font-family:var(--cond);font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:var(--mu);margin-bottom:12px}
+.vword{font-size:clamp(48px,14vw,68px)!important}
+.vtext p{margin:0 0 1.1em;font-family:var(--serif);font-size:clamp(19px,5.3vw,21px);line-height:1.65;color:var(--tx)}
+.vempty{font-family:var(--serif);font-style:italic;font-size:18px;color:var(--mu)}
+.vhabits{margin-top:6vh;padding-top:26px;border-top:1px solid #222225}
+.vhabits .lbl{margin:22px 0 8px}.vhabits .lbl:first-child{margin-top:0}
+.vhabits ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.vhabits li{display:flex;align-items:center;gap:14px;padding:10px 0}
+.vhabits li .ic{display:flex;color:#F2EFEA}.vhabits li .ic svg{width:21px;height:21px}
+.vhabits li b{display:block;font-weight:500;font-size:17px}
+.vhabits li small{display:block;font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu2);margin-top:2px}
+#visCompass{display:flex;align-items:center;gap:8px}#visCompass svg{width:16px;height:16px}
+.trow .focus{cursor:pointer}
 </style>
 </head>
 <body>
@@ -784,8 +799,8 @@ textarea.long.rva{min-height:64px}
 
   <div class="sphere"><div class="sh"><span class="lbl">Library</span></div><div class="chips" id="plChips"></div></div>
 
-  <label class="lbl" for="plThoughts" style="display:block;margin:32px 0 10px">Notes</label>
-  <textarea class="long" id="plThoughts" placeholder="Anything to remember this week?"></textarea>
+  <label class="lbl" for="plThoughts" style="display:block;margin:32px 0 10px">Vision</label>
+  <textarea class="long" id="plThoughts" placeholder="What this week is about. Tap the focus word to read it during the week."></textarea>
 
   <div class="sealbar">
     <button class="btn ink" id="plSeal">Seal the week</button>
@@ -856,6 +871,9 @@ textarea.long.rva{min-height:64px}
   <div class="fctime" id="fcTime">0:00</div><div class="fchint" id="fcHint">Keeps running if you close</div>
   <div class="fcacts"><button id="fcStop">Stop</button></div>
 </div>
+<div class="lifer visr" id="visR" hidden role="dialog" aria-modal="true" aria-label="This week's vision">
+  <button class="cx" id="visClose" aria-label="Close">&times;</button>
+  <div class="lrin" id="visBody"></div></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -1202,6 +1220,18 @@ function bindHold(el,w,k){let t=null,fired=false,x0=0,y0=0,b=null;
     ['pointerup','pointercancel','pointerleave'].forEach(n=>card.addEventListener(n,cancel));
     card.addEventListener('contextmenu',e=>e.preventDefault());
     card.addEventListener('click',e=>{if(fired){e.stopImmediatePropagation();e.preventDefault();fired=false}},true)})}
+// ---- vision: read-only page for the week (focus word, vision, every habit by day group) ----
+function openVision(w){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(s0),paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
+  const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
+  const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
+  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
+    ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
+    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>
+    <button class="lrrev" id="visCompass">${ico('target')} Compass</button>`;
+  $('visR').hidden=false;$('visR').scrollTop=0;requestAnimationFrame(()=>$('visR').classList.add('on'));
+  $('visCompass').onclick=()=>{closeVision();setTimeout(()=>openCompass(w.focus),320)}}
+function closeVision(){$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
+$('visClose').onclick=closeVision;
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
@@ -1239,8 +1269,8 @@ function renderWeek(animate){
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{haptic();tmSwap(tFrom)};
-  el.querySelector('.trow .focus')?.addEventListener('click',()=>openCompass(w.focus));
-  if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
+  el.querySelector('.trow .focus')?.addEventListener('click',()=>openVision(w));
+  if($('wkThoughts'))$('wkThoughts').onclick=()=>openVision(w);
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
   el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
   const items=selKey?dayItems(w,selDay):[];
@@ -1398,7 +1428,7 @@ function openWeekSheet(w){if(!w)return;const st=weekStats(w),s0=new Date(w.seale
     <div class="lbl hwl">Daily habits</div><div class="hwh">${w.commitments.map(c=>`<span>${ico(c.icon||'check')}${esc(c.name)}</span>`).join('')}</div>
     ${c0||c1?`<div class="lbl hwl">Caffeine</div><p class="hwp">${c0===c1?`${c0} mg a day`:`${c0} → ${c1} mg a day`}</p>`:''}
     ${live?'':`<div class="lbl hwl">Reflection${w.editedAt?' <em class="ed">edited</em>':''}</div><textarea class="long dk" id="hwRef" placeholder="How did the week go?">${esc(w.reflection||'')}</textarea>`}
-    <div class="lbl hwl">Notes</div>${live?`<p class="hwp">${esc(w.planThoughts||'—')}</p>`:`<textarea class="long dk" id="hwNotes" placeholder="Notes">${esc(w.planThoughts||'')}</textarea>`}
+    <div class="lbl hwl">Vision</div>${live?`<p class="hwp">${esc(w.planThoughts||'—')}</p>`:`<textarea class="long dk" id="hwNotes" placeholder="Vision">${esc(w.planThoughts||'')}</textarea>`}
     ${live?'':`<div class="acts"><button class="btn pri" id="hwSave">Save</button></div>`}`;
   if(!live)$('hwSave').onclick=()=>{const r=$('hwRef').value,n=$('hwNotes').value;if(r!==(w.reflection||'')||n!==(w.planThoughts||''))store.putWeek({...w,reflection:r,planThoughts:n,editedAt:Date.now()});closeSheet()};
   openSheet($('shWeek'))}
