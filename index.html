@@ -688,6 +688,13 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
 .hcard .hbody .hmeta{margin-left:0;font-size:13px;line-height:1.2}
 /* done: icon turns white so it reads against the orange fill */
 .hcard.done .ic,.hcards.kept .hcard .ic{color:#FFF!important}
+/* one icon color: white everywhere; the card fill alone shows done */
+.hcard .ic,.hcard.done .ic,.hcard.run .ic,.hcards.kept .hcard .ic{color:#F2EFEA!important}
+.hcard .hck i,.hcard .hck.done i,.hcard .hck.run i,.hcard .hck.open i:not(:empty){background:none!important;border-color:rgba(242,239,234,.55)!important;color:#F2EFEA!important}
+.hcard .hck.miss i{border-color:rgba(242,239,234,.3)!important;color:rgba(242,239,234,.5)!important}
+.hcard.done .hck i{border-color:#F2EFEA!important}
+#wkTimer.swap{animation:tswap .45s ease}
+@keyframes tswap{0%{opacity:0;transform:translateY(6px)}100%{opacity:1;transform:none}}
 </style>
 </head>
 <body>
@@ -1053,7 +1060,7 @@ $('cfAdd').onclick=()=>{const mg=+$('cfMg').value;if(!(mg>0)){$('cfMg').focus();
 
 /* ---------- This Week (dark, home) ---------- */
 const active=()=>D.weeks.find(w=>w.status==='active');
-let tickT=null,tmMode=0;
+let tickT=null,tmMode=0,tmAt=Date.now();const TM_CYCLE=6000; // timer view auto-advances every 6 s; a tap advances it now
 // other ways to count the same stretch of time (breaths ~12/min, heartbeats ~70/min at rest: estimates)
 const TM_VIEWS=[null,['hours',36e5,1],['minutes',6e4,1],['breaths',6e4,12],['heartbeats',6e4,70]];
 const altTime=ms=>{const [u,div,mult]=TM_VIEWS[tmMode],n=Math.floor(Math.max(0,ms)/div*mult);return`<span class="talt">${mult>1?'≈ ':''}${n.toLocaleString()}</span><span class="tunit">${u}</span>`};
@@ -1204,7 +1211,7 @@ function renderWeek(animate){
   const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
-  if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{tmMode=(tmMode+1)%TM_VIEWS.length;haptic();renderWeek(false)};
+  if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{tmMode=(tmMode+1)%TM_VIEWS.length;tmAt=Date.now();haptic();renderWeek(false)};
   el.querySelector('.trow .focus')?.addEventListener('click',()=>openCompass(w.focus));
   if($('wkThoughts'))$('wkThoughts').onclick=()=>{$('thText').textContent=w.planThoughts;openSheet($('shThoughts'))};
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
@@ -1237,6 +1244,9 @@ function renderWeek(animate){
     if(new Date()>=end||Date.now()>=flipAt)return renderWeek(false);
     el.querySelectorAll('[data-left]').forEach(x=>{const c=w.commitments.find(y=>y.id===x.dataset.left),r=c&&runOf(w,selKey,c.id);if(!r)return;
       x.textContent=mmss(r+c.min*6e4-Date.now());x.closest('.hcard').style.setProperty('--rp',Math.min(1,(Date.now()-r)/(c.min*6e4)).toFixed(3))});
+    if(Date.now()-tmAt>=TM_CYCLE&&!RM.matches){tmMode=(tmMode+1)%TM_VIEWS.length;tmAt=Date.now();const t=$('wkTimer');
+      if(tmMode)t.innerHTML=altTime(Date.now()-tFrom);else{const [a,b]=elapsedParts(Date.now()-tFrom);t.innerHTML=`<span id="tmMain">${a}</span><span class="sec" id="tmSec"><span>${b}</span></span>`}
+      t.classList.remove('swap');void t.offsetWidth;t.classList.add('swap');return}
     if(tmMode){$('wkTimer').innerHTML=altTime(Date.now()-tFrom);return}
     const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
 }
