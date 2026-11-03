@@ -1190,9 +1190,8 @@ function renderWeek(animate){
   const tm0=selKey?marks[selKey]:undefined,cel=celebrate,selDn=selKey?(doneAll[selKey]||{}):{};celebrate=null;
   const dn=selKey===todayK?'Today':selDay?DOWL[selDay.getDay()]:'';
   const selNote=selKey&&selKey!==todayK?`<span class="selnote">${dn} · <button data-today>${habitToday?'today':'done'}</button></span>`:'';
-  const pills=selKey?`<div class="pills" role="group" aria-label="${dn}">
-    <button class="pill x${tm0==='drift'?' on':''}" data-pill="drift" aria-pressed="${tm0==='drift'}" aria-label="${dn}: missed">${ico('x')}</button>
-    <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="${dn}: kept">${cel&&cel.v==='on'?`<svg class="i draw" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`:ico('ok')}</button></div>`
+  // per-habit now: no whole-day ✓/✗; a day is kept when every habit is done
+  const pills=selKey?''
     :!due&&now.getDay()===D.settings.closeDay&&ymd(start)!==todayK?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
     <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
@@ -1227,8 +1226,8 @@ function renderWeek(animate){
   el.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.h));
   el.querySelectorAll('[data-dose]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.dose));
   if(cel){const pb=el.querySelector(`[data-pill="${cel.v}"]`),sq=el.querySelector('.dsq.sel');
-    if(pb){pb.classList.add('cel');if(cel.v==='on'){const r=pb.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2);
-      el.querySelectorAll('.hcard').forEach((c,i)=>{c.style.animationDelay=(120+i*70)+'ms';c.classList.add('glow')})}}
+    if(cel.v==='on'){const tg=pb||sq;if(tg){const r=tg.getBoundingClientRect();burst(r.left+r.width/2,r.top+r.height/2)}
+      el.querySelectorAll('.hcard').forEach((c,i)=>{c.style.animationDelay=(120+i*70)+'ms';c.classList.add('glow')})}
     if(sq)sq.classList.add('pop')}
   if(animate)el.querySelectorAll('.dose b').forEach(b=>countUp(b,+b.textContent));
   bindCaf(el);
