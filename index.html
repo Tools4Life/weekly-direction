@@ -1090,7 +1090,8 @@ function elapsedParts(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.fl
 const SEAL_RULE2=new Date('2026-11-02T00:00:00').getTime();
 function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);
   if(w.sealedAt>=SEAL_RULE2?s.getDay()===D.settings.closeDay:s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
-  const last=new Date(e);last.setHours(12,0,0,0);const out=[];while(d<last&&out.length<14){out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
+  // weeks sealed from Nov 2 2026 on also do habits on the review day (Saturday); older weeks keep their old span
+  const last=new Date(e);last.setHours(12,0,0,0);const incl=w.sealedAt>=SEAL_RULE2,out=[];while((incl?d<=last:d<last)&&out.length<14){out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 const NEXT={undefined:'on',on:'drift',drift:undefined};
 // light haptic: iOS 18+ Safari ticks when a native switch toggles; elsewhere use vibrate if present
 function haptic(){try{if(navigator.vibrate){navigator.vibrate(12);return}$('hapIn').click()}catch(e){}}
@@ -1228,7 +1229,8 @@ function renderWeek(animate){
       const ck=st==='done'?ico('ok'):st==='run'||(c.min&&st==='open'&&selKey===todayK)?ico('timer'):st==='miss'?ico('x'):'';
       const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':c.min&&selKey===todayK?'start timer':'mark done';
       return`<div class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
-  const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
+  const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
+  const closeBtn=due||revDay?`<button class="closewk${due?'':' soon'}" id="wkClose"><span><b>${due?'Close the week':'Weekly review'}</b><small>${weekStats(w).pct}% ${due?'':'so far '}· close &amp; plan</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{haptic();tmSwap(tFrom)};
@@ -1463,7 +1465,7 @@ function openPlan(rw,carry){
   $('plFocus').value=P.focus;$('plThoughts').value=P.thoughts;
   $('plStartBox').hidden=!(first||replan);if(first||replan)$('plStart').value=localInput(new Date(P.start));
   $('plProg').hidden=first||!!replan;$('plTitle').textContent=replan?'Re-plan this week':first?'Plan your first week':'Plan the next week';
-  const cd=D.settings.closeDay;$('plSpan').textContent=`${DOWL[(cd+1)%7].slice(0,3)} – ${DOWL[(cd+6)%7].slice(0,3)}`;
+  const cd=D.settings.closeDay;$('plSpan').textContent=`${DOWL[(cd+1)%7].slice(0,3)} – ${DOWL[cd].slice(0,3)}`;
   $('plSaved').textContent=d&&!d.fresh?'DRAFT RESUMED':'';
   renderTray();renderChips();updateSeal();crossTo('plan');
 }
