@@ -495,7 +495,7 @@ nav.bar button:active{opacity:.6}
 /* one title position for every tab: same top padding, same row height, same size */
 #sWeek,#sPrayer,#sHistory{padding-top:calc(var(--st) + 30px)}
 .trow{display:flex;align-items:center;justify-content:space-between;gap:12px;height:52px}
-.trow .ttl,#sWeek .trow .focus{margin:0;font-family:var(--serif);font-weight:400;font-size:44px;line-height:52px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trow .ttl,#sWeek .trow .focus{margin:0;font-family:var(--serif);font-weight:400;font-size:44px;line-height:52px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:2px 2px 10px 0;margin:-2px 0 -10px}
 .trow .gear{margin-right:-8px;flex:none}
 .tline2{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 #sWeek .tline2 .timer{margin:0}
@@ -1018,8 +1018,11 @@ let tickT=null,tmMode=0;
 const TM_VIEWS=[null,['hours',36e5,1],['minutes',6e4,1],['breaths',6e4,12],['heartbeats',6e4,70]];
 const altTime=ms=>{const [u,div,mult]=TM_VIEWS[tmMode],n=Math.floor(Math.max(0,ms)/div*mult);return`<span class="talt">${mult>1?'≈ ':''}${n.toLocaleString()}</span><span class="tunit">${u}</span>`};
 function elapsedParts(ms){ms=Math.max(0,ms);const s=Math.floor(ms/1e3),d=Math.floor(s/86400);return[`${d}d ${pad(Math.floor(s%86400/3600))}:${pad(Math.floor(s%3600/60))}:`,pad(s%60)]}
-// habit days: from the day after sealing (or the sealing day itself if sealed before noon) up to, not including, the closing day
-function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);if(s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
+// habit days: up to, not including, the closing day
+// weeks sealed from Nov 2 2026 on: a week sealed on any day but the review day includes the sealing day itself
+const SEAL_RULE2=new Date('2026-11-02T00:00:00').getTime();
+function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);
+  if(w.sealedAt>=SEAL_RULE2?s.getDay()===D.settings.closeDay:s.getHours()>=12)d.setDate(d.getDate()+1);d.setHours(12,0,0,0);
   const last=new Date(e);last.setHours(12,0,0,0);const out=[];while(d<last&&out.length<14){out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 const NEXT={undefined:'on',on:'drift',drift:undefined};
 // light haptic: iOS 18+ Safari ticks when a native switch toggles; elsewhere use vibrate if present
