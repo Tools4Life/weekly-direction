@@ -210,6 +210,36 @@ textarea.long:focus{border-color:var(--mu)}
 .sheet h3{margin:0 0 14px;font-family:var(--serif);font-weight:400;font-size:26px}
 .sheet .l2{display:block;margin:16px 0 8px}
 .seg{display:flex;flex-wrap:wrap;gap:6px}
+.hmeta{margin-left:auto;flex:none;font-family:var(--cond);font-size:14px;letter-spacing:.06em;color:var(--mu2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.hcard.done .hmeta{color:rgba(255,255,255,.55)}
+.hcard.miss{opacity:.5;cursor:default}
+.hcard.miss .nm{text-decoration:line-through;text-decoration-color:rgba(242,239,234,.35)}
+.hcard.miss .hmeta{color:var(--ac)}
+.hcard.run{border-color:rgba(232,116,59,.55)!important}
+.hcard.run::before{transform:scaleX(var(--rp,0));opacity:.55;transition:transform 1s linear}
+.hcard.run .hmeta{color:var(--ac)}
+.hcard.run .ic{color:var(--ac)}
+.ti .tmeta{font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu2);white-space:nowrap}
+.chrow{display:flex;align-items:center;gap:10px;margin-top:8px}
+.chrow label{flex:1;font-size:16px}
+.chrow .field{width:auto;min-height:44px;padding:8px 12px;background:var(--card2);font-size:16px}
+.chrow .field.num{width:84px}
+.chrow .clr{min-width:44px;min-height:44px;font-size:22px;color:var(--mu)}
+.chnote{margin:8px 2px 0;font-size:14px;color:var(--mu);line-height:1.35}
+/* focus timer */
+.fcs{position:fixed;inset:0;z-index:97;background:#060607;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;opacity:0;transition:opacity .3s ease;padding:0 20px}
+.fcs.on{opacity:1}
+.fcname{font-family:var(--serif);font-size:30px;color:var(--tx);text-align:center}
+.fcwrap{position:relative;width:min(84vw,340px);aspect-ratio:1}
+.fcwrap svg{width:100%;height:100%;display:block}
+.fcic{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none}
+.fcic span{width:84px;height:84px;border-radius:50%;background:#0B0B0C;border:1px solid #2C2C30;display:flex;align-items:center;justify-content:center;color:var(--ac)}
+.fcic svg{width:40px;height:40px}
+.fctime{font-family:var(--cond);font-size:44px;font-weight:600;letter-spacing:.04em;color:var(--tx);font-variant-numeric:tabular-nums}
+.fctime.fin{color:var(--ac)}
+.fchint{font-family:var(--cond);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2)}
+.fcacts{display:flex;gap:10px}
+.fcacts button{min-height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--line);font-size:16px;color:var(--tx)}
 .tgl{width:46px;height:28px;margin:0;accent-color:var(--ac);flex:none}
 .seg button{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:15px;font-family:var(--sans);background:var(--card)}
 .seg button.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
@@ -723,6 +753,10 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
   <h3 id="chTitle">New habit</h3>
   <input class="field" id="chName" maxlength="60" placeholder="Name" autocomplete="off">
   <span class="lbl l2">Icon</span><div class="icons" id="chIcons"></div>
+  <span class="lbl l2">Timing <em class="ed">optional</em></span>
+  <div class="chrow"><label for="chBy">Start by</label><input class="field" id="chBy" type="time"><button class="clr" id="chByClr" aria-label="Clear start-by time">&times;</button></div>
+  <div class="chrow"><label for="chMin">Timer</label><input class="field num" id="chMin" type="number" inputmode="numeric" min="1" max="240" placeholder="Off"><span class="unit">min</span></div>
+  <p class="chnote">Start by: tap it before this time or it counts as missed. Timer: tapping it opens a focus timer, and it’s done when the time runs out.</p>
   <div class="acts" id="chActs"></div>
 </div>
 <!-- notes sheet (dark) -->
@@ -755,6 +789,13 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
 <div class="lifer" id="lifeR" hidden role="dialog" aria-modal="true" aria-label="Life prayer">
   <button class="cx" id="lrClose" aria-label="Close">&times;</button>
   <div class="lrin"><div id="lrBody"></div></div></div>
+<div class="fcs" id="fcs" hidden role="dialog" aria-modal="true" aria-label="Focus timer">
+  <button class="cx" id="fcClose" aria-label="Close. The timer keeps running">&times;</button>
+  <div class="fcname" id="fcName"></div>
+  <div class="fcwrap"><svg id="fcDial" viewBox="-160 -160 320 320" aria-hidden="true"></svg><div class="fcic"><span id="fcIc"></span></div></div>
+  <div class="fctime" id="fcTime">0:00</div><div class="fchint" id="fcHint">Keeps running if you close</div>
+  <div class="fcacts"><button id="fcStop">Stop</button></div>
+</div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -800,7 +841,8 @@ const DOW=['S','M','T','W','T','F','S'],DOWL=['Sunday','Monday','Tuesday','Wedne
 // default habit library (no categories: devotional habits only)
 const SEED=[['Morning devotion','sun'],['Prayer','hands'],['Scripture reading','book'],['Scripture memory','pen'],['Evening prayer','moon'],['Worship','music'],['Fast','moon'],['No YouTube on phone','phone']];
 const OLD_SEEDED=['Strength training','Walk','In bed by 10','No caffeine','On time to every site','Focused work blocks','End-of-day performance reflection','BuilderTrend seminar'];
-const habitOf=ch=>({id:uid(),chipId:ch.id||null,name:ch.name,icon:ch.icon||'check'});
+const tmg=c=>({...(c.by?{by:c.by}:{}),...(c.min?{min:c.min}:{})});
+const habitOf=ch=>({id:uid(),chipId:ch.id||null,name:ch.name,icon:ch.icon||'check',...tmg(ch)});
 const CAF_PRESETS=()=>[['Pill',D.settings.cafPill||50],['Coffee',95],['Energy drink',160]];
 
 /* time helpers */
@@ -871,6 +913,7 @@ async function firestoreStore(){
     putDraft:v=>F.setDoc(paths.draft,v).catch(fail),
     delDraft:()=>F.deleteDoc(paths.draft).catch(fail),
     mark:(w,k,v)=>F.setDoc(F.doc(paths.weeks,w.id),{marks:{[k]:v??F.deleteField()}},{merge:true}).catch(fail),
+    setRun:(w,k,id,ts)=>F.setDoc(F.doc(paths.weeks,w.id),{runs:{[k]:{[id]:ts??F.deleteField()}}},{merge:true}).catch(fail),
     setDay:(w,k,items,v)=>F.setDoc(F.doc(paths.weeks,w.id),{done:{[k]:items},marks:{[k]:v??F.deleteField()}},{merge:true}).catch(fail),
     putPrayer:p=>{const {id,...v}=p;return F.setDoc(F.doc(paths.prayers,id),v).catch(fail)},
     delPrayer:id=>F.deleteDoc(F.doc(paths.prayers,id)).catch(fail),
@@ -891,6 +934,7 @@ function memoryStore(){
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
     putDraft:v=>{D.draft=v;emit('draft');if(m.echoReady)emit('ready')},delDraft:()=>{D.draft=null;emit('draft')},
     mark:(w,k,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
+    setRun:(w,k,id,ts)=>{const x=D.weeks.find(y=>y.id===w.id),rr={...(x.runs||{})},d={...(rr[k]||{})};if(ts)d[id]=ts;else delete d[id];rr[k]=d;x.runs=rr;emit('weeks')},
     setDay:(w,k,items,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.done={...(x.done||{}),[k]:{...((x.done||{})[k]||{}),...items}};x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
     putPrayer:p=>{D.prayers=[p,...D.prayers.filter(x=>x.id!==p.id)].sort((a,b)=>b.created-a.created);emit('prayers')},
     delPrayer:id=>{D.prayers=D.prayers.filter(x=>x.id!==id);emit('prayers')},
@@ -1008,6 +1052,44 @@ function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur
     <div class="cafrow"><div class="cafn"><b>${cur}</b><span>${cur===1?'day':'days'} in a row</span></div><em>${goal}</em></div>
     <div class="stkl" role="img" aria-label="Milestones ${MILES.join(', ')}">${lad}</div>
   </section>`}
+// ---- timed / start-by habits ----
+// c.by "HH:MM": must be tapped (or its timer started) before then, or the day's habit is missed.
+// c.min: tapping starts a focus timer; the habit is done when it runs out.
+const clock=t=>{const [h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)} ${h<12?'am':'pm'}`};
+const tmLabel=c=>[c.by?`by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
+const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
+const deadline=(k,c)=>c.by?new Date(`${k}T${c.by}:00`).getTime():null;
+function hState(w,k,c,now=Date.now()){if(((w.done||{})[k]||{})[c.id])return'done';const r=runOf(w,k,c.id);
+  if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c);return dl&&now>dl?'miss':'open'}
+const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1e3));return`${Math.floor(t/60)}:${pad(t%60)}`};
+// sets one item for a day and keeps the day's kept mark in step with it
+function setItem(w,k,id,val){const day=habitDays(w).find(d=>ymd(d)===k)||new Date(k+'T12:00:00'),items=dayItems(w,day),
+  dn={...((w.done||{})[k]||{}),[id]:val},all=items.every(x=>dn[x]),cur=(w.marks||{})[k];let nv=cur;
+  if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;store.setDay(w,k,{[id]:val},nv);return nv!==cur}
+let FC=null,fcRAF=null,fcLock=null;
+function fcDialStatic(span){const R=150,step=span<=60?5:span<=120?10:30,tick=span<=120?1:5;let o=`<circle r="${R}" fill="#0E0E10" stroke="#2C2C30" stroke-width="1.5"/><path id="fcWedge" fill="rgba(232,116,59,.85)"/>`;
+  for(let m=0;m<span;m+=tick){const a=m/span*2*Math.PI,mj=m%step===0,r1=mj?R-16:R-9;o+=`<line x1="${(Math.sin(a)*r1).toFixed(1)}" y1="${(-Math.cos(a)*r1).toFixed(1)}" x2="${(Math.sin(a)*(R-3)).toFixed(1)}" y2="${(-Math.cos(a)*(R-3)).toFixed(1)}" stroke="${mj?'#8E8A84':'#3A3A3E'}" stroke-width="${mj?2:1}"/>`}
+  for(let m=0;m<span;m+=step){const a=m/span*2*Math.PI,r=R-32;o+=`<text x="${(Math.sin(a)*r).toFixed(1)}" y="${(-Math.cos(a)*r+5).toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="15" fill="#B5B0A8" style="paint-order:stroke" stroke="#0E0E10" stroke-width="3">${m}</text>`}
+  return o+`<line id="fcHand" x1="0" y1="0" x2="0" y2="-${R-4}" stroke="#F2EFEA" stroke-width="2.5" stroke-linecap="round"/>`}
+function fcDraw(){if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid),r=w&&runOf(w,FC.k,FC.c.id);
+  if(!w||!r){closeFocus();return}
+  const tot=FC.c.min*6e4,left=Math.max(0,r+tot-Date.now()),span=FC.span,R=136,mins=left/6e4,a=Math.min(.99999,mins/span)*2*Math.PI;
+  const x=(Math.sin(a)*R).toFixed(2),y=(-Math.cos(a)*R).toFixed(2);
+  $('fcWedge').setAttribute('d',left>0?`M0 0 L0 ${-R} A${R} ${R} 0 ${a>Math.PI?1:0} 1 ${x} ${y} Z`:'');
+  $('fcHand').setAttribute('transform',`rotate(${(mins/span*360).toFixed(2)})`);
+  $('fcTime').textContent=left>0?mmss(left):'Done';$('fcTime').classList.toggle('fin',!left);
+  if(!left&&!FC.fin){FC.fin=true;$('fcHint').textContent=FC.c.name+' · done';$('fcStop').hidden=true;haptic();
+    const rc=$('fcTime').getBoundingClientRect();burst(rc.left+rc.width/2,rc.top+rc.height/2);
+    if(!((w.done||{})[FC.k]||{})[FC.c.id])setItem(w,FC.k,FC.c.id,true);setTimeout(closeFocus,1800);return}
+  fcRAF=requestAnimationFrame(fcDraw)}
+function openFocus(w,c,k){FC={wid:w.id,c,k,span:c.min<=60?60:c.min,fin:false};
+  $('fcName').textContent=c.name;$('fcIc').innerHTML=ico(c.icon||'check');$('fcDial').innerHTML=fcDialStatic(FC.span);
+  $('fcHint').textContent='Keeps running if you close';$('fcStop').hidden=false;
+  $('fcs').hidden=false;requestAnimationFrame(()=>$('fcs').classList.add('on'));cancelAnimationFrame(fcRAF);fcDraw();
+  try{if('wakeLock' in navigator)navigator.wakeLock.request('screen').then(l=>fcLock=l).catch(()=>{})}catch(e){}}
+function closeFocus(){cancelAnimationFrame(fcRAF);FC=null;$('fcs').classList.remove('on');try{fcLock&&fcLock.release()}catch(e){}fcLock=null;setTimeout(()=>{if(!FC)$('fcs').hidden=true},300);if(tab==='week')renderWeek(false)}
+$('fcClose').onclick=closeFocus;
+$('fcStop').onclick=()=>{if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid);if(w&&confirm(`Stop the ${FC.c.name} timer? It won’t count as done.`)){store.setRun(w,FC.k,FC.c.id,null);closeFocus()}};
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
@@ -1034,9 +1116,11 @@ function renderWeek(animate){
     <button class="pill ok${tm0==='on'?' on':''}" data-pill="on" aria-pressed="${tm0==='on'}" aria-label="${dn}: kept">${cel&&cel.v==='on'?`<svg class="i draw" viewBox="0 0 24 24" aria-hidden="true">${IC.ok}</svg>`:ico('ok')}</button></div>`
     :!due&&now.getDay()===D.settings.closeDay&&ymd(start)!==todayK?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
-    <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];return selKey
-      ?`<button class="hcard${on?' done':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span><i class="hchk">${ico('ok')}</i></button>`
-      :`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`}).join('')}</div>`;
+    <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
+        return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</div>`}
+      const st=hState(w,selKey,c),r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
+      const meta=st==='miss'?`missed · by ${clock(c.by)}`:st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c);
+      return`<button class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}"${st==='miss'?' aria-disabled="true"':''} style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}<i class="hchk">${ico('ok')}</i></button>`}).join('')}</div>`;
   const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
@@ -1046,11 +1130,16 @@ function renderWeek(animate){
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
   el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
   const items=selKey?dayItems(w,selDay):[];
-  el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill,cur=(w.marks||{})[selKey],nv=cur===v?undefined:v;
+  el.querySelectorAll('[data-pill]').forEach(b=>b.onclick=()=>{const v=b.dataset.pill,cur=(w.marks||{})[selKey];let nv=cur===v?undefined:v;
     celebrate=nv?{v:nv}:null;haptic();
-    if(v==='on'){const all={};items.forEach(x=>all[x]=nv==='on');store.setDay(w,selKey,all,nv)}else store.mark(w,selKey,nv)});
+    if(v==='on'){const miss=new Set(w.commitments.filter(c=>hState(w,selKey,c)==='miss').map(c=>c.id)),all={};items.forEach(x=>all[x]=nv==='on'&&!miss.has(x));
+      if(nv==='on'&&miss.size){nv=undefined;celebrate=null}store.setDay(w,selKey,all,nv)}else store.mark(w,selKey,nv)});
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
-  const toggleItem=k=>{const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
+  const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
+    if(c){const st=hState(w,selKey,c);if(st==='miss')return;
+      if(c.min&&selKey===todayK&&st!=='done'){haptic();if(st==='open')store.setRun(w,selKey,k,Date.now());openFocus(w,c,selKey);return}
+      if(c.min&&st==='done')store.setRun(w,selKey,k,null)}
+    const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
     haptic();store.setDay(w,selKey,{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
   el.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.h));
@@ -1061,8 +1150,12 @@ function renderWeek(animate){
     if(sq)sq.classList.add('pop')}
   if(animate)el.querySelectorAll('.dose b').forEach(b=>countUp(b,+b.textContent));
   bindCaf(el);
+  if(selKey){const fin=w.commitments.filter(c=>hState(w,selKey,c)==='fin');if(fin.length&&!FC)setTimeout(()=>fin.forEach(c=>setItem(w,selKey,c.id,true)),60)}
+  const flips=selKey?w.commitments.flatMap(c=>{const st=hState(w,selKey,c),r=runOf(w,selKey,c.id);return st==='run'?[r+c.min*6e4]:st==='open'&&c.by?[deadline(selKey,c)]:[]}).filter(t=>t>Date.now()):[],flipAt=flips.length?Math.min(...flips):Infinity;
   if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!$('wkTimer')||tab!=='week')return clearInterval(tickT);
-    if(new Date()>=end)return renderWeek(false);
+    if(new Date()>=end||Date.now()>=flipAt)return renderWeek(false);
+    el.querySelectorAll('[data-left]').forEach(x=>{const c=w.commitments.find(y=>y.id===x.dataset.left),r=c&&runOf(w,selKey,c.id);if(!r)return;
+      x.textContent=mmss(r+c.min*6e4-Date.now());x.closest('.hcard').style.setProperty('--rp',Math.min(1,(Date.now()-r)/(c.min*6e4)).toFixed(3))});
     if(tmMode){$('wkTimer').innerHTML=altTime(Date.now()-tFrom);return}
     const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
 }
@@ -1255,7 +1348,7 @@ function openPlan(rw,carry){
   if(rw&&!(d&&d.replan===rw.id))d={focus:rw.focus,tray:rw.commitments,thoughts:rw.planThoughts||'',start:rw.sealedAt,replan:rw.id,marks:rw.marks||{},fresh:true};
   if(!d&&carry)d={focus:'',tray:carry.commitments.map(c=>({...c,id:uid()})),thoughts:'',fresh:true};
   const replan=d?.replan||null,first=!replan&&!D.weeks.length;
-  P={step:'plan',focus:d?.focus||'',tray:(d?.tray||[]).map(c=>({id:c.id||uid(),chipId:c.chipId||null,name:c.name,icon:c.icon||'check'})),thoughts:d?.thoughts||'',
+  P={step:'plan',focus:d?.focus||'',tray:(d?.tray||[]).map(c=>({id:c.id||uid(),chipId:c.chipId||null,name:c.name,icon:c.icon||'check',...tmg(c)})),thoughts:d?.thoughts||'',
     start:d?.start||(first?lastClose().getTime():null),first,replan,marks:d?.marks||null};
   $('plFocus').value=P.focus;$('plThoughts').value=P.thoughts;
   $('plStartBox').hidden=!(first||replan);if(first||replan)$('plStart').value=localInput(new Date(P.start));
@@ -1272,9 +1365,10 @@ $('plLeave').onclick=()=>{if(P){clearTimeout(saveT);if(P.focus||P.tray.length||P
 
 function renderTray(){const t=$('plTray');$('plCount').textContent=P.tray.length;t.classList.toggle('full',P.tray.length>5);
   if(!P.tray.length){t.innerHTML='<div class="empty">Tap a habit below to add it.</div>';return}
-  t.innerHTML=P.tray.map(c=>`<div class="tiw${c.id===P.justAdded?' in':''}" data-id="${c.id}"><div class="ti"><span class="ic">${ico(c.icon)}</span><span class="nm">${esc(c.name)}</span>
+  t.innerHTML=P.tray.map(c=>`<div class="tiw${c.id===P.justAdded?' in':''}" data-id="${c.id}"><div class="ti"><span class="ic">${ico(c.icon)}</span><span class="nm">${esc(c.name)}</span>${tmLabel(c)?`<span class="tmeta">${tmLabel(c)}</span>`:''}
     <button class="rm" data-rm aria-label="Remove ${esc(c.name)}">${ico('x')}</button></div></div>`).join('');P.justAdded=null}
-$('plTray').addEventListener('click',e=>{const w=e.target.closest('.tiw');if(!w||!e.target.closest('[data-rm]'))return;
+$('plTray').addEventListener('click',e=>{const w=e.target.closest('.tiw');if(!w)return;
+  if(!e.target.closest('[data-rm]')){const it=P.tray.find(x=>x.id===w.dataset.id);if(it)openChipSheet({mode:'tray',item:it});return}
   P.tray=P.tray.filter(x=>x.id!==w.dataset.id);renderTray();renderChips();updateSeal();saveDraft()});
 
 function renderChips(){const inTray=new Set(P.tray.map(c=>c.chipId).filter(Boolean)),names=new Set(P.tray.map(c=>c.name));
@@ -1302,7 +1396,7 @@ $('plSeal').onclick=async()=>{
   if(!P||!P.focus||!P.tray.length)return;
   const sealedAt=P.first||P.replan?P.start:Date.now(),old=P.replan&&D.weeks.find(w=>w.id===P.replan);
   let id=P.replan||ymd(new Date(sealedAt));if(!P.replan&&D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
-  const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon})),percentage:null,reflection:'',
+  const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon,...tmg(c)})),percentage:null,reflection:'',
     planThoughts:P.thoughts.trim(),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
   clearTimeout(saveT);store.putWeek(week);store.delDraft();P=null;
   await crossTo('week');
@@ -1311,24 +1405,28 @@ $('plSeal').onclick=async()=>{
 /* habit sheet: write your own / edit */
 let CS=null;
 function openChipSheet(o){
-  const s=o.mode==='edit'?o.chip:null;if(o.mode==='edit'&&!s)return;
+  const s=o.mode==='edit'?o.chip:o.mode==='tray'?o.item:null;if(o.mode!=='new'&&!s)return;
   CS={mode:o.mode,id:s?.id,name:s?.name||'',icon:s?.icon||'sun'};
-  $('chTitle').textContent=o.mode==='edit'?'Edit habit':'New habit';$('chName').value=CS.name;
+  $('chTitle').textContent=o.mode==='edit'?'Edit habit':o.mode==='tray'?'This week’s habit':'New habit';$('chName').value=CS.name;
+  $('chBy').value=s?.by||'';$('chMin').value=s?.min||'';
   renderChipSheet();openSheet($('shChip'));setTimeout(()=>{if(o.mode!=='edit')$('chName').focus()},320)}
 function renderChipSheet(){
   $('chIcons').innerHTML=ICON_CHOICES.map(n=>`<button data-ic="${n}" class="${CS.icon===n?'on':''}" aria-label="${n}">${ico(n)}</button>`).join('');
-  $('chActs').innerHTML=CS.mode==='edit'?`<button class="btn ink" data-a="save">Save</button><button class="danger" data-a="del">Remove from library</button>`
+  $('chActs').innerHTML=CS.mode==='tray'?`<button class="btn ink" data-a="tray">Save for this week</button>`:CS.mode==='edit'?`<button class="btn ink" data-a="save">Save</button><button class="danger" data-a="del">Remove from library</button>`
     :`<button class="btn ink" data-a="lib">Save to library and add</button><button class="btn ghost" data-a="week">This week only</button>`}
 $('shChip').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
   if(t.dataset.ic){CS.icon=t.dataset.ic;return renderChipSheet()}
   const a=t.dataset.a;if(!a)return;const name=$('chName').value.trim();
   if(a==='del'){if(confirm(`Remove “${CS.name}” from your library? Past weeks keep their own copy.`)){store.delChip(CS.id);closeSheet();setTimeout(renderChips,50)}return}
   if(!name){$('chName').focus();$('chName').style.borderColor='var(--ac)';return}
-  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon});closeSheet();setTimeout(renderChips,50);return}
-  const chip={id:uid(),name,icon:CS.icon,order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
+  const by=$('chBy').value||null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
+  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,min:_m,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,min:mn})}}closeSheet();renderTray();saveDraft();return}
+  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,min:mn});closeSheet();setTimeout(renderChips,50);return}
+  const chip={id:uid(),name,icon:CS.icon,...tmg({by,min:mn}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
   if(a==='lib')store.putChip(chip);
   const nc=habitOf(a==='lib'?chip:{...chip,id:null});P.justAdded=nc.id;P.tray.push(nc);closeSheet();renderTray();renderChips();updateSeal();saveDraft()});
 $('chName').addEventListener('input',e=>e.target.style.borderColor='');
+$('chByClr').onclick=()=>{$('chBy').value=''};
 
 /* ---------- boot ---------- */
 function onData(kind){
