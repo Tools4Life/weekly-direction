@@ -435,6 +435,20 @@ textarea.long.dk{background:#161618;border-color:#2A2A2E;color:var(--tx);min-hei
 .ladder{margin-top:10px;display:flex;gap:3px}
 .ladder i{flex:1;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--ac) var(--f),#2A2A2E var(--f))}
 .ladder i.cur{box-shadow:0 0 0 1px rgba(232,116,59,.45)}
+/* full-day streak: milestone ladder 1·3·7·14·30·90 */
+.stk{margin-top:34px;padding:18px 16px 16px;border-radius:18px;background:var(--card)}
+.stk.in{animation:rise .55s .12s var(--spring) both}
+.stk .cafrow em{font-family:var(--cond);font-style:normal;font-size:15px;letter-spacing:.06em;color:var(--ac);text-align:right}
+.stkl{margin-top:14px;display:flex;gap:4px}
+.stkl div{flex:1;display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+.stkl i{display:block;width:100%;height:5px;border-radius:3px;background:linear-gradient(90deg,var(--ac) var(--f),#2A2A2E var(--f))}
+[data-mode="paper"] .stkl i{background:linear-gradient(90deg,var(--ac) var(--f),var(--line) var(--f))}
+.stkl span{font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu2);font-variant-numeric:tabular-nums}
+.stkl .got span{color:var(--ac)}
+.stkl .nxt i{box-shadow:0 0 0 1px rgba(232,116,59,.45)}
+.stk.hit{animation:stkhit .9s var(--spring)}
+.stk.hit .cafn b{color:var(--ac)}
+@keyframes stkhit{0%{transform:scale(.96);box-shadow:0 0 0 0 rgba(232,116,59,.6)}50%{transform:scale(1.02)}100%{transform:none;box-shadow:0 0 0 14px rgba(232,116,59,0)}}
 svg.ph{fill:currentColor;stroke:none}
 nav.bar svg.ph{width:25px;height:25px}
 .hcard .ic svg.ph{width:21px;height:21px}
@@ -969,6 +983,28 @@ function burst(x,y){if(RM.matches)return;const fx=$('fx'),n=10;
     d.style.left=x+'px';d.style.top=y+'px';d.style.setProperty('--dx',Math.cos(a)*r+'px');d.style.setProperty('--dy',Math.sin(a)*r+'px');
     d.style.animationDelay=(Math.random()*40)+'ms';if(i%3===0)d.className='w';fx.appendChild(d);setTimeout(()=>d.remove(),900)}}
 function countUp(el,to,ms=700){if(RM.matches||!el)return;const t0=performance.now();const f=t=>{const k=Math.min(1,(t-t0)/ms),e=1-Math.pow(1-k,3);el.textContent=Math.round(to*e);if(k<1)requestAnimationFrame(f)};el.textContent='0';requestAnimationFrame(f)}
+// full-day streak: a day counts when it is marked kept ('on' = every item checked).
+// The review day (not a habit day) neither counts nor breaks it; today only counts once it is kept.
+const MILES=[1,3,7,14,30,90];let lastStk=null;
+function streakInfo(){const marks={},habit=new Set();
+  D.weeks.forEach(w=>{const m=w.marks||{};habitDays(w).forEach(d=>{const k=ymd(d);habit.add(k);if(m[k]==='on')marks[k]=1})});
+  const todayK=ymd(new Date());let run=0,best=0;
+  if(habit.size){const d=new Date([...habit].sort()[0]+'T12:00:00');
+    while(ymd(d)<=todayK){const k=ymd(d);
+      if(habit.has(k)){if(marks[k]){run++;best=Math.max(best,run)}else if(k!==todayK)run=0}
+      else if(d.getDay()!==D.settings.closeDay&&k!==todayK)run=0;
+      d.setDate(d.getDate()+1)}}
+  return{cur:run,best}}
+function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur),hit=lastStk!=null&&cur>lastStk&&MILES.includes(cur);lastStk=cur;
+  let prev=0;const lad=MILES.map(m=>{const f=cur>=m?100:cur<=prev?0:Math.round((cur-prev)/(m-prev)*100);prev=m;
+    return`<div class="${cur>=m?'got':m===next?'nxt':''}"><i style="--f:${f}%"></i><span>${m}</span></div>`}).join('');
+  const sub=best>cur?`Best ${best}`:cur?'Your best':'';
+  const goal=next?`${next-cur} to ${next}`:'All milestones';
+  return`<section class="stk${anim?' in':''}${hit?' hit':''}" aria-label="Full days in a row: ${cur}">
+    <div class="cafh"><span class="lbl">${hit?`${cur}-day milestone`:'Full days'}</span><span class="cafsub">${sub}</span></div>
+    <div class="cafrow"><div class="cafn"><b>${cur}</b><span>${cur===1?'day':'days'} in a row</span></div><em>${goal}</em></div>
+    <div class="stkl" role="img" aria-label="Milestones ${MILES.join(', ')}">${lad}</div>
+  </section>`}
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
@@ -999,7 +1035,7 @@ function renderWeek(animate){
       ?`<button class="hcard${on?' done':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span><i class="hchk">${ico('ok')}</i></button>`
       :`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span></div>`}).join('')}</div>`;
   const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
-  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{tmMode=(tmMode+1)%TM_VIEWS.length;haptic();renderWeek(false)};
   el.querySelector('.trow .focus')?.addEventListener('click',()=>openCompass(w.focus));
