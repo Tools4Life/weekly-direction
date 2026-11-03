@@ -699,6 +699,15 @@ textarea.long.rva{min-height:64px}
 .vhabits li b{display:block;font-weight:500;font-size:17px}
 .vhabits li small{display:block;font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu2);margin-top:2px}
 .trow .focus{cursor:pointer}
+.vstat{display:flex;align-items:baseline;gap:12px;margin-top:14px;font-family:var(--cond)}
+.vstat b{font-size:40px;font-weight:600;line-height:1;color:var(--tx)}.vstat b small{font-size:20px;color:var(--mu)}
+.vstat span{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
+.vdays{margin-top:16px}
+.vlbl{margin-bottom:14px}
+.vsec{margin-top:6vh;padding-top:26px;border-top:1px solid #222225}
+.vsec .lbl{margin-bottom:6px}
+.vq{margin:20px 0 6px;font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.45;color:var(--mu)}
+.va{margin:0 0 1em;font-family:var(--serif);font-size:clamp(18px,5vw,20px);line-height:1.6;color:var(--tx)}
 </style>
 </head>
 <body>
@@ -1195,12 +1204,21 @@ function bindHold(el,w,k){let t=null,fired=false,x0=0,y0=0,b=null;
     card.addEventListener('contextmenu',e=>e.preventDefault());
     card.addEventListener('click',e=>{if(fired){e.stopImmediatePropagation();e.preventDefault();fired=false}},true)})}
 // ---- vision: read-only page for the week (focus word, vision, every habit by day group) ----
-function openVision(w){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(s0),paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
+// read-only record of a week. From the home screen: vision + habits. From Progress (log=true): also the result,
+// day marks and the Saturday review answers. Closed weeks are a log: nothing here is editable.
+function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
   const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
   const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
-  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
-    ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
-    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>`;
+  let stats='',review='';
+  if(log){const st=weekStats(w),m=w.marks||{};
+    stats=`<div class="vstat"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept${live?' so far':''}</span></div>
+      <div class="days big vdays">${st.days.map(d=>{const v=m[ymd(d)];return`<span class="dsq ${v||''}"><i></i><span>${DOW[d.getDay()]}</span></span>`}).join('')}</div>`;
+    if(!live){const blocks=(w.reflection||'').split(/\n{2,}/).filter(x=>x.trim());
+      review=`<div class="vsec"><div class="lbl">Review${w.closedAt?` · ${fmtDate(new Date(w.closedAt))}`:''}</div>${blocks.length?blocks.map(bk=>{const ls=bk.split('\n'),q=ls.length>1&&/\?\s*$/.test(ls[0]);
+        return q?`<p class="vq">${esc(ls[0])}</p><p class="va">${esc(ls.slice(1).join('\n')).replace(/\n/g,'<br>')}</p>`:`<p class="va">${esc(bk).replace(/\n/g,'<br>')}</p>`}).join(''):`<p class="vempty">No review written.</p>`}</div>`}}
+  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${log?(live?' · in progress':' · closed'):''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${stats}<hr class="lrrule">
+    ${log?'<div class="lbl vlbl">Vision</div>':''}${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">${live?'No vision written for this week. Add one from Settings → Re-plan this week.':'No vision written.'}</p>`}
+    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>${review}`;
   $('visR').hidden=false;$('visR').scrollTop=0;requestAnimationFrame(()=>$('visR').classList.add('on'));}
 function closeVision(){$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
@@ -1346,7 +1364,7 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
     +weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
       return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}</span>
         <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`}).join('');
-  $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openWeekSheet(D.weeks.find(w=>w.id===b.dataset.w)));
+  $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
 function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=150,L=30,R=14,T=22,B=24,n=weeks.length;
@@ -1364,18 +1382,7 @@ function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2
   box.querySelectorAll('.tpt').forEach(g=>g.onclick=()=>{const p=pts[+g.dataset.i],tx=Math.min(Math.max(p.x,L+40),W-R-40),ty=Math.max(14,p.y-34);
     $('tTip').innerHTML=`<rect x="${tx-44}" y="${ty-14}" width="88" height="24" rx="7" class="tipbg"/><text x="${tx}" y="${ty+2}" class="tipt" text-anchor="middle">${esc(p.w.focus).slice(0,10)} · ${p.pct}%</text>`;
     clearTimeout(drawTrend.t);drawTrend.t=setTimeout(()=>{const t=$('tTip');if(t)t.innerHTML=''},2600)})}
-function openWeekSheet(w){if(!w)return;const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',m=w.marks||{};
-  const c0=cafLimit(st.days[0]||s0).limit,c1=cafLimit(st.days[st.days.length-1]||e).limit;
-  $('hwBody').innerHTML=`<div class="cond hdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h3 id="hwFocus" class="hwf">${esc(w.focus)}</h3>
-    <div class="hwpct"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept</span></div>
-    <div class="days big">${st.days.map(d=>{const v=m[ymd(d)];return`<span class="dsq ${v||''}"><i></i><span>${DOW[d.getDay()]}</span></span>`}).join('')}</div>
-    <div class="lbl hwl">Daily habits</div><div class="hwh">${w.commitments.map(c=>`<span>${ico(c.icon||'check')}${esc(c.name)}</span>`).join('')}</div>
-    ${c0||c1?`<div class="lbl hwl">Caffeine</div><p class="hwp">${c0===c1?`${c0} mg a day`:`${c0} → ${c1} mg a day`}</p>`:''}
-    ${live?'':`<div class="lbl hwl">Reflection${w.editedAt?' <em class="ed">edited</em>':''}</div><textarea class="long dk" id="hwRef" placeholder="How did the week go?">${esc(w.reflection||'')}</textarea>`}
-    <div class="lbl hwl">Vision</div>${live?`<p class="hwp">${esc(w.planThoughts||'—')}</p>`:`<textarea class="long dk" id="hwNotes" placeholder="Vision">${esc(w.planThoughts||'')}</textarea>`}
-    ${live?'':`<div class="acts"><button class="btn pri" id="hwSave">Save</button></div>`}`;
-  if(!live)$('hwSave').onclick=()=>{const r=$('hwRef').value,n=$('hwNotes').value;if(r!==(w.reflection||'')||n!==(w.planThoughts||''))store.putWeek({...w,reflection:r,planThoughts:n,editedAt:Date.now()});closeSheet()};
-  openSheet($('shWeek'))}
+
 
 /* ---------- Close the week (quick, one screen) ---------- */
 let closeRef='',closeAns=[];
