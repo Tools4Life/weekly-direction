@@ -703,6 +703,8 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
 .dsq.rest i{border:1.5px solid transparent!important;background:repeating-linear-gradient(135deg,#1A1A1D 0 4px,transparent 4px 8px)!important}
 .dsq.rest span{opacity:.5}
 #chDays{gap:4px;flex-wrap:nowrap}#chDays button{min-height:38px;padding:0 10px;font-size:14px}
+.rvq{margin:18px 0 8px;font-family:var(--serif);font-size:17px;line-height:1.4;color:var(--tx)}
+textarea.long.rva{min-height:64px}
 </style>
 </head>
 <body>
@@ -763,6 +765,9 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
   <div class="card"><div class="it"><div class="seg" id="stTimer" style="width:100%"><button data-tm="week" style="flex:1">Each new week</button><button data-tm="fixed" style="flex:1">A set date</button></div></div>
     <div class="it" id="stFromRow"><label class="grow" for="stFrom">Date</label><input class="field" type="datetime-local" id="stFrom" style="width:auto;min-height:40px;padding:6px 10px;font-size:16px;background:var(--card2)"></div></div>
   <p class="mu" style="font-size:14px;margin:10px 4px" id="stTimerNote"></p>
+  <div class="lbl group">Weekly review questions</div>
+  <div class="card"><div class="it" style="display:block"><textarea class="long dk" id="stQs" rows="4" style="min-height:120px" placeholder="One question per line"></textarea></div></div>
+  <p class="mu" style="font-size:14px;margin:10px 4px">One per line. Each gets its own answer box when you close the week.</p>
 </section>
 
 <!-- Plan the week -->
@@ -916,11 +921,11 @@ const hourLabel=h=>`${h%12||12} ${h<12?'am':'pm'}`;
 const fmtDate=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
 /* ---------- state ---------- */
-const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null,cafOn:true},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
+const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null,cafOn:true,revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
 window.WD=D;
 let store=null; // data layer chosen at boot
 const readSettings=v=>({closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded,libV:v.libV||1,timerMode:v.timerMode||'week',timerFrom:v.timerFrom||null,
-  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null,cafOn:v.cafOn??true});
+  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null,cafOn:v.cafOn??true,revQs:Array.isArray(v.revQs)?v.revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']});
 
 /* ---------- data layer: Firestore (live) ---------- */
 async function firestoreStore(){
@@ -1399,8 +1404,9 @@ function openWeekSheet(w){if(!w)return;const st=weekStats(w),s0=new Date(w.seale
   openSheet($('shWeek'))}
 
 /* ---------- Close the week (quick, one screen) ---------- */
-let closeRef='';
-function openClose(id){closeRef='';renderClose(id);openSheet($('shClose'))}
+let closeRef='',closeAns=[];
+function openClose(id){closeRef='';closeAns=[];renderClose(id);openSheet($('shClose'))}
+const joinRef=()=>{const qs=D.settings.revQs||[],parts=qs.map((q,i)=>(closeAns[i]||'').trim()?`${q}\n${closeAns[i].trim()}`:'').filter(Boolean);if(closeRef.trim())parts.push(closeRef.trim());return parts.join('\n\n')};
 function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),m=w.marks||{};
   const nx=new Date();nx.setDate(nx.getDate()+1);const lim=cafLimit(nx).limit,[am,pm]=cafSplit(lim),unm=st.days.filter(d=>!m[ymd(d)]).length;
   $('clBody').innerHTML=`<div class="cond hdate">${fmtRange(s0,e)}</div><h3 id="clFocus" class="hwf">${esc(w.focus)}</h3>
@@ -1408,12 +1414,14 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
     <div class="days big cl">${st.days.map(d=>{const k=ymd(d),v=m[k];return`<button class="dsq ${v||''}" data-ck="${k}" aria-label="${DOWL[d.getDay()]}: ${v==='on'?'kept':v==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>
     <p class="clnote">${unm?`${unm} ${unm===1?'day isn’t':'days aren’t'} marked. Tap a day to fix it, or leave it as missed.`:'Tap a day to change it.'}</p>
     ${D.settings.cafOn?`<div class="lbl hwl">Caffeine next week</div><p class="hwp">${lim?`Starts at ${lim} mg · AM ${am} · PM ${pm}`:'Caffeine-free'}</p>`:''}
-    <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="How did the week go?">${esc(closeRef)}</textarea>
+    ${(D.settings.revQs||[]).map((q,i)=>`<p class="rvq">${esc(q)}</p><textarea class="long dk rva" data-qa="${i}" rows="2" placeholder="Answer">${esc(closeAns[i]||'')}</textarea>`).join('')}
+    <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="Anything else from the week?">${esc(closeRef)}</textarea>
     <div class="acts"><button class="btn pri" id="clGo">Close &amp; plan next week</button></div>`;
   $('clRef').oninput=ev=>closeRef=ev.target.value;
+  $('clBody').querySelectorAll('[data-qa]').forEach(t=>t.oninput=ev=>closeAns[+t.dataset.qa]=ev.target.value);
   $('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
   $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
-    store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:closeRef.trim()});
+    store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
     closeSheet();setTimeout(()=>openPlan(null,cur),280)}}
 
 /* ---------- Settings ---------- */
@@ -1424,6 +1432,7 @@ function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textConten
   document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap/2:0)+'px')};
   fix();addEventListener('resize',fix);visualViewport&&visualViewport.addEventListener('resize',fix);setTimeout(fix,500)})();
 function renderSettings(){renderSettingsAccount();const s=D.settings,act=document.activeElement;
+  if(act!==$('stQs'))$('stQs').value=(s.revQs||[]).join('\n');
   $('stDay').innerHTML=DOWL.map((n,i)=>`<option value="${i}"${i===s.closeDay?' selected':''}>${n}</option>`).join('');
   $('stHour').innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}"${h===s.closeHour?' selected':''}>${hourLabel(h)}</option>`).join('');
   const fx=s.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
@@ -1447,6 +1456,7 @@ $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;cons
   if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
 $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
 [['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
+$('stQs').onchange=e=>{const v=e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);store.setSettings({revQs:v});D.settings.revQs=v};
 $('cfOn').onchange=e=>{const v=e.target.checked;haptic();store.setSettings({cafOn:v});D.settings.cafOn=v;renderSettings()};
 $('cfFrom').onchange=e=>{const t=new Date(e.target.value+'T00:00').getTime();if(!isNaN(t)){store.setSettings({cafFrom:t});D.settings.cafFrom=t;renderSettings()}};
 $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything stays in your account.')){await store.auth.signOut();location.reload()}};
