@@ -700,6 +700,9 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
 .hcard.done .hck i{background:#F2EFEA!important;border-color:#F2EFEA!important;color:#1A0F09!important;width:30px;height:30px;box-shadow:0 0 0 4px rgba(242,239,234,.12);animation:ckpop .42s var(--spring)}
 .hcard.done .hck i svg{width:17px;height:17px;stroke-width:3!important}
 @keyframes ckpop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:none}}
+.dsq.rest i{border:1.5px solid transparent!important;background:repeating-linear-gradient(135deg,#1A1A1D 0 4px,transparent 4px 8px)!important}
+.dsq.rest span{opacity:.5}
+#chDays{gap:4px;flex-wrap:nowrap}#chDays button{min-height:38px;padding:0 10px;font-size:14px}
 </style>
 </head>
 <body>
@@ -801,6 +804,7 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
   <span class="lbl l2">About <em class="ed">optional</em></span>
   <textarea class="long" id="chAbout" rows="3" style="min-height:96px" placeholder="What this habit is about and why"></textarea>
   <span class="lbl l2">Timing <em class="ed">optional</em></span>
+  <div class="chrow"><label>Days</label><div class="seg" id="chDays"><button data-d="">Every day</button><button data-d="wd">Weekdays</button><button data-d="we">Weekends</button></div></div>
   <div class="chrow"><label for="chBy">Start by</label><input class="field" id="chBy" type="time"><button class="clr" id="chByClr" aria-label="Clear start-by time">&times;</button></div>
   <div class="chrow"><label for="chMin">Timer</label><input class="field num" id="chMin" type="number" inputmode="numeric" min="1" max="240" placeholder="Off"><span class="unit">min</span></div>
   <p class="chnote">Start by: tap it before this time or it counts as missed. Timer: tapping it opens a focus timer, and it’s done when the time runs out.</p>
@@ -892,7 +896,10 @@ const DOW=['S','M','T','W','T','F','S'],DOWL=['Sunday','Monday','Tuesday','Wedne
 // default habit library (no categories: devotional habits only)
 const SEED=[['Morning devotion','sun'],['Prayer','hands'],['Scripture reading','book'],['Scripture memory','pen'],['Evening prayer','moon'],['Worship','music'],['Fast','moon'],['No YouTube on phone','phone']];
 const OLD_SEEDED=['Strength training','Walk','In bed by 10','No caffeine','On time to every site','Focused work blocks','End-of-day performance reflection','BuilderTrend seminar'];
-const tmg=c=>({...(c.by?{by:c.by}:{}),...(c.min?{min:c.min}:{}),...(c.about?{about:c.about}:{})});
+// c.days: 'wd' = weekdays (Mon–Fri), 'we' = weekend (Sat/Sun); absent = every day
+const onDay=(c,day)=>!c.days||(c.days==='wd')===(day.getDay()>0&&day.getDay()<6);
+const DAYS_L={wd:'weekdays',we:'weekends'};
+const tmg=c=>({...(c.days==='wd'||c.days==='we'?{days:c.days}:{}),...(c.by?{by:c.by}:{}),...(c.min?{min:c.min}:{}),...(c.about?{about:c.about}:{})});
 const habitOf=ch=>({id:uid(),chipId:ch.id||null,name:ch.name,icon:ch.icon||'check',...tmg(ch)});
 const CAF_PRESETS=()=>[['Pill',D.settings.cafPill||50],['Coffee',95],['Energy drink',160]];
 
@@ -1041,7 +1048,7 @@ const cafTotal=items=>items.reduce((a,b)=>a+(+b.mg||0),0);
 function addCaf(label,mg){const k=ymd(new Date());store.setCaf(k,[...(D.caf[k]||[]),{id:uid(),label,mg:Math.round(mg),t:Date.now()}])}
 // today's dose split morning / evening, in whole steps; the morning gets the larger half
 function cafSplit(mg){const st=Math.max(1,D.settings.cafStep||50),am=Math.min(mg,Math.ceil(mg/2/st)*st);return[am,mg-am]}
-function dayItems(w,day){if(!D.settings.cafOn)return w.commitments.map(c=>c.id);const [am,pm]=cafSplit(cafLimit(day).limit);return[...w.commitments.map(c=>c.id),...(am>0?['am']:[]),...(pm>0?['pm']:[])]}
+function dayItems(w,day){const hs=w.commitments.filter(c=>onDay(c,day)).map(c=>c.id);if(!D.settings.cafOn)return hs;const [am,pm]=cafSplit(cafLimit(day).limit);return[...hs,...(am>0?['am']:[]),...(pm>0?['pm']:[])]}
 function cafCard(anim,day,dn,can){if(!D.settings.cafOn)return'';day=day||new Date();dn=dn||{};
   const L=cafLimit(day),[am,pm]=cafSplit(L.limit),isToday=ymd(day)===ymd(new Date()),h=new Date().getHours();
   const dose=(k,lbl,mg,now)=>mg>0?`<${can?`button data-dose="${k}" aria-pressed="${!!dn[k]}"`:'div'} class="${now?'now':''}${dn[k]?' done':''}"><span>${lbl}</span><b>${mg}</b><small>mg</small><i class="dchk">${ico('ok')}</i></${can?'button':'div'}>`
@@ -1096,13 +1103,13 @@ function countUp(el,to,ms=700){if(RM.matches||!el)return;const t0=performance.no
 // full-day streak: a day counts when it is marked kept ('on' = every item checked).
 // The review day (not a habit day) neither counts nor breaks it; today only counts once it is kept.
 const MILES=[1,3,7,14,30,90];let lastStk=null;
-function streakInfo(){const marks={},habit=new Set();
-  D.weeks.forEach(w=>{const m=w.marks||{};habitDays(w).forEach(d=>{const k=ymd(d);habit.add(k);if(m[k]==='on')marks[k]=1})});
+function streakInfo(){const marks={},habit=new Set(),empty=new Set();
+  D.weeks.forEach(w=>{const m=w.marks||{};habitDays(w).forEach(d=>{const k=ymd(d);if(!dayItems(w,d).length){empty.add(k);return}habit.add(k);if(m[k]==='on')marks[k]=1})});
   const todayK=ymd(new Date());let run=0,best=0;
   if(habit.size){const d=new Date([...habit].sort()[0]+'T12:00:00');
     while(ymd(d)<=todayK){const k=ymd(d);
       if(habit.has(k)){if(marks[k]){run++;best=Math.max(best,run)}else if(k!==todayK)run=0}
-      else if(d.getDay()!==D.settings.closeDay&&k!==todayK)run=0;
+      else if(!empty.has(k)&&d.getDay()!==D.settings.closeDay&&k!==todayK)run=0;
       d.setDate(d.getDate()+1)}}
   return{cur:run,best}}
 function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur),hit=lastStk!=null&&cur>lastStk&&MILES.includes(cur);lastStk=cur;
@@ -1119,7 +1126,7 @@ function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur
 // c.by "HH:MM": must be tapped (or its timer started) before then, or the day's habit is missed.
 // c.min: tapping starts a focus timer; the habit is done when it runs out.
 const clock=t=>{const [h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)} ${h<12?'am':'pm'}`};
-const tmLabel=c=>[c.by?clock(c.by):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
+const tmLabel=(c,dl=true)=>[dl&&c.days?DAYS_L[c.days]:'',c.by?clock(c.by):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
 const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
 const deadline=(k,c)=>c.by?new Date(`${k}T${c.by}:00`).getTime():null;
 function hState(w,k,c,now=Date.now()){if(((w.done||{})[k]||{})[c.id])return'done';const r=runOf(w,k,c.id);
@@ -1160,7 +1167,7 @@ let HB=null;
 const hbGrow=()=>{const t=$('hbAbout');t.style.height='auto';t.style.height=Math.max(140,t.scrollHeight+2)+'px'};
 $('hbAbout').addEventListener('input',hbGrow);
 function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null,isT=k===ymd(new Date());
-  $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=tmLabel(c).replace(/^(\d)/,'start by $1');
+  $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
   $('hbAbout').value=c.about||'';requestAnimationFrame(hbGrow);
   const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
   $('hbState').textContent=!k?'':st==='done'?`Done ${day}.`:st==='miss'?`Missed ${day}. Not started by ${clock(c.by)}.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
@@ -1205,8 +1212,8 @@ function renderWeek(animate){
   const timer=due?`<div class="timer due">review due</div>`:`<button class="timer tbtn" id="wkTimerBtn" aria-label="Timer. Tap to see it another way"><span id="wkTimer">${tmMode?altTime(now-tFrom):`<span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span>`}</span></button>`;
   const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
   const doneAll=w.done||{},frac=k=>{const it=dayItems(w,days.find(d=>ymd(d)===k)||new Date(k)),dn=doneAll[k]||{};return it.length?it.filter(x=>dn[x]).length/it.length:0};
-  const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK,f=!m&&!fut?frac(k):0;
-    return`<button style="--pf:${Math.round(f*100)}%" class="dsq${m?' '+m:''}${f>0&&f<1?' part':''}${fut?' fut':''}${k===todayK?' today':''}${k===selKey?' sel':''}" data-k="${k}"${fut?' disabled':''} aria-pressed="${k===selKey}" aria-label="${DOWL[d.getDay()]}: ${m==='on'?'kept':m==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
+  const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK,f=!m&&!fut?frac(k):0,rest=!dayItems(w,d).length;
+    return`<button style="--pf:${Math.round(f*100)}%" class="dsq${m?' '+m:''}${f>0&&f<1?' part':''}${fut?' fut':''}${rest?' rest':''}${k===todayK?' today':''}${k===selKey?' sel':''}" data-k="${k}"${fut?' disabled':''} aria-pressed="${k===selKey}" aria-label="${DOWL[d.getDay()]}: ${m==='on'?'kept':m==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>`;
   const tm0=selKey?marks[selKey]:undefined,cel=celebrate,selDn=selKey?(doneAll[selKey]||{}):{};celebrate=null;
   const dn=selKey===todayK?'Today':selDay?DOWL[selDay.getDay()]:'';
   const selNote=selKey&&selKey!==todayK?`<span class="selnote">${dn} · <button data-today>${habitToday?'today':'done'}</button></span>`:'';
@@ -1214,10 +1221,10 @@ function renderWeek(animate){
   const pills=selKey?''
     :!due&&now.getDay()===D.settings.closeDay&&ymd(start)!==todayK?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
-    <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
+    <div class="hcards">${w.commitments.filter(c=>!selDay||onDay(c,selDay)).map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
         return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</span></button></div>`}
       const st=hState(w,selKey,c),r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
-      const meta=st==='miss'?'missed':st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c);
+      const meta=st==='miss'?'missed':st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c,false);
       const ck=st==='done'?ico('ok'):st==='run'||(c.min&&st==='open'&&selKey===todayK)?ico('timer'):st==='miss'?ico('x'):'';
       const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':c.min&&selKey===todayK?'start timer':'mark done';
       return`<div class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
@@ -1251,8 +1258,8 @@ function renderWeek(animate){
     if(sq)sq.classList.add('pop')}
   if(animate)el.querySelectorAll('.dose b').forEach(b=>countUp(b,+b.textContent));
   bindCaf(el);
-  if(selKey){const fin=w.commitments.filter(c=>hState(w,selKey,c)==='fin');if(fin.length&&!FC)setTimeout(()=>fin.forEach(c=>setItem(w,selKey,c.id,true)),60)}
-  const flips=selKey?w.commitments.flatMap(c=>{const st=hState(w,selKey,c),r=runOf(w,selKey,c.id);return st==='run'?[r+c.min*6e4]:st==='open'&&c.by?[deadline(selKey,c)]:[]}).filter(t=>t>Date.now()):[],flipAt=flips.length?Math.min(...flips):Infinity;
+  if(selKey){const fin=w.commitments.filter(c=>onDay(c,selDay)&&hState(w,selKey,c)==='fin');if(fin.length&&!FC)setTimeout(()=>fin.forEach(c=>setItem(w,selKey,c.id,true)),60)}
+  const flips=selKey?w.commitments.filter(c=>onDay(c,selDay)).flatMap(c=>{const st=hState(w,selKey,c),r=runOf(w,selKey,c.id);return st==='run'?[r+c.min*6e4]:st==='open'&&c.by?[deadline(selKey,c)]:[]}).filter(t=>t>Date.now()):[],flipAt=flips.length?Math.min(...flips):Infinity;
   if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!$('wkTimer')||tab!=='week')return clearInterval(tickT);
     if(new Date()>=end||Date.now()>=flipAt)return renderWeek(false);
     el.querySelectorAll('[data-left]').forEach(x=>{const c=w.commitments.find(y=>y.id===x.dataset.left),r=c&&runOf(w,selKey,c.id);if(!r)return;
@@ -1348,7 +1355,7 @@ async function importLifeFromLink(){const h=location.hash;if(!h.startsWith('#lif
     store.putPrayer(lp);show('prayer');setTimeout(()=>openLife(lp),400)}catch(e){console.warn(e);alert('That prayer link could not be read.')}}
 
 /* ---------- History (placeholder until its build step) ---------- */
-function weekStats(w){const days=habitDays(w),m=w.marks||{},now=ymd(new Date());const kept=days.filter(d=>m[ymd(d)]==='on').length,past=days.filter(d=>ymd(d)<=now).length;
+function weekStats(w){const days=habitDays(w).filter(d=>dayItems(w,d).length),m=w.marks||{},now=ymd(new Date());const kept=days.filter(d=>m[ymd(d)]==='on').length,past=days.filter(d=>ymd(d)<=now).length;
   const pct=w.status==='closed'&&w.percentage!=null?w.percentage:Math.round(kept/Math.max(1,days.length)*100);return{days,kept,past,pct}}
 const mini=(w,days)=>`<span class="mini">${days.map(d=>{const v=(w.marks||{})[ymd(d)];return`<i class="${v||''}"></i>`}).join('')}</span>`;
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
@@ -1509,23 +1516,24 @@ $('plSeal').onclick=async()=>{
 let CS=null;
 function openChipSheet(o){
   const s=o.mode==='edit'?o.chip:o.mode==='tray'?o.item:null;if(o.mode!=='new'&&!s)return;
-  CS={mode:o.mode,id:s?.id,name:s?.name||'',icon:s?.icon||'sun'};
+  CS={mode:o.mode,id:s?.id,name:s?.name||'',icon:s?.icon||'sun',days:s?.days||''};
   $('chTitle').textContent=o.mode==='edit'?'Edit habit':o.mode==='tray'?'This week’s habit':'New habit';$('chName').value=CS.name;
   $('chBy').value=s?.by||'';$('chMin').value=s?.min||'';$('chAbout').value=s?.about||'';
   renderChipSheet();openSheet($('shChip'));setTimeout(()=>{if(o.mode!=='edit')$('chName').focus()},320)}
-function renderChipSheet(){
+function renderChipSheet(){$('chDays').querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',b.dataset.d===CS.days));
   $('chIcons').innerHTML=ICON_CHOICES.map(n=>`<button data-ic="${n}" class="${CS.icon===n?'on':''}" aria-label="${n}">${ico(n)}</button>`).join('');
   $('chActs').innerHTML=CS.mode==='tray'?`<button class="btn ink" data-a="tray">Save for this week</button>`:CS.mode==='edit'?`<button class="btn ink" data-a="save">Save</button><button class="danger" data-a="del">Remove from library</button>`
     :`<button class="btn ink" data-a="lib">Save to library and add</button><button class="btn ghost" data-a="week">This week only</button>`}
 $('shChip').addEventListener('click',e=>{const t=e.target.closest('button');if(!t)return;
   if(t.dataset.ic){CS.icon=t.dataset.ic;return renderChipSheet()}
+  if(t.dataset.d!=null){CS.days=t.dataset.d;return renderChipSheet()}
   const a=t.dataset.a;if(!a)return;const name=$('chName').value.trim();
   if(a==='del'){if(confirm(`Remove “${CS.name}” from your library? Past weeks keep their own copy.`)){store.delChip(CS.id);closeSheet();setTimeout(renderChips,50)}return}
   if(!name){$('chName').focus();$('chName').style.borderColor='var(--ac)';return}
-  const about=$('chAbout').value.trim()||null,by=$('chBy').value||null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
-  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,min:_m,about:_a,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,min:mn,about})}}closeSheet();renderTray();saveDraft();return}
-  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,min:mn,about});closeSheet();setTimeout(renderChips,50);return}
-  const chip={id:uid(),name,icon:CS.icon,...tmg({by,min:mn,about}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
+  const days=CS.days||null,about=$('chAbout').value.trim()||null,by=$('chBy').value||null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
+  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,min:_m,about:_a,days:_d,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,min:mn,about,days})}}closeSheet();renderTray();saveDraft();return}
+  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,min:mn,about,days});closeSheet();setTimeout(renderChips,50);return}
+  const chip={id:uid(),name,icon:CS.icon,...tmg({by,min:mn,about,days}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
   if(a==='lib')store.putChip(chip);
   const nc=habitOf(a==='lib'?chip:{...chip,id:null});P.justAdded=nc.id;P.tray.push(nc);closeSheet();renderTray();renderChips();updateSeal();saveDraft()});
 $('chName').addEventListener('input',e=>e.target.style.borderColor='');
