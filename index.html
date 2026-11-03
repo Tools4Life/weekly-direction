@@ -1059,7 +1059,7 @@ function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur
 // c.by "HH:MM": must be tapped (or its timer started) before then, or the day's habit is missed.
 // c.min: tapping starts a focus timer; the habit is done when it runs out.
 const clock=t=>{const [h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)} ${h<12?'am':'pm'}`};
-const tmLabel=c=>[c.by?`by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
+const tmLabel=c=>[c.by?clock(c.by):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
 const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
 const deadline=(k,c)=>c.by?new Date(`${k}T${c.by}:00`).getTime():null;
 function hState(w,k,c,now=Date.now()){if(((w.done||{})[k]||{})[c.id])return'done';const r=runOf(w,k,c.id);
@@ -1122,7 +1122,7 @@ function renderWeek(animate){
     <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
         return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</div>`}
       const st=hState(w,selKey,c),r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
-      const meta=st==='miss'?`missed · by ${clock(c.by)}`:st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c);
+      const meta=st==='miss'?'missed':st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c);
       return`<button class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}"${st==='miss'?' aria-disabled="true"':''} style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}<i class="hchk">${ico('ok')}</i></button>`}).join('')}</div>`;
   const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
