@@ -605,27 +605,7 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .talt{font-variant-numeric:tabular-nums}
 .tunit{margin-left:8px;font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
 .trow .focus{cursor:pointer}
-/* compass */
-.compass{position:fixed;inset:0;z-index:95;background:#060607;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;opacity:0;transition:opacity .3s ease;touch-action:none}
-.compass.on{opacity:1}
 .cx{position:absolute;top:calc(var(--st) + 14px);right:18px;width:44px;height:44px;font-size:30px;line-height:1;color:var(--mu)}
-.cpword{font-family:var(--serif);font-size:34px;color:var(--tx);letter-spacing:-.01em;min-height:40px}
-.cpwrap{position:relative;width:min(84vw,340px);aspect-ratio:1}
-.dial{width:100%;height:100%;will-change:transform}
-.dial .ring{fill:#101012;stroke:#26262A;stroke-width:1.5}
-.dial .tk{stroke:#3A3A40;stroke-width:1.5}.dial .tk.big{stroke:#8E8A84;stroke-width:2}
-.dial .cl{font-family:var(--cond);font-size:22px;letter-spacing:.06em;fill:#8E8A84}
-.dial .north rect{fill:#F2EFEA;transition:fill .3s}
-.dial .pin{fill:#3A3A40}
-.lubber{position:absolute;left:50%;top:-14px;width:0;height:0;margin-left:-8px;border-left:8px solid transparent;border-right:8px solid transparent;border-top:12px solid #F2EFEA;z-index:2;transition:border-top-color .3s}
-.compass.north .dial .north rect{fill:var(--ac)}
-.compass.north .lubber{border-top-color:var(--ac)}
-.compass.north .dial .ring{stroke:rgba(232,116,59,.55)}
-.cpwrap{border-radius:50%;transition:box-shadow .4s ease}
-.compass.north .cpwrap{box-shadow:0 0 42px rgba(232,116,59,.28)}
-.cphead{font-family:var(--cond);font-size:26px;letter-spacing:.1em;color:var(--tx);min-height:32px}
-.compass.north .cphead{color:var(--ac)}
-.cphint{display:none}
 
 /* life prayer */
 .lifecard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;margin:16px 0 6px;padding:16px 18px;border-radius:16px;text-align:left;
@@ -718,7 +698,6 @@ textarea.long.rva{min-height:64px}
 .vhabits li .ic{display:flex;color:#F2EFEA}.vhabits li .ic svg{width:21px;height:21px}
 .vhabits li b{display:block;font-weight:500;font-size:17px}
 .vhabits li small{display:block;font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu2);margin-top:2px}
-#visCompass{display:flex;align-items:center;gap:8px}#visCompass svg{width:16px;height:16px}
 .trow .focus{cursor:pointer}
 </style>
 </head>
@@ -855,11 +834,6 @@ textarea.long.rva{min-height:64px}
 <div class="sheet dark" id="shWeek" role="dialog" aria-modal="true" aria-labelledby="hwFocus"><div class="grab"></div><div id="hwBody"></div></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <label class="hap" aria-hidden="true"><input type="checkbox" switch id="hapIn" tabindex="-1"></label>
-<div class="compass" id="compass" hidden role="dialog" aria-modal="true" aria-label="Compass">
-  <button class="cx" id="cpClose" aria-label="Close">&times;</button>
-  <div class="cpword" id="cpWord"></div>
-  <div class="cpwrap"><div class="lubber"></div><svg class="dial" id="cpDial" viewBox="-160 -160 320 320" aria-hidden="true"></svg></div>
-  <div class="cphead" id="cpHead">—</div><div class="cphint" id="cpHint"></div>
 </div>
 <div class="lifer" id="lifeR" hidden role="dialog" aria-modal="true" aria-label="Life prayer">
   <button class="cx" id="lrClose" aria-label="Close">&times;</button>
@@ -1226,10 +1200,8 @@ function openVision(w){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(s0),
   const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
   $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
     ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
-    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>
-    <button class="lrrev" id="visCompass">${ico('target')} Compass</button>`;
-  $('visR').hidden=false;$('visR').scrollTop=0;requestAnimationFrame(()=>$('visR').classList.add('on'));
-  $('visCompass').onclick=()=>{closeVision();setTimeout(()=>openCompass(w.focus),320)}}
+    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>`;
+  $('visR').hidden=false;$('visR').scrollTop=0;requestAnimationFrame(()=>$('visR').classList.add('on'));}
 function closeVision(){$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
@@ -1312,34 +1284,6 @@ function bindCaf(el){
 
 }
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&tab==='week'&&ready){selK=null;renderWeek(false)}});
-
-/* ---------- hidden compass: tap the focus word. North is a cross. ---------- */
-(function(){let ticks='';for(let a=0;a<360;a+=5){const big=a%30===0,r1=big?126:132,r2=140,t=a*Math.PI/180;
-    ticks+=`<line x1="${(Math.sin(t)*r1).toFixed(1)}" y1="${(-Math.cos(t)*r1).toFixed(1)}" x2="${(Math.sin(t)*r2).toFixed(1)}" y2="${(-Math.cos(t)*r2).toFixed(1)}" class="${big?'tk big':'tk'}"/>`}
-  const lab=(t,a)=>`<text x="${(Math.sin(a*Math.PI/180)*104).toFixed(1)}" y="${(-Math.cos(a*Math.PI/180)*104+7).toFixed(1)}" text-anchor="middle" class="cl">${t}</text>`;
-  $('cpDial').innerHTML=`<circle r="150" class="ring"/>${ticks}${lab('E',90)}${lab('S',180)}${lab('W',270)}
-    <g class="north"><rect x="-5" y="-128" width="10" height="44" rx="2"/><rect x="-17" y="-118" width="34" height="10" rx="2"/></g>
-    <circle r="3" class="pin"/>`})();
-let cpH=0,cpLive=false,cpRAF=0,cpTarget=0,cpVel=0,cpWasN=false,cpDrag=null;
-const cpName=h=>['N','NE','E','SE','S','SW','W','NW'][Math.round(h/45)%8];
-function cpDraw(){const h=((cpH%360)+360)%360;$('cpDial').style.transform=`rotate(${-h}deg)`;
-  const n=h<6||h>354;$('compass').classList.toggle('north',n);if(n&&!cpWasN)haptic();cpWasN=n;
-  $('cpHead').textContent=n?'True north':`${Math.round(h)}° ${cpName(h)}`}
-function cpOrient(e){let h=e.webkitCompassHeading;if(h==null&&e.absolute&&e.alpha!=null)h=360-e.alpha;if(h==null)return;
-  if(!cpLive){cpLive=true;$('cpHint').textContent='Turn to face the cross'}cpTarget=h}
-function cpLoop(){if(cpLive){let d=((cpTarget-cpH+540)%360)-180;cpH+=d*.18}else if(!cpDrag){cpH+=cpVel;cpVel*=.95;if(Math.abs(cpVel)<.02)cpVel=0}cpDraw();cpRAF=requestAnimationFrame(cpLoop)}
-async function openCompass(word){$('cpWord').textContent=word||'';$('compass').hidden=false;requestAnimationFrame(()=>$('compass').classList.add('on'));
-  cpLive=false;cpVel=6;$('cpHint').textContent='Drag the dial to turn it';
-  try{if(window.DeviceOrientationEvent&&typeof DeviceOrientationEvent.requestPermission==='function'){const r=await DeviceOrientationEvent.requestPermission();if(r!=='granted')throw 0}
-    addEventListener('deviceorientation',cpOrient,true);addEventListener('deviceorientationabsolute',cpOrient,true)}catch(e){}
-  cancelAnimationFrame(cpRAF);cpLoop()}
-function closeCompass(){$('compass').classList.remove('on');removeEventListener('deviceorientation',cpOrient,true);removeEventListener('deviceorientationabsolute',cpOrient,true);
-  setTimeout(()=>{$('compass').hidden=true;cancelAnimationFrame(cpRAF)},300)}
-$('cpClose').onclick=closeCompass;
-{const wrap=document.querySelector('.cpwrap'),ang=e=>{const r=wrap.getBoundingClientRect();return Math.atan2(e.clientX-(r.left+r.width/2),-(e.clientY-(r.top+r.height/2)))*180/Math.PI};
-  wrap.addEventListener('pointerdown',e=>{if(cpLive)return;cpDrag={a:ang(e),h:cpH,t:performance.now()};cpVel=0;wrap.setPointerCapture(e.pointerId)});
-  wrap.addEventListener('pointermove',e=>{if(!cpDrag)return;const a=ang(e),d=((cpDrag.a-a+540)%360)-180,now=performance.now();cpVel=d/Math.max(8,now-cpDrag.t)*16;cpH+=d;cpDrag.a=a;cpDrag.t=now});
-  ['pointerup','pointercancel'].forEach(t=>wrap.addEventListener(t,()=>{cpDrag=null}))}
 
 /* ---------- Prayer (dark) ---------- */
 let PE=null,peNew=false;
