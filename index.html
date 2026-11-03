@@ -971,7 +971,8 @@ function memoryStore(){
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
     putDraft:v=>{D.draft=v;emit('draft');if(m.echoReady)emit('ready')},delDraft:()=>{D.draft=null;emit('draft')},
     mark:(w,k,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
-    setRun:(w,k,id,ts)=>{const x=D.weeks.find(y=>y.id===w.id),rr={...(x.runs||{})},d={...(rr[k]||{})};if(ts)d[id]=ts;else delete d[id];rr[k]=d;x.runs=rr;emit('weeks')},
+    setRun:(w,k,id,ts)=>m.delay?setTimeout(()=>store.setRun0(w,k,id,ts),m.delay):store.setRun0(w,k,id,ts),
+    setRun0:(w,k,id,ts)=>{const x=D.weeks.find(y=>y.id===w.id),rr={...(x.runs||{})},d={...(rr[k]||{})};if(ts)d[id]=ts;else delete d[id];rr[k]=d;x.runs=rr;emit('weeks')},
     setDay:(w,k,items,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.done={...(x.done||{}),[k]:{...((x.done||{})[k]||{}),...items}};x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
     putPrayer:p=>{D.prayers=[p,...D.prayers.filter(x=>x.id!==p.id)].sort((a,b)=>b.created-a.created);emit('prayers')},
     delPrayer:id=>{D.prayers=D.prayers.filter(x=>x.id!==id);emit('prayers')},
@@ -1111,8 +1112,10 @@ function fcDialStatic(span){const R=150,step=span<=60?5:span<=120?10:30,tick=spa
   for(let m=0;m<span;m+=tick){const a=m/span*2*Math.PI,mj=m%step===0,r1=mj?R-16:R-9;o+=`<line x1="${(Math.sin(a)*r1).toFixed(1)}" y1="${(-Math.cos(a)*r1).toFixed(1)}" x2="${(Math.sin(a)*(R-3)).toFixed(1)}" y2="${(-Math.cos(a)*(R-3)).toFixed(1)}" stroke="${mj?'#8E8A84':'#3A3A3E'}" stroke-width="${mj?2:1}"/>`}
   for(let m=0;m<span;m+=step){const a=m/span*2*Math.PI,r=R-32;o+=`<text x="${(Math.sin(a)*r).toFixed(1)}" y="${(-Math.cos(a)*r+5).toFixed(1)}" text-anchor="middle" font-family="Barlow Condensed,Arial Narrow,sans-serif" font-size="15" fill="#B5B0A8" style="paint-order:stroke" stroke="#0E0E10" stroke-width="3">${m}</text>`}
   return o+`<line id="fcHand" x1="0" y1="0" x2="0" y2="-${R-4}" stroke="#F2EFEA" stroke-width="2.5" stroke-linecap="round"/>`}
-function fcDraw(){if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid),r=w&&runOf(w,FC.k,FC.c.id);
-  if(!w||!r){closeFocus();return}
+function fcDraw(){if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid),saved=w&&runOf(w,FC.k,FC.c.id);
+  // the start time can take a moment to sync back; only close if a run we already saw was stopped elsewhere
+  if(saved){FC.start=saved;FC.seen=true}else if(!w||FC.seen||!FC.start){closeFocus();return}
+  const r=FC.start;
   const tot=FC.c.min*6e4,left=Math.max(0,r+tot-Date.now()),span=FC.span,R=136,mins=left/6e4,a=Math.min(.99999,mins/span)*2*Math.PI;
   const x=(Math.sin(a)*R).toFixed(2),y=(-Math.cos(a)*R).toFixed(2);
   $('fcWedge').setAttribute('d',left>0?`M0 0 L0 ${-R} A${R} ${R} 0 ${a>Math.PI?1:0} 1 ${x} ${y} Z`:'');
@@ -1120,9 +1123,9 @@ function fcDraw(){if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid),r=w&&runO
   $('fcTime').textContent=left>0?mmss(left):'Done';$('fcTime').classList.toggle('fin',!left);
   if(!left&&!FC.fin){FC.fin=true;$('fcHint').textContent=FC.c.name+' · done';$('fcStop').hidden=true;haptic();
     const rc=$('fcTime').getBoundingClientRect();burst(rc.left+rc.width/2,rc.top+rc.height/2);
-    if(!((w.done||{})[FC.k]||{})[FC.c.id])setItem(w,FC.k,FC.c.id,true);setTimeout(closeFocus,1800);return}
+    if(!((w.done||{})[FC.k]||{})[FC.c.id])setItem(D.weeks.find(x=>x.id===FC.wid)||w,FC.k,FC.c.id,true);setTimeout(closeFocus,1800);return}
   fcRAF=requestAnimationFrame(fcDraw)}
-function openFocus(w,c,k){FC={wid:w.id,c,k,span:c.min<=60?60:c.min,fin:false};
+function openFocus(w,c,k,start){FC={wid:w.id,c,k,span:c.min<=60?60:c.min,fin:false,start:start||runOf(w,k,c.id),seen:false};
   $('fcName').textContent=c.name;$('fcIc').innerHTML=ico(c.icon||'check');$('fcDial').innerHTML=fcDialStatic(FC.span);
   $('fcHint').textContent='Keeps running if you close';$('fcStop').hidden=false;
   $('fcs').hidden=false;requestAnimationFrame(()=>$('fcs').classList.add('on'));cancelAnimationFrame(fcRAF);fcDraw();
@@ -1213,7 +1216,7 @@ function renderWeek(animate){
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
   const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
     if(c){const st=hState(w,selKey,c);if(st==='miss'||st==='done'){b0(k);return}
-      if(c.min&&selKey===todayK&&st!=='done'){haptic();if(st==='open')store.setRun(w,selKey,k,Date.now());openFocus(w,c,selKey);return}}
+      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'?Date.now():null;if(t0)store.setRun(w,selKey,k,t0);openFocus(w,c,selKey,t0);return}}
     const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
     haptic();store.setDay(w,selKey,{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
