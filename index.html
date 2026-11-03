@@ -240,6 +240,15 @@ textarea.long:focus{border-color:var(--mu)}
 .fchint{font-family:var(--cond);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2)}
 .fcacts{display:flex;gap:10px}
 .fcacts button{min-height:46px;padding:0 22px;border-radius:999px;border:1px solid var(--line);font-size:16px;color:var(--tx)}
+.hbhd{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+.hbhd .ic{display:flex;color:var(--ac)}.hbhd .ic svg{width:24px;height:24px}
+.hbhd h3{margin:0}
+.hbmeta{font-family:var(--cond);font-size:14px;letter-spacing:.08em;color:var(--mu2);margin:2px 0 0 36px;min-height:4px}
+.hbstate{margin:14px 0 0;font-size:15px;color:var(--mu)}
+.hcard.pressing{transform:scale(.97)}
+.hcard{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.hcard.nudge{animation:nudge .32s ease}
+@keyframes nudge{0%,100%{transform:none}30%{transform:translateX(-4px)}60%{transform:translateX(3px)}}
 .tgl{width:46px;height:28px;margin:0;accent-color:var(--ac);flex:none}
 .seg button{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid var(--line);font-size:15px;font-family:var(--sans);background:var(--card)}
 .seg button.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
@@ -753,6 +762,8 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
   <h3 id="chTitle">New habit</h3>
   <input class="field" id="chName" maxlength="60" placeholder="Name" autocomplete="off">
   <span class="lbl l2">Icon</span><div class="icons" id="chIcons"></div>
+  <span class="lbl l2">About <em class="ed">optional</em></span>
+  <textarea class="long" id="chAbout" rows="3" style="min-height:96px" placeholder="What this habit is about and why"></textarea>
   <span class="lbl l2">Timing <em class="ed">optional</em></span>
   <div class="chrow"><label for="chBy">Start by</label><input class="field" id="chBy" type="time"><button class="clr" id="chByClr" aria-label="Clear start-by time">&times;</button></div>
   <div class="chrow"><label for="chMin">Timer</label><input class="field num" id="chMin" type="number" inputmode="numeric" min="1" max="240" placeholder="Off"><span class="unit">min</span></div>
@@ -760,6 +771,10 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
   <div class="acts" id="chActs"></div>
 </div>
 <!-- notes sheet (dark) -->
+<div class="sheet dark" id="shHabit" role="dialog" aria-modal="true" aria-labelledby="hbName"><div class="grab"></div>
+  <div class="hbhd"><span class="ic" id="hbIc"></span><h3 id="hbName"></h3></div><div class="hbmeta" id="hbMeta"></div>
+  <span class="lbl l2">About</span><textarea class="long dk" id="hbAbout" rows="5" placeholder="What this habit is about, why it matters, how to do it. Saved with the habit for future weeks."></textarea>
+  <p class="hbstate" id="hbState"></p><div class="acts" id="hbActs"></div></div>
 <div class="sheet dark" id="shThoughts" role="dialog" aria-modal="true"><div class="grab"></div><h3>This week</h3><p class="thoughts" id="thText"></p></div>
 <!-- prayer edit (dark) -->
 <div class="sheet dark prsheet" id="shPrayer" role="dialog" aria-modal="true" aria-label="Prayer"><div class="grab"></div>
@@ -841,7 +856,7 @@ const DOW=['S','M','T','W','T','F','S'],DOWL=['Sunday','Monday','Tuesday','Wedne
 // default habit library (no categories: devotional habits only)
 const SEED=[['Morning devotion','sun'],['Prayer','hands'],['Scripture reading','book'],['Scripture memory','pen'],['Evening prayer','moon'],['Worship','music'],['Fast','moon'],['No YouTube on phone','phone']];
 const OLD_SEEDED=['Strength training','Walk','In bed by 10','No caffeine','On time to every site','Focused work blocks','End-of-day performance reflection','BuilderTrend seminar'];
-const tmg=c=>({...(c.by?{by:c.by}:{}),...(c.min?{min:c.min}:{})});
+const tmg=c=>({...(c.by?{by:c.by}:{}),...(c.min?{min:c.min}:{}),...(c.about?{about:c.about}:{})});
 const habitOf=ch=>({id:uid(),chipId:ch.id||null,name:ch.name,icon:ch.icon||'check',...tmg(ch)});
 const CAF_PRESETS=()=>[['Pill',D.settings.cafPill||50],['Coffee',95],['Energy drink',160]];
 
@@ -1093,6 +1108,37 @@ function openFocus(w,c,k){FC={wid:w.id,c,k,span:c.min<=60?60:c.min,fin:false};
 function closeFocus(){cancelAnimationFrame(fcRAF);FC=null;$('fcs').classList.remove('on');try{fcLock&&fcLock.release()}catch(e){}fcLock=null;setTimeout(()=>{if(!FC)$('fcs').hidden=true},300);if(tab==='week')renderWeek(false)}
 $('fcClose').onclick=closeFocus;
 $('fcStop').onclick=()=>{if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid);if(w&&confirm(`Stop the ${FC.c.name} timer? It won’t count as done.`)){store.setRun(w,FC.k,FC.c.id,null);closeFocus()}};
+// ---- hold a habit card: details, notes, and the safe way to undo ----
+let HB=null;
+function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null,isT=k===ymd(new Date());
+  $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=tmLabel(c).replace(/^(\d)/,'start by $1');
+  $('hbAbout').value=c.about||'';
+  const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
+  $('hbState').textContent=!k?'':st==='done'?`Done ${day}.`:st==='miss'?`Missed ${day}. Not started by ${clock(c.by)}.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
+  $('hbActs').innerHTML=!k?'':st==='done'?`<button class="btn ghost" data-hb="undo">Mark not done</button>`
+    :st==='miss'?`<button class="btn ghost" data-hb="force">Mark done anyway</button>`
+    :st==='run'?`<button class="btn ghost" data-hb="open">Open timer</button>`:'';
+  $('shHabit').onClose=saveHabitAbout;openSheet($('shHabit'))}
+function saveHabitAbout(){if(!HB)return;const w=D.weeks.find(x=>x.id===HB.wid),c=w&&w.commitments.find(x=>x.id===HB.cid);HB=null;if(!c)return;
+  const about=$('hbAbout').value.trim();if(about===(c.about||''))return;
+  store.putWeek({...w,commitments:w.commitments.map(x=>{if(x.id!==c.id)return x;const {about:_a,...rest}=x;return about?{...rest,about}:rest})});
+  const ch=c.chipId&&D.library.find(x=>x.id===c.chipId);if(ch){const {about:_b,...rc}=ch;store.putChip(about?{...rc,about}:rc)}}
+$('hbActs').onclick=e=>{const b=e.target.closest('[data-hb]');if(!b||!HB)return;const a=b.dataset.hb,{wid,cid,k}=HB,w=D.weeks.find(x=>x.id===wid),c=w&&w.commitments.find(x=>x.id===cid);if(!c)return;
+  saveHabitAbout();
+  if(a==='undo'){if(c.min)store.setRun(w,k,cid,null);setItem(D.weeks.find(x=>x.id===wid),k,cid,false)}
+  else if(a==='force'){if(!confirm(`Mark ${c.name} done even though it wasn’t started in time?`))return;setItem(w,k,cid,true)}
+  else if(a==='open'){closeSheet();setTimeout(()=>openFocus(w,c,k),300);return}
+  haptic();closeSheet()};
+// long-press on any habit card opens its details; the click that follows is swallowed
+function bindHold(el,w,k){let t=null,fired=false,x0=0,y0=0,b=null;
+  const cancel=()=>{clearTimeout(t);t=null;b&&b.classList.remove('pressing')};
+  el.querySelectorAll('[data-hd]').forEach(card=>{
+    card.addEventListener('pointerdown',e=>{fired=false;x0=e.clientX;y0=e.clientY;b=card;card.classList.add('pressing');
+      t=setTimeout(()=>{fired=true;card.classList.remove('pressing');haptic();const c=w.commitments.find(x=>x.id===card.dataset.hd);if(c)openHabit(w,c,k)},450)});
+    card.addEventListener('pointermove',e=>{if(t&&Math.hypot(e.clientX-x0,e.clientY-y0)>8)cancel()});
+    ['pointerup','pointercancel','pointerleave'].forEach(n=>card.addEventListener(n,cancel));
+    card.addEventListener('contextmenu',e=>e.preventDefault());
+    card.addEventListener('click',e=>{if(fired){e.stopImmediatePropagation();e.preventDefault();fired=false}},true)})}
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
@@ -1120,10 +1166,10 @@ function renderWeek(animate){
     :!due&&now.getDay()===D.settings.closeDay&&ymd(start)!==todayK?`<p class="restnote">${DOWL[D.settings.closeDay]} · review and plan from ${hourLabel(D.settings.closeHour)}</p>`:'';
   const habits=`<div class="wkbar">${w.planThoughts?`<button class="wkhd" id="wkThoughts"><span class="lbl">Daily habits</span>${ico('chev')}</button>`:`<div class="wkhd"><span class="lbl">Daily habits</span></div>`}${selNote}</div>
     <div class="hcards">${w.commitments.map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
-        return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</div>`}
+        return`<div class="hcard${animate?' rise':''}" data-hd="${c.id}" style="animation-delay:${i*40}ms"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</div>`}
       const st=hState(w,selKey,c),r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
       const meta=st==='miss'?'missed':st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c);
-      return`<button class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" data-h="${c.id}" aria-pressed="${on}"${st==='miss'?' aria-disabled="true"':''} style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}<i class="hchk">${ico('ok')}</i></button>`}).join('')}</div>`;
+      return`<button class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" data-h="${c.id}" data-hd="${c.id}" aria-pressed="${on}"${st==='miss'?' aria-disabled="true"':''} style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><span class="ic">${ico(c.icon||'check')}</span><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}<i class="hchk">${ico('ok')}</i></button>`}).join('')}</div>`;
   const closeBtn=due?`<button class="closewk" id="wkClose"><span><b>Close the week</b><small>${weekStats(w).pct}% · then plan the next one</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
@@ -1139,12 +1185,13 @@ function renderWeek(animate){
       if(nv==='on'&&miss.size){nv=undefined;celebrate=null}store.setDay(w,selKey,all,nv)}else store.mark(w,selKey,nv)});
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
   const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
-    if(c){const st=hState(w,selKey,c);if(st==='miss')return;
-      if(c.min&&selKey===todayK&&st!=='done'){haptic();if(st==='open')store.setRun(w,selKey,k,Date.now());openFocus(w,c,selKey);return}
-      if(c.min&&st==='done')store.setRun(w,selKey,k,null)}
+    if(c){const st=hState(w,selKey,c);if(st==='miss'||st==='done'){b0(k);return}
+      if(c.min&&selKey===todayK&&st!=='done'){haptic();if(st==='open')store.setRun(w,selKey,k,Date.now());openFocus(w,c,selKey);return}}
     const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
     haptic();store.setDay(w,selKey,{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
+  const b0=k=>{const x=el.querySelector(`[data-h="${k}"]`);if(x){x.classList.remove('nudge');void x.offsetWidth;x.classList.add('nudge')}};
+  bindHold(el,w,selKey);
   el.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.h));
   el.querySelectorAll('[data-dose]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.dose));
   if(cel){const pb=el.querySelector(`[data-pill="${cel.v}"]`),sq=el.querySelector('.dsq.sel');
@@ -1411,7 +1458,7 @@ function openChipSheet(o){
   const s=o.mode==='edit'?o.chip:o.mode==='tray'?o.item:null;if(o.mode!=='new'&&!s)return;
   CS={mode:o.mode,id:s?.id,name:s?.name||'',icon:s?.icon||'sun'};
   $('chTitle').textContent=o.mode==='edit'?'Edit habit':o.mode==='tray'?'This week’s habit':'New habit';$('chName').value=CS.name;
-  $('chBy').value=s?.by||'';$('chMin').value=s?.min||'';
+  $('chBy').value=s?.by||'';$('chMin').value=s?.min||'';$('chAbout').value=s?.about||'';
   renderChipSheet();openSheet($('shChip'));setTimeout(()=>{if(o.mode!=='edit')$('chName').focus()},320)}
 function renderChipSheet(){
   $('chIcons').innerHTML=ICON_CHOICES.map(n=>`<button data-ic="${n}" class="${CS.icon===n?'on':''}" aria-label="${n}">${ico(n)}</button>`).join('');
@@ -1422,10 +1469,10 @@ $('shChip').addEventListener('click',e=>{const t=e.target.closest('button');if(!
   const a=t.dataset.a;if(!a)return;const name=$('chName').value.trim();
   if(a==='del'){if(confirm(`Remove “${CS.name}” from your library? Past weeks keep their own copy.`)){store.delChip(CS.id);closeSheet();setTimeout(renderChips,50)}return}
   if(!name){$('chName').focus();$('chName').style.borderColor='var(--ac)';return}
-  const by=$('chBy').value||null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
-  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,min:_m,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,min:mn})}}closeSheet();renderTray();saveDraft();return}
-  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,min:mn});closeSheet();setTimeout(renderChips,50);return}
-  const chip={id:uid(),name,icon:CS.icon,...tmg({by,min:mn}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
+  const about=$('chAbout').value.trim()||null,by=$('chBy').value||null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
+  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,min:_m,about:_a,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,min:mn,about})}}closeSheet();renderTray();saveDraft();return}
+  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,min:mn,about});closeSheet();setTimeout(renderChips,50);return}
+  const chip={id:uid(),name,icon:CS.icon,...tmg({by,min:mn,about}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
   if(a==='lib')store.putChip(chip);
   const nc=habitOf(a==='lib'?chip:{...chip,id:null});P.justAdded=nc.id;P.tray.push(nc);closeSheet();renderTray();renderChips();updateSeal();saveDraft()});
 $('chName').addEventListener('input',e=>e.target.style.borderColor='');
