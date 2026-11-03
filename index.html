@@ -1000,8 +1000,8 @@ function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur
     return`<div class="${cur>=m?'got':m===next?'nxt':''}"><i style="--f:${f}%"></i><span>${m}</span></div>`}).join('');
   const sub=best>cur?`Best ${best}`:cur?'Your best':'';
   const goal=next?`${next-cur} to ${next}`:'All milestones';
-  return`<section class="stk${anim?' in':''}${hit?' hit':''}" aria-label="Full days in a row: ${cur}">
-    <div class="cafh"><span class="lbl">${hit?`${cur}-day milestone`:'Full days'}</span><span class="cafsub">${sub}</span></div>
+  return`<section class="stk${anim?' in':''}${hit?' hit':''}" aria-label="Streak: ${cur}">
+    <div class="cafh"><span class="lbl">${hit?`${cur}-day milestone`:'Streak'}</span><span class="cafsub">${sub}</span></div>
     <div class="cafrow"><div class="cafn"><b>${cur}</b><span>${cur===1?'day':'days'} in a row</span></div><em>${goal}</em></div>
     <div class="stkl" role="img" aria-label="Milestones ${MILES.join(', ')}">${lad}</div>
   </section>`}
