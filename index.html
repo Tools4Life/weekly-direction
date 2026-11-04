@@ -912,6 +912,21 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* Reflect: the page grows with the writing instead of reserving a tall empty box (iOS was scrolling to fit it above the keyboard) */
 .jtext{min-height:120px!important}
 .jin{padding-bottom:45vh!important}
+/* Progress: this week, trend, then a scrolling list of past weeks (the page itself doesn't scroll) */
+#sHistory{height:100vh;height:100dvh;min-height:0!important;display:flex;flex-direction:column;overflow:hidden;padding-bottom:0!important;box-sizing:border-box}
+#sHistory .trow{flex:none}
+#hList{flex:1;min-height:0;display:flex;flex-direction:column;margin-top:18px!important}
+#hList>.hcur,#hList>.trcard,#hList>.pwl{flex:none}
+.hcur{margin:0 -12px 14px!important}
+.trcard{padding:12px 14px 4px;border-radius:16px;background:var(--card)}
+.trhd{display:flex;flex-direction:column;gap:2px;margin-bottom:2px}
+.trt{font-family:var(--serif);font-size:20px;line-height:1.2;color:var(--tx)}
+.trsum{font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu)}
+.trcard .tchart{border-bottom:0!important;padding-bottom:4px}
+.trcard .tempty{margin:6px 0 10px}
+.pwl{margin:20px 0 2px}
+.pwlist{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -24px;padding:0 24px calc(var(--sb) + 96px);
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px);mask-image:linear-gradient(to bottom,transparent 0,#000 14px)}
 </style>
 </head>
 <body>
@@ -1642,17 +1657,22 @@ const mini=(w,days)=>`<span class="mini">${days.map(d=>{const v=(w.marks||{})[ym
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
-  $('hList').innerHTML=`<div class="tchart" id="tChart"></div>`
-    +weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
+  const rows=weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
       if(live)return`<div class="hcur rise" style="animation-delay:${120+i*45}ms"><button class="hrow" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
         <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`+`<button class="reflbtn" data-reflect="${w.id}">${ico('pen')}<span>Reflect<small>${w.liveRefl?'Add to this week’s reflection':'How is this week going?'}</small></span>${ico('chev')}</button></div>`;
       return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
-        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`}).join('');
+        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`});
+  // this week (with Reflect) on top, then the trend, then past weeks: only the past weeks scroll
+  const ci=weeks.findIndex(w=>w.status==='active'),cur=ci>=0?rows[ci]:'',past=rows.filter((_,i)=>i!==ci);
+  const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null,bi=ws.length?ws.lastIndexOf(Math.max(...ws)):-1;
+  const sum=ws.length>=2?`${ws.length} weeks · avg ${avg}% · best ${esc(trend[bi].focus)} ${ws[bi]}%`:'';
+  $('hList').innerHTML=cur+`<div class="trcard"><div class="trhd"><span class="trt">Trend</span>${sum?`<span class="trsum">${sum}</span>`:''}</div><div class="tchart" id="tChart"></div></div>`
+    +(past.length?`<div class="lbl pwl">Past weeks</div><div class="pwlist" id="pwList">${past.join('')}</div>`:'');
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
   $('hList').querySelectorAll('[data-reflect]').forEach(b=>b.onclick=()=>openJournal(D.weeks.find(w=>w.id===b.dataset.reflect)));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
-function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=150,L=30,R=14,T=22,B=24,n=weeks.length;
+function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=118,L=30,R=14,T=22,B=24,n=weeks.length;
   const pts=weeks.map((w,i)=>{const st=weekStats(w);return{w,pct:st.pct,live:w.status==='active',x:n===1?L+(W-L-R)/2:L+i*(W-L-R)/(n-1),y:T+(1-st.pct/100)*(H-T-B)}});
   const closed=pts.filter(p=>!p.live),live=pts.find(p=>p.live),pathOf=a=>a.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
   const grid=[0,50,100].map(v=>{const y=T+(1-v/100)*(H-T-B);return`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="tg"/><text x="${L-8}" y="${y+4}" class="tl" text-anchor="end">${v}</text>`}).join('');
