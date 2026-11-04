@@ -960,6 +960,26 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .qopt.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .qopt.nudge{animation:nudge .32s ease}
 #clBody textarea.long{resize:none;overflow:hidden}
+/* moments */
+@property --f{syntax:'<percentage>';inherits:false;initial-value:0%}
+.stkl .just i{animation:segfill .9s .15s var(--ease) both,segglow 1.4s .9s ease}
+@keyframes segfill{from{--f:0%}to{--f:100%}}
+@keyframes segglow{0%{box-shadow:0 0 0 0 rgba(232,116,59,.7)}100%{box-shadow:0 0 0 8px rgba(232,116,59,0)}}
+.stkl .just span{animation:sqpop .5s 1s var(--spring) both}
+.trow .focus.land{animation:wordland 1.1s cubic-bezier(.2,.9,.2,1) both}
+@keyframes wordland{0%{opacity:0;transform:translateY(-14px) scale(1.06);filter:blur(8px);letter-spacing:.06em}60%{opacity:1;filter:blur(0)}100%{opacity:1;transform:none;letter-spacing:-.02em}}
+.wclose{position:fixed;inset:0;z-index:98;display:flex;align-items:center;justify-content:center;background:var(--bg);opacity:0;transition:opacity .35s ease}
+.wclose.on{opacity:1}
+.wcin{text-align:center;padding:0 24px}
+.wclbl{font-family:var(--cond);font-size:13px;letter-spacing:.24em;text-transform:uppercase;color:var(--mu);animation:rise .6s .05s var(--spring) both}
+.wcword{font-family:var(--serif);font-size:clamp(44px,13vw,64px);line-height:1.05;margin:10px 0 16px;color:var(--tx);animation:rise .7s .12s var(--spring) both}
+.wcpct{font-family:var(--cond);font-size:22px;color:var(--mu)}.wcpct b{font-size:60px;font-weight:600;color:var(--tx);font-variant-numeric:tabular-nums}
+.wcdays{display:flex;justify-content:center;gap:8px;margin-top:18px}
+.wcdays span{display:flex;flex-direction:column;align-items:center;gap:6px;animation:sqpop .5s var(--spring) both}
+.wcdays i{width:30px;height:30px;border-radius:8px;border:1.5px dashed #3A3A3E}
+.wcdays .on i{background:var(--ac);border:1.5px solid var(--ac)}.wcdays .drift i{background:var(--tx);border:1.5px solid var(--tx);opacity:.85}
+.wcdays em{font-style:normal;font-family:var(--cond);font-size:12px;letter-spacing:.1em;color:var(--mu2)}
+.wcsub{margin-top:14px;font-family:var(--cond);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);animation:rise .6s 1.2s var(--spring) both}
 </style>
 </head>
 <body>
@@ -1124,6 +1144,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <div class="lrin jin"><div class="vdate" id="jrDate"></div><div class="jword2" id="jrWord"></div>
   <textarea id="jrText" class="jtext" placeholder="How is this week going so far? What are you noticing, in your walk, at work, at home?"></textarea>
   <div class="jqs" id="jrQs"></div></div></div>
+<div class="wclose" id="wClose" hidden aria-live="polite"><div class="wcin"><div class="wclbl">Week closed</div><div class="wcword" id="wcWord"></div>
+  <div class="wcpct"><b id="wcPct">0</b>%</div><div class="wcdays" id="wcDays"></div><div class="wcsub" id="wcSub"></div></div></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -1408,7 +1430,8 @@ function streakInfo(){const marks={},habit=new Set(),empty=new Set();
   return{cur:run,best}}
 function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur),hit=lastStk!=null&&cur>lastStk&&MILES.includes(cur);lastStk=cur;
   let prev=0;const lad=MILES.map(m=>{const f=cur>=m?100:cur<=prev?0:Math.round((cur-prev)/(m-prev)*100);prev=m;
-    return`<div class="${cur>=m?'got':m===next?'nxt':''}"><i style="--f:${f}%"></i><span>${m}</span></div>`}).join('');
+    return`<div class="${cur>=m?'got':m===next?'nxt':''}${hit&&m===cur?' just':''}"><i style="--f:${f}%"></i><span>${m}</span></div>`}).join('');
+  if(hit)setTimeout(()=>{const b=document.querySelector('.stk.hit .cafn b');if(b&&!RM.matches)countUp(b,cur,800)},60);
   const sub=best>cur?`Best ${best}`:cur?'Your best':'';
   const goal=next?`${next-cur} to ${next}`:'All milestones';
   return`<section class="stk${anim?' in':''}${hit?' hit':''}" aria-label="Streak: ${cur}">
@@ -1550,6 +1573,7 @@ $('jrText').addEventListener('input',()=>{jrGrow();$('jrSaved').textContent='';c
 $('jrDone').onclick=closeJournal;
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
+let landWord=false;
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
@@ -1586,6 +1610,7 @@ function renderWeek(animate){
   const closeBtn=due||revDay?`<button class="closewk${due?'':' soon'}" id="wkClose"><span><b>${due?'Close the week':'Weekly review'}</b><small>${weekStats(w).pct}% ${due?'':'so far '}· close &amp; plan</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
+  if(landWord){landWord=false;const f=el.querySelector('.trow .focus');if(f&&!RM.matches){f.classList.add('land');setTimeout(()=>f.classList.remove('land'),1400)}}
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{haptic();tmSwap(tFrom)};
   el.querySelector('.trow .focus')?.addEventListener('click',()=>openVision(w));
   if($('wkThoughts'))$('wkThoughts').onclick=()=>openVision(w);
@@ -1758,7 +1783,14 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
   if(false)$('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
   $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
     store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
-    closeSheet();setTimeout(()=>openPlan(null,cur),280)}}
+    closeSheet();setTimeout(()=>closeMoment(cur,s2,()=>openPlan(null,cur)),260)}}
+// the week's close: % counts up, days fill in one by one, then planning opens (tap to skip)
+function closeMoment(w,st,next){const o=$('wClose'),m=w.marks||{};let done=false;const go=()=>{if(done)return;done=true;o.classList.remove('on');setTimeout(()=>{o.hidden=true;next()},350)};
+  if(RM.matches){next();return}
+  $('wcWord').textContent=w.focus;$('wcPct').textContent='0';$('wcSub').textContent=`${st.kept} of ${st.days.length} days kept`;
+  $('wcDays').innerHTML=st.days.map((d,i)=>`<span class="${m[ymd(d)]||''}" style="animation-delay:${450+i*110}ms"><i></i><em>${DOW[d.getDay()]}</em></span>`).join('');
+  o.hidden=false;o.onclick=go;requestAnimationFrame(()=>o.classList.add('on'));
+  setTimeout(()=>{countUp($('wcPct'),st.pct,900);snd('day')},300);setTimeout(go,2600)}
 
 /* ---------- Settings ---------- */
 function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textContent=D.user?D.user.email:'Not signed in';$('acSync').textContent=D.syncNote}
@@ -1872,7 +1904,7 @@ $('plSeal').onclick=async()=>{
   let id=P.replan||ymd(new Date(sealedAt));if(!P.replan&&D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
   const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon,...tmg(c)})),percentage:null,reflection:'',
     planThoughts:P.thoughts.trim(),qs:normQs(P.qs),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
-  clearTimeout(saveT);store.putWeek(week);store.delDraft();P=null;
+  clearTimeout(saveT);store.putWeek(week);store.delDraft();P=null;landWord=true;
   await crossTo('week');
 };
 
