@@ -841,6 +841,13 @@ html[data-theme=light] .vsec{border-top:1px solid #E6E3DD}
 /* late segment: solid outline at full color, softer stripes clipped inside the rounded shape */
 .otbar i.lt,.otkey i.lt{box-sizing:border-box;border:1.5px solid var(--ac);box-shadow:none!important;overflow:hidden;background-clip:padding-box!important;
   background:repeating-linear-gradient(135deg,rgba(232,116,59,.5) 0 1.5px,transparent 1.5px 4px)!important}
+/* softer white in dark mode: main text and icons at ~82%; the done check stays full white so completion still pops */
+html:not([data-theme=light])[data-mode=dark],html:not([data-theme=light]) [data-mode=dark],html:not([data-theme=light]) .dark{--tx:rgba(242,239,234,.82)}
+html:not([data-theme=light]) .hcard .ic,html:not([data-theme=light]) .hcard.done .ic,html:not([data-theme=light]) .hcard.run .ic,html:not([data-theme=light]) .hcards.kept .hcard .ic{color:rgba(242,239,234,.82)!important}
+html:not([data-theme=light]) .hcard .hck i,html:not([data-theme=light]) .hcard .hck.run i,html:not([data-theme=light]) .hcard .hck.open i:not(:empty){color:rgba(242,239,234,.82)!important;border-color:rgba(242,239,234,.45)!important}
+html:not([data-theme=light]) .hcard.done .nm{color:rgba(242,239,234,.82)!important}
+html:not([data-theme=light]) .vhabits li .ic,html:not([data-theme=light]) .otrow .ic{color:rgba(242,239,234,.82)!important}
+html:not([data-theme=light]) .hcard.done .hck i{background:#F2EFEA!important;border-color:#F2EFEA!important;color:#1A0F09!important}
 </style>
 </head>
 <body>
