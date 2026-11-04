@@ -832,6 +832,12 @@ html[data-theme=light] .vsec{border-top:1px solid #E6E3DD}
 .otrow .otbar{justify-self:end}
 .otc{width:auto!important;min-width:26px;margin-left:-2px}
 .otkey{margin-top:10px!important}
+/* on-time card header: a real title, shorter header to match the footer */
+.othd{align-items:baseline!important;margin:0!important;padding-bottom:10px}
+.ottl{font-family:var(--serif);font-size:22px;line-height:1.1;color:var(--tx)}
+.otpct{font-size:14px!important}.otpct b{font-size:24px!important;line-height:1}
+.otbox{padding:14px 16px 14px!important}
+.otkey{margin-top:8px!important}
 </style>
 </head>
 <body>
@@ -1367,7 +1373,7 @@ function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(
   if(log){const st=weekStats(w),m=w.marks||{};
     stats=`<div class="vstat"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept${live?' so far':''}</span></div>
       <div class="days big vdays">${st.days.map(d=>{const v=m[ymd(d)];return`<span class="dsq ${v||''}"><i></i><span>${DOW[d.getDay()]}</span></span>`}).join('')}</div>`;
-    const ot=onTime(w);if(ot.pct!=null)stats+=`<div class="otbox"><div class="othd"><span class="lbl">On time</span><span class="otpct"><b>${ot.pct}</b>%</span></div>
+    const ot=onTime(w);if(ot.pct!=null)stats+=`<div class="otbox"><div class="othd"><span class="ottl">On time</span><span class="otpct"><b>${ot.pct}</b>%</span></div>
       ${ot.per.map(x=>`<div class="otrow"><span class="ic">${ico(x.c.icon||'check')}</span><span class="otn">${esc(x.c.name)}<small>by ${clock(x.c.by)}</small></span>
         <span class="otbar" role="img" aria-label="${x.on} on time, ${x.lt} late">${'<i class="on"></i>'.repeat(x.on)}${'<i class="lt"></i>'.repeat(x.lt)}</span><span class="otc">${x.on}<em>/${x.on+x.lt}</em></span></div>`).join('')}
       <p class="otkey"><i class="on"></i>on time <i class="lt"></i>late</p></div>`;
