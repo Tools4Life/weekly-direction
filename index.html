@@ -959,6 +959,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .qopt{display:block;width:100%;text-align:left;margin-bottom:6px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-family:var(--serif);font-size:16px;line-height:1.4;color:var(--tx)}
 .qopt.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
 .qopt.nudge{animation:nudge .32s ease}
+#clBody textarea.long{resize:none;overflow:hidden}
 </style>
 </head>
 <body>
@@ -1751,7 +1752,9 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
     <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="Anything else from the week?">${esc(closeRef)}</textarea>
     <div class="acts"><button class="btn pri" id="clGo">Close &amp; plan next week</button></div>`;
   $('clRef').oninput=ev=>closeRef=ev.target.value;
-  $('clBody').querySelectorAll('[data-qa]').forEach(t=>t.oninput=ev=>closeAns[+t.dataset.qa]=ev.target.value);
+  const grow=t=>{t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px'};
+  $('clBody').querySelectorAll('[data-qa]').forEach(t=>{grow(t);t.oninput=ev=>{closeAns[+t.dataset.qa]=ev.target.value;grow(t)}});
+  {const t=$('clRef');grow(t);t.addEventListener('input',()=>grow(t))}
   if(false)$('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
   $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
     store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
