@@ -1713,15 +1713,9 @@ $('chName').addEventListener('input',e=>e.target.style.borderColor='');
 $('chByClr').onclick=()=>{$('chBy').value=''};
 
 /* ---------- boot ---------- */
-// one-time data fixes, each runs once per account (recorded in settings.fixes)
-function oneTimeFixes(){const fx=D.settings.fixes||{};
-  // Nov 3 2026: after re-sealing, mark every habit for that day done and on time (Eddie's request, Nov 4)
-  if(!fx.d20261103){const k='2026-11-03',w=D.weeks.find(x=>habitDays(x).some(d=>ymd(d)===k)&&x.status==='active')||D.weeks.find(x=>habitDays(x).some(d=>ymd(d)===k));
-    if(w){const day=habitDays(w).find(d=>ymd(d)===k),items={};dayItems(w,day).forEach(id=>{items[id]=true;if(w.commitments.some(c=>c.id===id))items[id+'@late']=false});store.setDay(w,k,items,'on')}
-    store.setSettings({fixes:{...fx,d20261103:true}})}}
 function onData(kind){
   if(kind==='ready'||kind==='settings'){const t=document.documentElement.dataset.theme;applyTheme();if(kind==='settings'&&t===document.documentElement.dataset.theme){}}
-  if(kind==='ready'){if(ready)return;ready=true;oneTimeFixes();$('boot').hidden=true;
+  if(kind==='ready'){if(ready)return;ready=true;$('boot').hidden=true;
     if(!D.settings.cafFrom)store.setSettings({cafFrom:midnight(new Date()).getTime()});
     setTimeout(importLifeFromLink,300);
     if(D.draft&&D.draft.step==='plan'&&!D.draft.replan&&!active()){show('week');openPlan()}else show('week');return}
