@@ -1277,11 +1277,11 @@ function countUp(el,to,ms=700){if(RM.matches||!el)return;const t0=performance.no
 // The review day (not a habit day) neither counts nor breaks it; today only counts once it is kept.
 const MILES=[1,3,7,14,30,90];let lastStk=null;
 function streakInfo(){const marks={},habit=new Set(),empty=new Set();
-  D.weeks.forEach(w=>{const m=w.marks||{};habitDays(w).forEach(d=>{const k=ymd(d);if(!dayItems(w,d).length){empty.add(k);return}habit.add(k);if(m[k]==='on')marks[k]=1})});
+  D.weeks.forEach(w=>{const m=w.marks||{};habitDays(w).forEach(d=>{const k=ymd(d);if(!dayItems(w,d).length){empty.add(k);return}habit.add(k);if(m[k]==='on')marks[k]=1;if(m[k]==='drift')marks[k]=-1})});
   const todayK=ymd(new Date());let run=0,best=0;
   if(habit.size){const d=new Date([...habit].sort()[0]+'T12:00:00');
     while(ymd(d)<=todayK){const k=ymd(d);
-      if(habit.has(k)){if(marks[k]){run++;best=Math.max(best,run)}else if(k!==todayK)run=0}
+      if(habit.has(k)){if(marks[k]===1){run++;best=Math.max(best,run)}else if(k!==todayK||marks[k]===-1)run=0}
       else if(!empty.has(k)&&d.getDay()!==D.settings.closeDay&&k!==todayK)run=0;
       d.setDate(d.getDate()+1)}}
   return{cur:run,best}}
@@ -1302,7 +1302,7 @@ const clock=t=>{const [h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)
 const tmLabel=(c,dl=true)=>[dl&&c.days?DAYS_L[c.days]:'',c.by?clock(c.by):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
 const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
 const deadline=(k,c)=>c.by?new Date(`${k}T${c.by}:00`).getTime():null;
-function hState(w,k,c,now=Date.now()){if(((w.done||{})[k]||{})[c.id])return'done';const r=runOf(w,k,c.id);
+function hState(w,k,c,now=Date.now()){const dx=(w.done||{})[k]||{};if(dx[c.id+'@fail'])return'fail';if(dx[c.id])return'done';const r=runOf(w,k,c.id);
   if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c);return dl&&now>dl?'late':'open'}
 const wasLate=(w,k,id)=>!!((w.done||{})[k]||{})[id+'@late'];
 const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1e3));return`${Math.floor(t/60)}:${pad(t%60)}`};
@@ -1346,10 +1346,12 @@ function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null
   $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
   $('hbAbout').value=c.about||'';requestAnimationFrame(hbGrow);
   const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
-  $('hbState').textContent=!k?'':st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(c.by)}. You can still do it; it’ll be logged as late.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
+  $('hbState').textContent=!k?'':st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(c.by)}. You can still do it; it’ll be logged as late.`:st==='fail'?`Marked failed ${day}. This day won’t be kept.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
   $('hbActs').innerHTML=!k?'':st==='done'?`<button class="btn ghost" data-hb="undo">Mark not done</button>`
     :st==='miss'?`<button class="btn ghost" data-hb="force">Mark done anyway</button>`
-    :st==='run'?`<button class="btn ghost" data-hb="open">Open timer</button>`:'';
+    :st==='fail'?`<button class="btn ghost" data-hb="unfail">Undo failed</button>`
+    :st==='run'?`<button class="btn ghost" data-hb="open">Open timer</button><button class="danger" data-hb="fail">Mark failed</button>`
+    :`<button class="danger" data-hb="fail">Mark failed</button>`;
   $('shHabit').onClose=saveHabitAbout;openSheet($('shHabit'))}
 function saveHabitAbout(){if(!HB)return;const w=D.weeks.find(x=>x.id===HB.wid),c=w&&w.commitments.find(x=>x.id===HB.cid);HB=null;if(!c)return;
   const about=$('hbAbout').value.trim();if(about===(c.about||''))return;
@@ -1358,7 +1360,9 @@ function saveHabitAbout(){if(!HB)return;const w=D.weeks.find(x=>x.id===HB.wid),c
 $('hbDone').onclick=()=>closeSheet();
 $('hbActs').onclick=e=>{const b=e.target.closest('[data-hb]');if(!b||!HB)return;const a=b.dataset.hb,{wid,cid,k}=HB,w=D.weeks.find(x=>x.id===wid),c=w&&w.commitments.find(x=>x.id===cid);if(!c)return;
   saveHabitAbout();
-  if(a==='undo'){if(c.min)store.setRun(w,k,cid,null);setItem(D.weeks.find(x=>x.id===wid),k,cid,false)}
+  if(a==='fail'){if(!confirm(`Mark ${c.name} failed for ${k===ymd(new Date())?'today':'this day'}? The day won’t be kept.`))return;if(runOf(w,k,cid))store.setRun(w,k,cid,null);store.setDay(w,k,{[cid]:false,[cid+'@fail']:true},'drift')}
+  else if(a==='unfail'){store.setDay(w,k,{[cid+'@fail']:false},undefined)}
+  else if(a==='undo'){if(c.min)store.setRun(w,k,cid,null);setItem(D.weeks.find(x=>x.id===wid),k,cid,false)}
   else if(a==='force'){if(!confirm(`Mark ${c.name} done even though it wasn’t started in time?`))return;setItem(w,k,cid,true)}
   else if(a==='open'){closeSheet();setTimeout(()=>openFocus(w,c,k),300);return}
   haptic();closeSheet()};
@@ -1427,10 +1431,10 @@ function renderWeek(animate){
     <div class="hcards">${w.commitments.filter(c=>!selDay||onDay(c,selDay)).map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
         return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</span></button></div>`}
       const st=hState(w,selKey,c),r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
-      const meta=st==='late'?`late · ${clock(c.by)}`:st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c,false);
-      const ck=st==='done'?ico('ok'):st==='run'||(c.min&&(st==='open'||st==='late')&&selKey===todayK)?ico('timer'):st==='miss'?ico('x'):'';
-      const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':c.min&&selKey===todayK?'start timer':'mark done';
-      return`<div class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
+      const meta=st==='fail'?'failed':st==='late'?`late · ${clock(c.by)}`:st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c,false);
+      const ck=st==='done'?ico('ok'):st==='run'||(c.min&&(st==='open'||st==='late')&&selKey===todayK)?ico('timer'):st==='miss'||st==='fail'?ico('x'):'';
+      const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':st==='fail'?'failed':c.min&&selKey===todayK?'start timer':'mark done';
+      return`<div class="hcard${on?' done':''}${st==='miss'||st==='fail'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st==='fail'?'miss':st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
   const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
   const closeBtn=due||revDay?`<button class="closewk${due?'':' soon'}" id="wkClose"><span><b>${due?'Close the week':'Weekly review'}</b><small>${weekStats(w).pct}% ${due?'':'so far '}· close &amp; plan</small></span>${ico('chev')}</button>`:'';
   el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
@@ -1447,7 +1451,7 @@ function renderWeek(animate){
       if(nv==='on'&&miss.size){nv=undefined;celebrate=null}store.setDay(w,selKey,all,nv)}else store.mark(w,selKey,nv)});
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
   const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
-    if(c){const st=hState(w,selKey,c);if(st==='done'){b0(k);return}
+    if(c){const st=hState(w,selKey,c);if(st==='done'||st==='fail'){b0(k);return}
       if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'||st==='late'?Date.now():null;if(t0){store.setRun(w,selKey,k,t0);snd('start')}openFocus(w,c,selKey,t0);return}}
     const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
