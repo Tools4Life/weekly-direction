@@ -1240,12 +1240,14 @@ const tmLabel=(c,dl=true)=>[dl&&c.days?DAYS_L[c.days]:'',c.by?clock(c.by):'',c.m
 const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
 const deadline=(k,c)=>c.by?new Date(`${k}T${c.by}:00`).getTime():null;
 function hState(w,k,c,now=Date.now()){if(((w.done||{})[k]||{})[c.id])return'done';const r=runOf(w,k,c.id);
-  if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c);return dl&&now>dl?'miss':'open'}
+  if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c);return dl&&now>dl?'late':'open'}
+const wasLate=(w,k,id)=>!!((w.done||{})[k]||{})[id+'@late'];
 const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1e3));return`${Math.floor(t/60)}:${pad(t%60)}`};
 // sets one item for a day and keeps the day's kept mark in step with it
 function setItem(w,k,id,val){const day=habitDays(w).find(d=>ymd(d)===k)||new Date(k+'T12:00:00'),items=dayItems(w,day),
   dn={...((w.done||{})[k]||{}),[id]:val},all=items.every(x=>dn[x]),cur=(w.marks||{})[k];let nv=cur;
-  if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;store.setDay(w,k,{[id]:val},nv);return nv!==cur}
+  if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;const c=w.commitments.find(x=>x.id===id),dl=c&&deadline(k,c),r=runOf(w,k,id),late=!!(val&&dl&&(r||Date.now())>dl);
+  store.setDay(w,k,c?{[id]:val,[id+'@late']:late}:{[id]:val},nv);return nv!==cur}
 let FC=null,fcRAF=null,fcLock=null;
 function fcDialStatic(span){const R=150,step=span<=60?5:span<=120?10:30,tick=span<=120?1:5;const L=LIGHT(),FACE=L?'#FFFFFF':'#0E0E10',RIM=L?'#DDD9D2':'#2C2C30',TK1=L?'#6F6A63':'#8E8A84',TK2=L?'#CFCAC2':'#3A3A3E',NUM=L?'#5E5953':'#B5B0A8',HAND=L?'#1B1917':'#F2EFEA';
   let o=`<circle r="${R}" fill="${FACE}" stroke="${RIM}" stroke-width="1.5"/><path id="fcWedge" fill="rgba(232,116,59,.85)"/>`;
@@ -1281,7 +1283,7 @@ function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null
   $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
   $('hbAbout').value=c.about||'';requestAnimationFrame(hbGrow);
   const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
-  $('hbState').textContent=!k?'':st==='done'?`Done ${day}.`:st==='miss'?`Missed ${day}. Not started by ${clock(c.by)}.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
+  $('hbState').textContent=!k?'':st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(c.by)}. You can still do it; it’ll be logged as late.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
   $('hbActs').innerHTML=!k?'':st==='done'?`<button class="btn ghost" data-hb="undo">Mark not done</button>`
     :st==='miss'?`<button class="btn ghost" data-hb="force">Mark done anyway</button>`
     :st==='run'?`<button class="btn ghost" data-hb="open">Open timer</button>`:'';
@@ -1312,7 +1314,8 @@ function bindHold(el,w,k){let t=null,fired=false,x0=0,y0=0,b=null;
 // day marks and the Saturday review answers. Closed weeks are a log: nothing here is editable.
 function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
   const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
-  const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
+  const tally=c=>{if(!log||!c.by)return'';const dn=w.done||{};let on=0,lt=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id]){x[c.id+'@late']?lt++:on++}});return on||lt?`${on} on time · ${lt} late`:''};
+  const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:'',tally(c)].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
   let stats='',review='';
   if(log){const st=weekStats(w),m=w.marks||{};
     stats=`<div class="vstat"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept${live?' so far':''}</span></div>
@@ -1354,8 +1357,8 @@ function renderWeek(animate){
     <div class="hcards">${w.commitments.filter(c=>!selDay||onDay(c,selDay)).map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
         return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</span></button></div>`}
       const st=hState(w,selKey,c),r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
-      const meta=st==='miss'?'missed':st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c,false);
-      const ck=st==='done'?ico('ok'):st==='run'||(c.min&&st==='open'&&selKey===todayK)?ico('timer'):st==='miss'?ico('x'):'';
+      const meta=st==='late'?`late · ${clock(c.by)}`:st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c,false);
+      const ck=st==='done'?ico('ok'):st==='run'||(c.min&&(st==='open'||st==='late')&&selKey===todayK)?ico('timer'):st==='miss'?ico('x'):'';
       const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':c.min&&selKey===todayK?'start timer':'mark done';
       return`<div class="hcard${on?' done':''}${st==='miss'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
   const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
@@ -1374,11 +1377,12 @@ function renderWeek(animate){
       if(nv==='on'&&miss.size){nv=undefined;celebrate=null}store.setDay(w,selKey,all,nv)}else store.mark(w,selKey,nv)});
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
   const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
-    if(c){const st=hState(w,selKey,c);if(st==='miss'||st==='done'){b0(k);return}
-      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'?Date.now():null;if(t0)store.setRun(w,selKey,k,t0);openFocus(w,c,selKey,t0);return}}
+    if(c){const st=hState(w,selKey,c);if(st==='done'){b0(k);return}
+      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'||st==='late'?Date.now():null;if(t0)store.setRun(w,selKey,k,t0);openFocus(w,c,selKey,t0);return}}
     const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
-    haptic();store.setDay(w,selKey,{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
+    const dl=c&&deadline(selKey,c),lt=!!(dn[k]&&dl&&Date.now()>dl);
+    haptic();store.setDay(w,selKey,c?{[k]:dn[k],[k+'@late']:lt}:{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
   const b0=k=>{const x=el.querySelector(`[data-h="${k}"]`)?.closest('.hcard');if(x){x.classList.remove('nudge');void x.offsetWidth;x.classList.add('nudge')}};
   el.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>{const c=w.commitments.find(x=>x.id===b.dataset.hd);if(c)openHabit(w,c,selKey)});
   el.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.h));
