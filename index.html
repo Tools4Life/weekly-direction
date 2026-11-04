@@ -946,6 +946,19 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .trt{font-size:17px!important}
 .trsum{font-size:12px!important}
 .pwl{margin:14px 0 0!important}
+/* Saturday questions in planning */
+.qchg{font-size:15px;color:var(--ac)}
+.plqs{display:grid;gap:8px}
+.plq{padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line);font-family:var(--serif);font-size:16.5px;line-height:1.4}
+.plq small{display:block;margin-top:4px;font-family:var(--cond);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu)}
+.plq.anchor{border-color:rgba(138,46,34,.35)}
+.qsheet{max-height:88vh}
+.qshd{display:flex;align-items:baseline;justify-content:space-between;gap:12px}.qshd h3{margin:0}
+.qsnote{margin:8px 0 6px;font-size:14px;color:var(--mu);line-height:1.4}.qsnote em{font-family:var(--serif);color:var(--tx)}
+.qsg{display:block;margin:18px 0 8px}
+.qopt{display:block;width:100%;text-align:left;margin-bottom:6px;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-family:var(--serif);font-size:16px;line-height:1.4;color:var(--tx)}
+.qopt.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.qopt.nudge{animation:nudge .32s ease}
 </style>
 </head>
 <body>
@@ -1009,9 +1022,10 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <div class="card"><div class="it"><div class="seg" id="stTimer" style="width:100%"><button data-tm="week" style="flex:1">Each new week</button><button data-tm="fixed" style="flex:1">A set date</button></div></div>
     <div class="it" id="stFromRow"><label class="grow" for="stFrom">Date</label><input class="field" type="datetime-local" id="stFrom" style="width:auto;min-height:40px;padding:6px 10px;font-size:16px;background:var(--card2)"></div></div>
   <p class="mu" style="font-size:14px;margin:10px 4px" id="stTimerNote"></p>
-  <div class="lbl group">Weekly review questions</div>
-  <div class="card"><div class="it" style="display:block"><textarea class="long dk" id="stQs" rows="4" style="min-height:120px" placeholder="One question per line"></textarea></div></div>
-  <p class="mu" style="font-size:14px;margin:10px 4px">One per line. Each gets its own answer box when you close the week.</p>
+  <div class="lbl group">Saturday questions</div>
+  <div class="card"><div class="it" style="display:block"><label class="lbl" for="stAnchor" style="display:block;margin-bottom:6px">Anchor · asked every week</label><input class="field" id="stAnchor" style="background:var(--card2)"></div>
+  <div class="it" style="display:block"><label class="lbl" for="stQs" style="display:block;margin-bottom:6px">Question library</label><textarea class="long dk" id="stQs" rows="8" style="min-height:220px" placeholder="One per line. Start a line with # for a group name."></textarea></div></div>
+  <p class="mu" style="font-size:14px;margin:10px 4px">When you plan a week you pick two from the library; the anchor is always included. One question per line; lines starting with # are group names.</p>
 </section>
 
 <!-- Plan the week -->
@@ -1028,6 +1042,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 
   <div class="sphere"><div class="sh"><span class="lbl">Library</span></div><div class="chips" id="plChips"></div></div>
 
+  <div class="sechd"><span class="lbl">Saturday questions</span><button class="qchg" id="plQsChange">Change</button></div>
+  <div class="plqs" id="plQs"></div>
   <label class="lbl" for="plThoughts" style="display:block;margin:32px 0 10px">Vision</label>
   <textarea class="long" id="plThoughts" placeholder="What this week is about. Tap the focus word to read it during the week."></textarea>
 
@@ -1045,6 +1061,9 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 
 <div class="scrim" id="scrim"></div>
 <!-- habit sheet (paper) -->
+<div class="sheet paper qsheet" id="shQs" role="dialog" aria-modal="true" aria-labelledby="qsT"><div class="grab"></div>
+  <div class="qshd"><h3 id="qsT">Pick two questions</h3><button class="pvdone" id="qsDone">Done</button></div>
+  <p class="qsnote">Your anchor stays every week: <em id="qsAnchor"></em></p><div id="qsList"></div></div>
 <div class="sheet paper" id="shChip" role="dialog" aria-modal="true" aria-labelledby="chTitle">
   <div class="grab"></div>
   <h3 id="chTitle">New habit</h3>
@@ -1169,11 +1188,11 @@ const hourLabel=h=>`${h%12||12} ${h<12?'am':'pm'}`;
 const fmtDate=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
 /* ---------- state ---------- */
-const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null,cafOn:true,theme:'dark',sounds:true,revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
+const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null,cafOn:true,theme:'dark',sounds:true,anchorQ:"Are temptations weaker, or easier to refuse?",qLib:"# Walk with God\nIs it easier to get into His presence and worship with a free mind?\nWhere did I sense God leading me this week?\nDid I show up for morning devotion, even on the hard days?\nWhat did I read in the Word that stuck with me?\nWhen did I pray without being prompted?\nWhat am I trusting God for right now?\n# Flesh & temptation\nWhere did I give in, and what led up to it?\nWhat triggers showed up this week?\nWhen did I resist, and what helped?\nDid I feed the flesh or the spirit more this week?\nWhat am I still making excuses for?\n# Work\nDid I work with excellence, as to the Lord?\nDid I bring prayer into my workday?\nWhere did I react instead of lead?\nWhat did I avoid that I need to face?\nWas I honest and fair with everyone on the job?\n# Home & family\nAm I more present: with God in the morning, at work, at home?\nDid my family get my best evenings, or my leftovers?\nWhen did I put my phone down and really listen?\nDid I serve at home without being asked?\nWhat moment with my family do I want to remember?\n# Mind & media\nWhat did I let into my eyes and mind this week?\nWhen did I scroll mindlessly, and why?\nDid what I watched build me up or drain me?\nWhere did my thoughts go when I was idle?\n# Looking back\nWhat am I grateful for this week?\nWhat is one thing I would do differently?\nWhat fruit am I starting to see?\nWhere did I see growth this week?",revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
 window.WD=D;
 let store=null; // data layer chosen at boot
 const readSettings=v=>({closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded,libV:v.libV||1,timerMode:v.timerMode||'week',timerFrom:v.timerFrom||null,
-  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null,cafOn:v.cafOn??true,fixes:v.fixes||{},sounds:v.sounds??true,theme:v.theme||'dark',revQs:Array.isArray(v.revQs)?v.revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']});
+  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null,cafOn:v.cafOn??true,anchorQ:v.anchorQ||"Are temptations weaker, or easier to refuse?",qLib:v.qLib||"# Walk with God\nIs it easier to get into His presence and worship with a free mind?\nWhere did I sense God leading me this week?\nDid I show up for morning devotion, even on the hard days?\nWhat did I read in the Word that stuck with me?\nWhen did I pray without being prompted?\nWhat am I trusting God for right now?\n# Flesh & temptation\nWhere did I give in, and what led up to it?\nWhat triggers showed up this week?\nWhen did I resist, and what helped?\nDid I feed the flesh or the spirit more this week?\nWhat am I still making excuses for?\n# Work\nDid I work with excellence, as to the Lord?\nDid I bring prayer into my workday?\nWhere did I react instead of lead?\nWhat did I avoid that I need to face?\nWas I honest and fair with everyone on the job?\n# Home & family\nAm I more present: with God in the morning, at work, at home?\nDid my family get my best evenings, or my leftovers?\nWhen did I put my phone down and really listen?\nDid I serve at home without being asked?\nWhat moment with my family do I want to remember?\n# Mind & media\nWhat did I let into my eyes and mind this week?\nWhen did I scroll mindlessly, and why?\nDid what I watched build me up or drain me?\nWhere did my thoughts go when I was idle?\n# Looking back\nWhat am I grateful for this week?\nWhat is one thing I would do differently?\nWhat fruit am I starting to see?\nWhere did I see growth this week?",fixes:v.fixes||{},sounds:v.sounds??true,theme:v.theme||'dark',revQs:Array.isArray(v.revQs)?v.revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']});
 
 /* ---------- data layer: Firestore (live) ---------- */
 async function firestoreStore(){
@@ -1523,7 +1542,7 @@ function jrGrow(){const t=$('jrText');t.style.height='auto';t.style.height=Math.
 function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.putWeek({...cur,liveRefl:v});$('jrSaved').textContent='Saved'}}
 function openJournal(w){if(!w)return;JW=w.id;const s0=new Date(w.sealedAt);
   $('jrDate').textContent=`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=w.liveRefl||'';$('jrSaved').textContent='';
-  $('jrQs').innerHTML=(D.settings.revQs||[]).length?`<div class="lbl">Saturday you’ll answer</div>${D.settings.revQs.map(q=>`<p>${esc(q)}</p>`).join('')}`:'';
+  {const jq=qsOf(w);$('jrQs').innerHTML=jq.length?`<div class="lbl">Saturday you’ll answer</div>${jq.map(q=>`<p>${esc(q)}</p>`).join('')}`:''}
   $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
 function closeJournal(){clearTimeout(jrT);jrSave();JW=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
 $('jrText').addEventListener('input',()=>{jrGrow();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
@@ -1713,9 +1732,14 @@ function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2
 
 
 /* ---------- Close the week (quick, one screen) ---------- */
-let closeRef='',closeAns=[];
-function openClose(id){const w0=D.weeks.find(x=>x.id===id);closeRef=(w0&&w0.liveRefl)||'';closeAns=[];renderClose(id);openSheet($('shClose'))}
-const joinRef=()=>{const qs=D.settings.revQs||[],parts=qs.map((q,i)=>(closeAns[i]||'').trim()?`${q}\n${closeAns[i].trim()}`:'').filter(Boolean);if(closeRef.trim())parts.push(closeRef.trim());return parts.join('\n\n')};
+// Saturday questions: one fixed anchor every week + two picked per week from the library (saved on the week).
+// Weeks without their own set (e.g. the current Law week) keep the original three.
+const libGroups=()=>{const out=[];let g={t:'Questions',qs:[]};(D.settings.qLib||'').split('\n').map(x=>x.trim()).filter(Boolean).forEach(l=>{if(l.startsWith('#')){if(g.qs.length)out.push(g);g={t:l.replace(/^#+\s*/,''),qs:[]}}else g.qs.push(l)});if(g.qs.length)out.push(g);return out};
+const qsOf=w=>w&&Array.isArray(w.qs)&&w.qs.length?w.qs:(D.settings.revQs||[]);
+const normQs=qs=>{const a=D.settings.anchorQ;return[a,...(qs||[]).filter(q=>q&&q!==a)].slice(0,3)};
+let closeRef='',closeAns=[],closeQs=[];
+function openClose(id){const w0=D.weeks.find(x=>x.id===id);closeRef=(w0&&w0.liveRefl)||'';closeAns=[];closeQs=qsOf(w0);renderClose(id);openSheet($('shClose'))}
+const joinRef=()=>{const qs=closeQs,parts=qs.map((q,i)=>(closeAns[i]||'').trim()?`${q}\n${closeAns[i].trim()}`:'').filter(Boolean);if(closeRef.trim())parts.push(closeRef.trim());return parts.join('\n\n')};
 function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),m=w.marks||{};
   const nx=new Date();nx.setDate(nx.getDate()+1);const lim=cafLimit(nx).limit,[am,pm]=cafSplit(lim),unm=st.days.filter(d=>!m[ymd(d)]).length;
   $('clBody').innerHTML=`<div class="cond hdate">${fmtRange(s0,e)}</div><h3 id="clFocus" class="hwf">${esc(w.focus)}</h3>
@@ -1723,7 +1747,7 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
     <div class="days big cl">${st.days.map(d=>{const k=ymd(d),v=m[k];return`<button class="dsq ${v||''}" data-ck="${k}" aria-label="${DOWL[d.getDay()]}: ${v==='on'?'kept':v==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>
     <p class="clnote">${unm?`${unm} ${unm===1?'day wasn’t':'days weren’t'} kept. Days are recorded as they happened.`:'Days are recorded as they happened.'}</p>
     ${D.settings.cafOn?`<div class="lbl hwl">Caffeine next week</div><p class="hwp">${lim?`Starts at ${lim} mg · AM ${am} · PM ${pm}`:'Caffeine-free'}</p>`:''}
-    ${(D.settings.revQs||[]).map((q,i)=>`<p class="rvq">${esc(q)}</p><textarea class="long dk rva" data-qa="${i}" rows="2" placeholder="Answer">${esc(closeAns[i]||'')}</textarea>`).join('')}
+    ${closeQs.map((q,i)=>`<p class="rvq">${esc(q)}</p><textarea class="long dk rva" data-qa="${i}" rows="2" placeholder="Answer">${esc(closeAns[i]||'')}</textarea>`).join('')}
     <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="Anything else from the week?">${esc(closeRef)}</textarea>
     <div class="acts"><button class="btn pri" id="clGo">Close &amp; plan next week</button></div>`;
   $('clRef').oninput=ev=>closeRef=ev.target.value;
@@ -1743,7 +1767,7 @@ function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textConten
 function renderSettings(){renderSettingsAccount();const s=D.settings,act=document.activeElement;
   $('stSnd').checked=s.sounds!==false;
   $('stTheme').querySelectorAll('[data-th]').forEach(b=>b.classList.toggle('on',b.dataset.th===(s.theme||'dark')));
-  if(act!==$('stQs'))$('stQs').value=(s.revQs||[]).join('\n');
+  if(act!==$('stQs'))$('stQs').value=s.qLib||'';if(act!==$('stAnchor'))$('stAnchor').value=s.anchorQ||'';
   $('stDay').innerHTML=DOWL.map((n,i)=>`<option value="${i}"${i===s.closeDay?' selected':''}>${n}</option>`).join('');
   $('stHour').innerHTML=Array.from({length:24},(_,h)=>`<option value="${h}"${h===s.closeHour?' selected':''}>${hourLabel(h)}</option>`).join('');
   const fx=s.timerMode==='fixed';$('stTimer').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.tm===(fx?'fixed':'week')));
@@ -1769,14 +1793,24 @@ $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)
 [['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
 $('stSnd').onchange=e=>{const v=e.target.checked;store.setSettings({sounds:v});D.settings.sounds=v;if(v)snd('done')};
 $('stTheme').onclick=e=>{const b=e.target.closest('[data-th]');if(!b)return;haptic();store.setSettings({theme:b.dataset.th});D.settings.theme=b.dataset.th;applyTheme();renderSettings()};
-$('stQs').onchange=e=>{const v=e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);store.setSettings({revQs:v});D.settings.revQs=v};
+$('stQs').onchange=e=>{const v=e.target.value.replace(/\s+$/,'');store.setSettings({qLib:v});D.settings.qLib=v};
+$('stAnchor').onchange=e=>{const v=e.target.value.trim();if(!v)return;store.setSettings({anchorQ:v});D.settings.anchorQ=v};
 $('cfOn').onchange=e=>{const v=e.target.checked;haptic();store.setSettings({cafOn:v});D.settings.cafOn=v;renderSettings()};
 $('cfFrom').onchange=e=>{const t=new Date(e.target.value+'T00:00').getTime();if(!isNaN(t)){store.setSettings({cafFrom:t});D.settings.cafFrom=t;renderSettings()}};
 $('acOut').onclick=async()=>{if(confirm('Sign out on this device? Everything stays in your account.')){await store.auth.signOut();location.reload()}};
 
 /* ---------- Plan the week (paper) ---------- */
 let P=null,saveT=null;
-const draftOf=()=>({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()});
+function renderPlanQs(){if(!P)return;const a=D.settings.anchorQ;
+  $('plQs').innerHTML=P.qs.map(q=>`<div class="plq${q===a?' anchor':''}"><span>${esc(q)}</span>${q===a?'<small>anchor · every week</small>':''}</div>`).join('')}
+function renderQsSheet(){const a=D.settings.anchorQ,picked=P.qs.filter(q=>q!==a);$('qsAnchor').textContent=a;$('qsT').textContent=`Pick two questions · ${picked.length}/2`;
+  $('qsList').innerHTML=libGroups().map(g=>`<div class="lbl qsg">${esc(g.t)}</div>${g.qs.filter(q=>q!==a).map(q=>`<button class="qopt${picked.includes(q)?' on':''}" data-q="${esc(q)}">${esc(q)}</button>`).join('')}`).join('')}
+$('plQsChange').onclick=()=>{renderQsSheet();openSheet($('shQs'))};
+$('qsDone').onclick=()=>closeSheet();
+$('qsList').onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q,a=D.settings.anchorQ,picked=P.qs.filter(x=>x!==a);
+  if(picked.includes(q))P.qs=[a,...picked.filter(x=>x!==q)];else if(picked.length<2)P.qs=[a,...picked,q];else{b.classList.remove('nudge');void b.offsetWidth;b.classList.add('nudge');return}
+  haptic();renderQsSheet();renderPlanQs();saveDraft()};
+const draftOf=()=>({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,qs:P.qs,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()});
 function openPlan(rw,carry){
   let d=D.draft&&D.draft.step==='plan'?D.draft:null;
   if(!rw&&d?.replan&&!D.weeks.some(w=>w.id===d.replan&&w.status==='active'))d=null;
@@ -1784,7 +1818,9 @@ function openPlan(rw,carry){
   if(!d&&carry)d={focus:'',tray:carry.commitments.map(c=>({...c,id:uid()})),thoughts:'',fresh:true};
   const replan=d?.replan||null,first=!replan&&!D.weeks.length;
   P={step:'plan',focus:d?.focus||'',tray:(d?.tray||[]).map(c=>({id:c.id||uid(),chipId:c.chipId||null,name:c.name,icon:c.icon||'check',...tmg(c)})),thoughts:d?.thoughts||'',
-    start:d?.start||(first?lastClose().getTime():null),first,replan,marks:d?.marks||null};
+    start:d?.start||(first?lastClose().getTime():null),first,replan,marks:d?.marks||null,
+    qs:normQs(d?.qs||(rw&&rw.qs)||(()=>{const lw=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt)[0];return qsOf(lw)})())};
+  renderPlanQs();
   $('plFocus').value=P.focus;$('plThoughts').value=P.thoughts;
   $('plStartBox').hidden=!(first||replan);if(first||replan)$('plStart').value=localInput(new Date(P.start));
   $('plProg').hidden=first||!!replan;$('plTitle').textContent=replan?'Re-plan this week':first?'Plan your first week':'Plan the next week';
@@ -1832,7 +1868,7 @@ $('plSeal').onclick=async()=>{
   const sealedAt=P.first||P.replan?P.start:Date.now(),old=P.replan&&D.weeks.find(w=>w.id===P.replan);
   let id=P.replan||ymd(new Date(sealedAt));if(!P.replan&&D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
   const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon,...tmg(c)})),percentage:null,reflection:'',
-    planThoughts:P.thoughts.trim(),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
+    planThoughts:P.thoughts.trim(),qs:normQs(P.qs),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
   clearTimeout(saveT);store.putWeek(week);store.delDraft();P=null;
   await crossTo('week');
 };
