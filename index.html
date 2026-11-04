@@ -905,6 +905,10 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 #shPrayer:not(.reading) .pread{display:none}
 .pread h2{margin:6px 0 14px;font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.25}
 .pread p{margin:0 0 1em;font-family:var(--serif);font-size:17px;line-height:1.6;white-space:normal}
+/* prayer sheet height follows the content: tall when there are notes, compact when it's just a title */
+#shPrayer.reading{min-height:0!important}
+#shPrayer.reading.hasnotes{min-height:min(88vh,calc(100% - var(--st) - 28px))!important}
+#shPrayer.reading .pread h2{margin-bottom:6px}
 </style>
 </head>
 <body>
@@ -1598,7 +1602,7 @@ function openPrayer(p,o){peNew=!p;PE=p||(o&&o.pinned?{id:'life',pinned:true,text
 // existing prayers open read-only; Edit switches to the editor
 function prMode(m){const sh=$('shPrayer');sh.classList.toggle('reading',m==='read');$('pvEdit').hidden=m!=='read';
   if(m==='read'&&PE){const paras=(PE.body||'').split(/\n{2,}/).filter(x=>x.trim());
-    $('peRead').innerHTML=`<h2>${esc(PE.text)}</h2>${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')||'<p class="vempty">No notes yet.</p>'}`}}
+    $('peRead').innerHTML=`<h2>${esc(PE.text)}</h2>${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}`;sh.classList.toggle('hasnotes',paras.length>0)}else sh.classList.remove('hasnotes')}
 $('pvEdit').onclick=()=>{prMode('edit');setTimeout(()=>{growSub();const t=$('peBody');t.focus();t.setSelectionRange(t.value.length,t.value.length)},60)};
 function savePrayer(){if(!PE)return;const t=$('peTitle').value.trim(),bd=$('peBody').value.replace(/\s+$/,'');
   if(!t&&!bd){PE=null;return}
