@@ -855,6 +855,7 @@ html[data-theme=light] .vsec{border-top:1px solid #E6E3DD}
   <div class="card"><button class="it" id="stReplan"><span class="grow" id="stReplanT"></span></button></div></div>
   <div class="lbl group">Appearance</div>
   <div class="card"><div class="it"><div class="seg" id="stTheme" style="width:100%"><button data-th="dark" style="flex:1">Dark</button><button data-th="light" style="flex:1">Light</button><button data-th="auto" style="flex:1">Auto</button></div></div></div>
+  <div class="card" style="margin-top:8px"><div class="it"><label class="grow" for="stSnd">Sounds<small>Soft tones when you start a timer, finish a habit or keep the day. Silent when the phone is on silent.</small></label><input type="checkbox" switch id="stSnd" class="tgl"></div></div>
   <div class="lbl group">Caffeine wean</div>
   <div class="card"><div class="it"><label class="grow" for="cfOn">Track caffeine wean<small id="cfOnNote"></small></label><input type="checkbox" switch id="cfOn" class="tgl"></div></div>
   <div id="cfBox"><div class="lbl group">AM / PM dose</div>
@@ -1026,11 +1027,11 @@ const hourLabel=h=>`${h%12||12} ${h<12?'am':'pm'}`;
 const fmtDate=d=>d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
 /* ---------- state ---------- */
-const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null,cafOn:true,theme:'dark',revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
+const D={user:null,settings:{closeDay:6,closeHour:17,timerMode:'week',timerFrom:null,cafStart:400,cafStep:50,cafDays:21,cafPill:50,cafFrom:null,cafOn:true,theme:'dark',sounds:true,revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']},library:[],weeks:[],draft:undefined,prayers:[],caf:{},syncNote:'—'};
 window.WD=D;
 let store=null; // data layer chosen at boot
 const readSettings=v=>({closeDay:v.closeDay??6,closeHour:v.closeHour??17,seeded:!!v.seeded,libV:v.libV||1,timerMode:v.timerMode||'week',timerFrom:v.timerFrom||null,
-  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null,cafOn:v.cafOn??true,theme:v.theme||'dark',revQs:Array.isArray(v.revQs)?v.revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']});
+  cafStart:v.cafStart??400,cafStep:v.cafStep??50,cafDays:v.cafDays??21,cafPill:v.cafPill??50,cafFrom:v.cafFrom||null,cafOn:v.cafOn??true,sounds:v.sounds??true,theme:v.theme||'dark',revQs:Array.isArray(v.revQs)?v.revQs:['Are temptations weaker, or easier to refuse?','Is it easier to get into His presence and worship with a free mind?','Am I more present: with God in the morning, at work, at home?']});
 
 /* ---------- data layer: Firestore (live) ---------- */
 async function firestoreStore(){
@@ -1211,6 +1212,19 @@ function habitDays(w){const s=new Date(w.sealedAt),e=weekEnd(s),d=new Date(s);
   const last=new Date(e);last.setHours(12,0,0,0);const incl=w.sealedAt>=SEAL_RULE2,out=[];while((incl?d<=last:d<last)&&out.length<14){out.push(new Date(d));d.setDate(d.getDate()+1)}return out}
 const NEXT={undefined:'on',on:'drift',drift:undefined};
 // light haptic: iOS 18+ Safari ticks when a native switch toggles; elsewhere use vibrate if present
+// ---- subtle sounds, synthesized (no files). Quiet, short, soft attack; follows the iPhone silent switch. ----
+let AC=null;
+function snd(kind){if(!D.settings.sounds)return;try{AC=AC||new (window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();
+  const t0=AC.currentTime+.01,out=AC.createGain();out.gain.value=.16;out.connect(AC.destination);
+  const tone=(f,at,dur,vol=1,type='sine')=>{const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(f,t0+at);
+    g.gain.setValueAtTime(0,t0+at);g.gain.linearRampToValueAtTime(vol,t0+at+.012);g.gain.exponentialRampToValueAtTime(.0001,t0+at+dur);
+    o.connect(g);g.connect(out);o.start(t0+at);o.stop(t0+at+dur+.05)};
+  if(kind==='start'){const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.setValueAtTime(330,t0);o.frequency.exponentialRampToValueAtTime(495,t0+.16);
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(.7,t0+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+.32);o.connect(g);g.connect(out);o.start(t0);o.stop(t0+.4)}
+  else if(kind==='done'){tone(659.25,0,.5,.8);tone(987.77,.07,.6,.5)}            // E5 + B5: a soft two-note chime
+  else if(kind==='day'){tone(523.25,0,.7,.6);tone(659.25,.11,.7,.6);tone(783.99,.22,.9,.6);tone(1046.5,.33,1.2,.4)} // C-E-G-C: the day is kept
+  else if(kind==='timer'){tone(783.99,0,1.1,.7);tone(1174.66,0,1.3,.3);tone(783.99,.45,1.4,.5)}  // a bell when a focus timer ends
+}catch(e){}}
 function haptic(){try{if(navigator.vibrate){navigator.vibrate(12);return}$('hapIn').click()}catch(e){}}
 let celebrate=null,selK=null; // selK: the day the pills act on (null = today) // {v:'on'|'drift'} set on a pill tap, consumed by the next render
 function burst(x,y){if(RM.matches)return;const fx=$('fx'),n=10;
@@ -1271,7 +1285,7 @@ function fcDraw(){if(!FC)return;const w=D.weeks.find(x=>x.id===FC.wid),saved=w&&
   $('fcWedge').setAttribute('d',left>0?`M0 0 L0 ${-R} A${R} ${R} 0 ${a>Math.PI?1:0} 1 ${x} ${y} Z`:'');
   $('fcHand').setAttribute('transform',`rotate(${(mins/span*360).toFixed(2)})`);
   $('fcTime').textContent=left>0?mmss(left):'Done';$('fcTime').classList.toggle('fin',!left);
-  if(!left&&!FC.fin){FC.fin=true;$('fcHint').textContent=FC.c.name+' · done';$('fcStop').hidden=true;haptic();
+  if(!left&&!FC.fin){FC.fin=true;snd('timer');$('fcHint').textContent=FC.c.name+' · done';$('fcStop').hidden=true;haptic();
     const rc=$('fcTime').getBoundingClientRect();burst(rc.left+rc.width/2,rc.top+rc.height/2);
     if(!((w.done||{})[FC.k]||{})[FC.c.id])setItem(D.weeks.find(x=>x.id===FC.wid)||w,FC.k,FC.c.id,true);setTimeout(closeFocus,1800);return}
   fcRAF=requestAnimationFrame(fcDraw)}
@@ -1386,9 +1400,10 @@ function renderWeek(animate){
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
   const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
     if(c){const st=hState(w,selKey,c);if(st==='done'){b0(k);return}
-      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'||st==='late'?Date.now():null;if(t0)store.setRun(w,selKey,k,t0);openFocus(w,c,selKey,t0);return}}
+      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'||st==='late'?Date.now():null;if(t0){store.setRun(w,selKey,k,t0);snd('start')}openFocus(w,c,selKey,t0);return}}
     const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
+    if(dn[k])snd(nv==='on'&&cur!=='on'?'day':'done');
     const dl=c&&deadline(selKey,c),lt=!!(dn[k]&&dl&&Date.now()>dl);
     haptic();store.setDay(w,selKey,c?{[k]:dn[k],[k+'@late']:lt}:{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
   const b0=k=>{const x=el.querySelector(`[data-h="${k}"]`)?.closest('.hcard');if(x){x.classList.remove('nudge');void x.offsetWidth;x.classList.add('nudge')}};
@@ -1529,6 +1544,7 @@ function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textConten
   document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap/2:0)+'px')};
   fix();addEventListener('resize',fix);visualViewport&&visualViewport.addEventListener('resize',fix);setTimeout(fix,500)})();
 function renderSettings(){renderSettingsAccount();const s=D.settings,act=document.activeElement;
+  $('stSnd').checked=s.sounds!==false;
   $('stTheme').querySelectorAll('[data-th]').forEach(b=>b.classList.toggle('on',b.dataset.th===(s.theme||'dark')));
   if(act!==$('stQs'))$('stQs').value=(s.revQs||[]).join('\n');
   $('stDay').innerHTML=DOWL.map((n,i)=>`<option value="${i}"${i===s.closeDay?' selected':''}>${n}</option>`).join('');
@@ -1554,6 +1570,7 @@ $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;cons
   if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
 $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
 [['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
+$('stSnd').onchange=e=>{const v=e.target.checked;store.setSettings({sounds:v});D.settings.sounds=v;if(v)snd('done')};
 $('stTheme').onclick=e=>{const b=e.target.closest('[data-th]');if(!b)return;haptic();store.setSettings({theme:b.dataset.th});D.settings.theme=b.dataset.th;applyTheme();renderSettings()};
 $('stQs').onchange=e=>{const v=e.target.value.split('\n').map(x=>x.trim()).filter(Boolean);store.setSettings({revQs:v});D.settings.revQs=v};
 $('cfOn').onchange=e=>{const v=e.target.checked;haptic();store.setSettings({cafOn:v});D.settings.cafOn=v;renderSettings()};
