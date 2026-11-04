@@ -909,6 +909,9 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 #shPrayer.reading{min-height:0!important}
 #shPrayer.reading.hasnotes{min-height:min(88vh,calc(100% - var(--st) - 28px))!important}
 #shPrayer.reading .pread h2{margin-bottom:6px}
+/* Reflect: the page grows with the writing instead of reserving a tall empty box (iOS was scrolling to fit it above the keyboard) */
+.jtext{min-height:120px!important}
+.jin{padding-bottom:45vh!important}
 </style>
 </head>
 <body>
@@ -1482,12 +1485,12 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
     if(t){haptic();openVision(t,true,dx<0?1:-1)}else{const vb=$('visBody');vb.classList.remove('vbump');void vb.offsetWidth;vb.classList.add('vbump')}},{passive:true})}
 // ---- Reflect: a quiet, full-screen place to write this week's reflection; autosaves; Saturday's review starts from it ----
 let JW=null,jrT=null;
-function jrGrow(){const t=$('jrText');t.style.height='auto';t.style.height=Math.max(window.innerHeight*.45,t.scrollHeight+2)+'px'}
+function jrGrow(){const t=$('jrText');t.style.height='auto';t.style.height=Math.max(120,t.scrollHeight+2)+'px'}
 function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.putWeek({...cur,liveRefl:v});$('jrSaved').textContent='Saved'}}
 function openJournal(w){if(!w)return;JW=w.id;const s0=new Date(w.sealedAt);
   $('jrDate').textContent=`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=w.liveRefl||'';$('jrSaved').textContent='';
   $('jrQs').innerHTML=(D.settings.revQs||[]).length?`<div class="lbl">Saturday you’ll answer</div>${D.settings.revQs.map(q=>`<p>${esc(q)}</p>`).join('')}`:'';
-  $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');t.focus();t.setSelectionRange(t.value.length,t.value.length)},380)}
+  $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
 function closeJournal(){clearTimeout(jrT);jrSave();JW=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
 $('jrText').addEventListener('input',()=>{jrGrow();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
 $('jrDone').onclick=closeJournal;
