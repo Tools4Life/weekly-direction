@@ -871,6 +871,40 @@ html:not([data-theme=light]) .fcs{background:#0B0B0C!important}
 .lrhint{margin:4px 0 10px;font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.45;color:var(--mu)}
 textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px;line-height:1.6}
 .lrsaved{margin:6px 2px 0;min-height:16px;font-family:var(--cond);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2)}
+/* Progress: this week stands out, with a way straight into reflecting */
+.hcur{margin:6px -12px 10px;padding:4px 12px 12px;border-radius:18px;background:var(--card);border:1px solid rgba(232,116,59,.35)}
+.hcur .hrow{border-bottom:1px solid var(--rule)}
+.reflbtn{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--card2);color:var(--tx);text-align:left}
+.reflbtn>svg{width:20px;height:20px;color:var(--ac);flex:none}
+.reflbtn span{flex:1;display:flex;flex-direction:column;gap:2px;font-family:var(--serif);font-size:19px}
+.reflbtn small{font-family:var(--sans);font-size:13.5px;color:var(--mu)}
+.reflbtn svg.i:last-child{width:16px;height:16px;color:var(--mu2)}
+.reflbtn:active{transform:scale(.98)}
+/* Reflect: journaling space */
+.jrnr{background:var(--bg)!important}
+.jtop{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(var(--st) + 10px) max(22px,6vw) 10px;background:linear-gradient(var(--bg) 70%,transparent)}
+.jsaved{font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.jin{padding-top:3vh!important}
+.jword2{font-family:var(--serif);font-size:clamp(34px,10vw,46px);line-height:1.1;margin:6px 0 22px;color:var(--tx)}
+.jtext{display:block;width:100%;min-height:45vh;border:0;outline:none;resize:none;overflow:hidden;background:none;color:var(--tx);font-family:var(--serif);font-size:20px;line-height:1.7;padding:0}
+.jtext::placeholder{color:var(--mu2);font-style:italic}
+.jqs{margin-top:5vh;padding-top:18px;border-top:1px solid var(--rule)}.jqs .lbl{margin-bottom:8px}
+.jqs p{margin:0 0 8px;font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.45;color:var(--mu)}
+/* week log: other weeks */
+.vnav{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:7vh;padding-top:18px;border-top:1px solid var(--rule)}
+.vnav button{font-family:var(--serif);font-size:17px;color:var(--mu);padding:8px 0;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vnhint{font-family:var(--cond);font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.vin-r{animation:vinr .38s var(--ease)}.vin-l{animation:vinl .38s var(--ease)}
+@keyframes vinr{0%{opacity:0;transform:translateX(40px)}100%{opacity:1;transform:none}}
+@keyframes vinl{0%{opacity:0;transform:translateX(-40px)}100%{opacity:1;transform:none}}
+.vbump{animation:vbump .3s ease}@keyframes vbump{30%{transform:translateX(-8px)}60%{transform:translateX(5px)}}
+/* prayer: read first */
+.pvbtns{display:flex;align-items:center;gap:14px}
+.pvedit{font-size:15px;color:var(--mu);padding:6px 0}
+#shPrayer.reading .pw-sub,#shPrayer.reading .pw-body,#shPrayer.reading .pw-tags,#shPrayer.reading .pw-del{display:none!important}
+#shPrayer:not(.reading) .pread{display:none}
+.pread h2{margin:6px 0 14px;font-family:var(--serif);font-weight:400;font-size:24px;line-height:1.25}
+.pread p{margin:0 0 1em;font-family:var(--serif);font-size:17px;line-height:1.6;white-space:normal}
 </style>
 </head>
 <body>
@@ -992,7 +1026,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 <div class="sheet dark" id="shThoughts" role="dialog" aria-modal="true"><div class="grab"></div><h3>This week</h3><p class="thoughts" id="thText"></p></div>
 <!-- prayer edit (dark) -->
 <div class="sheet dark prsheet" id="shPrayer" role="dialog" aria-modal="true" aria-label="Prayer"><div class="grab"></div>
-  <div class="pvtop"><span class="cond pvdate" id="pvDate"></span><button class="pvdone" id="pvDone">Done</button></div>
+  <div class="pvtop"><span class="cond pvdate" id="pvDate"></span><span class="pvbtns"><button class="pvedit" id="pvEdit">Edit</button><button class="pvdone" id="pvDone">Done</button></span></div>
+  <div class="pread" id="peRead"></div>
   <textarea class="pw-sub" id="peTitle" rows="1" maxlength="120" placeholder="What are you praying for?"></textarea>
   <textarea class="pw-body" id="peBody" placeholder="Go deeper. What exactly are you asking for, and why does it matter to you?"></textarea>
   <div class="pw-tags" id="peTags" role="group" aria-label="Optional icon"></div>
@@ -1023,6 +1058,11 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 <div class="lifer visr" id="visR" hidden role="dialog" aria-modal="true" aria-label="This week's vision">
   <button class="cx" id="visClose" aria-label="Close">&times;</button>
   <div class="lrin" id="visBody"></div></div>
+<div class="lifer jrnr" id="jrnR" hidden role="dialog" aria-modal="true" aria-label="Reflect">
+  <div class="jtop"><span class="jsaved" id="jrSaved"></span><button class="pvdone" id="jrDone">Done</button></div>
+  <div class="lrin jin"><div class="vdate" id="jrDate"></div><div class="jword2" id="jrWord"></div>
+  <textarea id="jrText" class="jtext" placeholder="How is this week going so far? What are you noticing, in your walk, at work, at home?"></textarea>
+  <div class="jqs" id="jrQs"></div></div></div>
 <div class="veil" id="veil"></div>
 
 <script>
@@ -1403,7 +1443,8 @@ function bindHold(el,w,k){let t=null,fired=false,x0=0,y0=0,b=null;
 // on-time vs late for habits with a start-by time: per habit and for the whole week
 function onTime(w){const dn=w.done||{},per=w.commitments.filter(c=>c.by).map(c=>{let on=0,lt=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id]){x[c.id+'@late']?lt++:on++}});return{c,on,lt}}).filter(x=>x.on||x.lt);
   const on=per.reduce((a,x)=>a+x.on,0),lt=per.reduce((a,x)=>a+x.lt,0);return{per,on,lt,pct:on+lt?Math.round(on/(on+lt)*100):null}}
-function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
+let VW=null;
+function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
   const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
   const tally=c=>{if(!log||!c.by)return'';const dn=w.done||{};let on=0,lt=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id]){x[c.id+'@late']?lt++:on++}});return on||lt?`${on} on time · ${lt} late`:''};
   const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
@@ -1424,8 +1465,29 @@ function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(
   $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
     ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
     <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>`}
-  $('visR').hidden=false;$('visR').scrollTop=0;requestAnimationFrame(()=>$('visR').classList.add('on'));}
-function closeVision(){$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
+  if(log){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===w.id),pv=ws[i-1],nx=ws[i+1];
+    $('visBody').insertAdjacentHTML('beforeend',`<div class="vnav">${pv?`<button data-vn="${pv.id}" data-d="-1">‹ ${esc(pv.focus)}</button>`:'<span></span>'}<span class="vnhint">swipe for other weeks</span>${nx?`<button data-vn="${nx.id}" data-d="1">${esc(nx.focus)} ›</button>`:'<span></span>'}</div>`);
+    $('visBody').querySelectorAll('[data-vn]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(x=>x.id===b.dataset.vn),true,+b.dataset.d))}
+  const vb=$('visBody');if(dir){vb.classList.remove('vin-l','vin-r');void vb.offsetWidth;vb.classList.add(dir>0?'vin-r':'vin-l')}
+  if(!$('visR').classList.contains('on')||$('visR').hidden){$('visR').hidden=false;requestAnimationFrame(()=>$('visR').classList.add('on'))}$('visR').scrollTop=0;}
+// swipe left = newer week, swipe right = older week (week log only)
+{let x0=null,y0=0;const el=$('visR');
+  el.addEventListener('touchstart',e=>{if(!VW||e.target.closest('textarea'))return x0=null;x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  el.addEventListener('touchend',e=>{if(x0==null||!VW)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===VW),t=ws[i+(dx<0?1:-1)];
+    if(t){haptic();openVision(t,true,dx<0?1:-1)}else{const vb=$('visBody');vb.classList.remove('vbump');void vb.offsetWidth;vb.classList.add('vbump')}},{passive:true})}
+// ---- Reflect: a quiet, full-screen place to write this week's reflection; autosaves; Saturday's review starts from it ----
+let JW=null,jrT=null;
+function jrGrow(){const t=$('jrText');t.style.height='auto';t.style.height=Math.max(window.innerHeight*.45,t.scrollHeight+2)+'px'}
+function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.putWeek({...cur,liveRefl:v});$('jrSaved').textContent='Saved'}}
+function openJournal(w){if(!w)return;JW=w.id;const s0=new Date(w.sealedAt);
+  $('jrDate').textContent=`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=w.liveRefl||'';$('jrSaved').textContent='';
+  $('jrQs').innerHTML=(D.settings.revQs||[]).length?`<div class="lbl">Saturday you’ll answer</div>${D.settings.revQs.map(q=>`<p>${esc(q)}</p>`).join('')}`:'';
+  $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');t.focus();t.setSelectionRange(t.value.length,t.value.length)},380)}
+function closeJournal(){clearTimeout(jrT);jrSave();JW=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
+$('jrText').addEventListener('input',()=>{jrGrow();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
+$('jrDone').onclick=closeJournal;
+function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
@@ -1532,7 +1594,12 @@ const growSub=()=>{const t=$('peTitle');t.style.height='auto';t.style.height=t.s
 function openPrayer(p,o){peNew=!p;PE=p||(o&&o.pinned?{id:'life',pinned:true,text:'',body:'',created:Date.now(),since:Date.now()}:{id:uid(),text:'',body:'',created:Date.now()});
   $('pvDate').textContent=peNew?'NEW PRAYER':fmtDate(new Date(PE.created)).toUpperCase();
   $('peTitle').value=PE.text;$('peBody').value=PE.body||'';$('peDel').hidden=peNew||!!PE.pinned;$('peTags').hidden=!!PE.pinned;peIcon=PE.icon||null;renderTags();
-  openSheet($('shPrayer'));setTimeout(growSub,0);if(peNew)setTimeout(()=>$('peTitle').focus(),340)}
+  prMode(peNew?'edit':'read');openSheet($('shPrayer'));setTimeout(growSub,0);if(peNew)setTimeout(()=>$('peTitle').focus(),340)}
+// existing prayers open read-only; Edit switches to the editor
+function prMode(m){const sh=$('shPrayer');sh.classList.toggle('reading',m==='read');$('pvEdit').hidden=m!=='read';
+  if(m==='read'&&PE){const paras=(PE.body||'').split(/\n{2,}/).filter(x=>x.trim());
+    $('peRead').innerHTML=`<h2>${esc(PE.text)}</h2>${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')||'<p class="vempty">No notes yet.</p>'}`}}
+$('pvEdit').onclick=()=>{prMode('edit');setTimeout(()=>{growSub();const t=$('peBody');t.focus();t.setSelectionRange(t.value.length,t.value.length)},60)};
 function savePrayer(){if(!PE)return;const t=$('peTitle').value.trim(),bd=$('peBody').value.replace(/\s+$/,'');
   if(!t&&!bd){PE=null;return}
   const np={...PE,text:t||firstLine(bd).slice(0,60),body:bd,icon:peIcon};
@@ -1570,9 +1637,12 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
   $('hList').innerHTML=`<div class="tchart" id="tChart"></div>`
     +weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
+      if(live)return`<div class="hcur rise" style="animation-delay:${120+i*45}ms"><button class="hrow" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
+        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`+`<button class="reflbtn" data-reflect="${w.id}">${ico('pen')}<span>Reflect<small>${w.liveRefl?'Add to this week’s reflection':'How is this week going?'}</small></span>${ico('chev')}</button></div>`;
       return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
         <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`}).join('');
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
+  $('hList').querySelectorAll('[data-reflect]').forEach(b=>b.onclick=()=>openJournal(D.weeks.find(w=>w.id===b.dataset.reflect)));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
 function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=150,L=30,R=14,T=22,B=24,n=weeks.length;
