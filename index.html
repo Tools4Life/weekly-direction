@@ -868,6 +868,9 @@ html:not([data-theme=light]) .fcs{background:#0B0B0C!important}
 .jstat{color:var(--mu2);letter-spacing:.06em}
 .jword{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1}
 .jex{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.lrhint{margin:4px 0 10px;font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.45;color:var(--mu)}
+textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px;line-height:1.6}
+.lrsaved{margin:6px 2px 0;min-height:16px;font-family:var(--cond);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2)}
 </style>
 </head>
 <body>
@@ -1404,15 +1407,17 @@ function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(
   const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
   if(log){const st=weekStats(w),m=w.marks||{},ot=onTime(w),closed=w.closedAt?fmtDate(new Date(w.closedAt)):'';
     const blocks=(w.reflection||'').split(/\n{2,}/).filter(x=>x.trim());
-    const refl=blocks.length?blocks.map(bk=>{const ls=bk.split('\n'),q=ls.length>1&&/\?\s*$/.test(ls[0]);
+    const refl=live?`<p class="lrhint">How is the week going so far? Add to this anytime; it carries into Saturday’s review.</p><textarea class="long dk lrlive" id="lrLive" placeholder="Write as the week goes…">${esc(w.liveRefl||'')}</textarea><p class="lrsaved" id="lrSaved"></p>`:blocks.length?blocks.map(bk=>{const ls=bk.split('\n'),q=ls.length>1&&/\?\s*$/.test(ls[0]);
       return q?`<p class="vq">${esc(ls[0])}</p><p class="va">${esc(ls.slice(1).join('\n')).replace(/\n/g,'<br>')}</p>`:`<p class="va">${esc(bk).replace(/\n/g,'<br>')}</p>`}).join(''):`<p class="vempty">${live?'Written when you close the week on Saturday.':'No reflection written.'}</p>`;
     const strip=`<div class="lstrip"><span><b>${st.pct}%</b> kept</span><span><b>${st.kept}/${st.days.length}</b> days</span>${ot.pct!=null?`<span><b>${ot.pct}%</b> on time</span>`:''}</div>
       <div class="lmini">${st.days.map(d=>{const v=m[ymd(d)];return`<i class="${v||''}" title="${DOWL[d.getDay()]}"></i>`}).join('')}</div>`;
     const hab=w.commitments.map(c=>{const t=tally(c);return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${t||c.days?`<small>${[c.days?DAYS_L[c.days]:'',t].filter(Boolean).join(' · ')}</small>`:''}</span></li>`}).join('');
     $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${strip}<hr class="lrrule">
       <div class="lbl vlbl">Vision</div>${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written.</p>`}
-      <div class="vsec lref"><div class="lbl vlbl">Reflection${closed?` · ${closed}`:''}</div>${refl}</div>
+      <div class="vsec lref"><div class="lbl vlbl">${live?'Reflection so far':'Reflection'}${closed?` · ${closed}`:''}</div>${refl}</div>
       <div class="vsec lhab"><div class="lbl">Habits</div><ul>${hab}</ul></div>`;
+    const lt=$('lrLive');if(lt){const grow=()=>{lt.style.height='auto';lt.style.height=Math.max(160,lt.scrollHeight+2)+'px'};requestAnimationFrame(grow);let tt=null;
+      lt.oninput=()=>{grow();$('lrSaved').textContent='';clearTimeout(tt);tt=setTimeout(()=>{const cur=D.weeks.find(x=>x.id===w.id);if(cur){store.putWeek({...cur,liveRefl:lt.value});$('lrSaved').textContent='Saved'}},700)}}
   }else{
   $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
     ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
@@ -1562,10 +1567,8 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
   $('hList').innerHTML=`<div class="tchart" id="tChart"></div>`
     +weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
-      const ot=onTime(w),bl=(w.reflection||'').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean),ans=bl.map(x=>{const ls=x.split('\n');return ls.length>1&&/\?\s*$/.test(ls[0])?ls.slice(1).join(' '):x.replace(/\n/g,' ')}).find(Boolean);
-      const ex=ans||(w.planThoughts||'').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean)[0]||'';
-      return`<button class="hrow jrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="cond hdate"><span>${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><span class="jstat">${st.pct}% kept${ot.pct!=null?` · ${ot.pct}% on time`:''}</span></span>
-        <b class="jword">${esc(w.focus)}</b>${ex?`<span class="jex">${esc(ex)}</span>`:''}</button>`}).join('');
+      return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
+        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`}).join('');
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
@@ -1588,7 +1591,7 @@ function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2
 
 /* ---------- Close the week (quick, one screen) ---------- */
 let closeRef='',closeAns=[];
-function openClose(id){closeRef='';closeAns=[];renderClose(id);openSheet($('shClose'))}
+function openClose(id){const w0=D.weeks.find(x=>x.id===id);closeRef=(w0&&w0.liveRefl)||'';closeAns=[];renderClose(id);openSheet($('shClose'))}
 const joinRef=()=>{const qs=D.settings.revQs||[],parts=qs.map((q,i)=>(closeAns[i]||'').trim()?`${q}\n${closeAns[i].trim()}`:'').filter(Boolean);if(closeRef.trim())parts.push(closeRef.trim());return parts.join('\n\n')};
 function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),m=w.marks||{};
   const nx=new Date();nx.setDate(nx.getDate()+1);const lim=cafLimit(nx).limit,[am,pm]=cafSplit(lim),unm=st.days.filter(d=>!m[ymd(d)]).length;
