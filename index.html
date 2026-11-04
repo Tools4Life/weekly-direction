@@ -848,6 +848,9 @@ html:not([data-theme=light]) .hcard .hck i,html:not([data-theme=light]) .hcard .
 html:not([data-theme=light]) .hcard.done .nm{color:rgba(242,239,234,.82)!important}
 html:not([data-theme=light]) .vhabits li .ic,html:not([data-theme=light]) .otrow .ic{color:rgba(242,239,234,.82)!important}
 html:not([data-theme=light]) .hcard.done .hck i{background:#F2EFEA!important;border-color:#F2EFEA!important;color:#1A0F09!important}
+/* focus timer: same background as the rest of the app so the strip under it (home-indicator area) matches */
+.fcs{background:var(--bg)!important;bottom:calc(-1 * var(--sb,0px));padding-bottom:var(--sb,0px)}
+html:not([data-theme=light]) .fcs{background:#0B0B0C!important}
 </style>
 </head>
 <body>
