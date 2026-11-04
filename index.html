@@ -927,6 +927,9 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .pwl{margin:20px 0 2px}
 .pwlist{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -24px;padding:0 24px calc(var(--sb) + 96px);
   -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 14px);mask-image:linear-gradient(to bottom,transparent 0,#000 14px)}
+/* trend card: nothing truncates */
+.trsum{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
+.trcard,.trcard .tchart{overflow:visible!important}
 </style>
 </head>
 <body>
@@ -1672,20 +1675,24 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   $('hList').querySelectorAll('[data-reflect]').forEach(b=>b.onclick=()=>openJournal(D.weeks.find(w=>w.id===b.dataset.reflect)));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
-function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=118,L=30,R=14,T=22,B=24,n=weeks.length;
+function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=118,L=30,R=24,T=22,B=24,n=weeks.length;
+  const anc=x=>x>W-R-14?'end':x<L+14?'start':'middle',ax=x=>x>W-R-14?x+6:x<L+14?x-6:x; // keep edge labels inside the box
   const pts=weeks.map((w,i)=>{const st=weekStats(w);return{w,pct:st.pct,live:w.status==='active',x:n===1?L+(W-L-R)/2:L+i*(W-L-R)/(n-1),y:T+(1-st.pct/100)*(H-T-B)}});
   const closed=pts.filter(p=>!p.live),live=pts.find(p=>p.live),pathOf=a=>a.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
   const grid=[0,50,100].map(v=>{const y=T+(1-v/100)*(H-T-B);return`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="tg"/><text x="${L-8}" y="${y+4}" class="tl" text-anchor="end">${v}</text>`}).join('');
   const last=closed[closed.length-1];
-  const labels=pts.map(p=>`<text x="${p.x}" y="${H-6}" class="tx" text-anchor="middle">${new Date(p.w.sealedAt+864e5).toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</text>`).filter((_,i)=>n<=7||i%2===(n-1)%2).join('');
+  const labels=pts.map(p=>`<text x="${ax(p.x)}" y="${H-6}" class="tx" text-anchor="${anc(p.x)}">${new Date(p.w.sealedAt+864e5).toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</text>`).filter((_,i)=>n<=7||i%2===(n-1)%2).join('');
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Weekly percentage trend: ${pts.map(p=>p.pct+'%').join(', ')}">
     ${grid}${closed.length>1?`<path d="${pathOf(closed)}" class="tline" pathLength="1"/>`:''}
     ${live&&last?`<path d="M${last.x} ${last.y} L${live.x} ${live.y}" class="tline live"/>`:''}
     ${pts.map((p,i)=>`<g class="tpt${p.live?' live':''}" data-i="${i}" style="animation-delay:${300+i*60}ms"><circle cx="${p.x}" cy="${p.y}" r="16" class="hit"/><circle cx="${p.x}" cy="${p.y}" r="4.5" class="dot"/></g>`).join('')}
-    ${last?`<text x="${last.x}" y="${last.y-11}" class="tv" text-anchor="middle">${last.pct}%</text>`:''}
+    ${last?`<text x="${ax(last.x)}" y="${last.y-11}" class="tv" text-anchor="${anc(last.x)}">${last.pct}%</text>`:''}
     ${labels}<g id="tTip"></g></svg>`;
-  box.querySelectorAll('.tpt').forEach(g=>g.onclick=()=>{const p=pts[+g.dataset.i],tx=Math.min(Math.max(p.x,L+40),W-R-40),ty=Math.max(14,p.y-34);
-    $('tTip').innerHTML=`<rect x="${tx-44}" y="${ty-14}" width="88" height="24" rx="7" class="tipbg"/><text x="${tx}" y="${ty+2}" class="tipt" text-anchor="middle">${esc(p.w.focus).slice(0,10)} · ${p.pct}%</text>`;
+  box.querySelectorAll('.tpt').forEach(g=>g.onclick=()=>{const p=pts[+g.dataset.i],ty=Math.max(14,p.y-34),tip=$('tTip');
+    // full focus word, never cut: measure the text, then size and place the bubble inside the chart
+    tip.innerHTML=`<rect y="${ty-14}" height="24" rx="7" class="tipbg"/><text y="${ty+2}" class="tipt" text-anchor="middle">${esc(p.w.focus)} · ${p.pct}%</text>`;
+    const tt=tip.querySelector('text'),tw=Math.min(W-8,(tt.getComputedTextLength?tt.getComputedTextLength():90)+20),tx=Math.min(Math.max(p.x,4+tw/2),W-4-tw/2);
+    tt.setAttribute('x',tx);const rc=tip.querySelector('rect');rc.setAttribute('x',tx-tw/2);rc.setAttribute('width',tw);
     clearTimeout(drawTrend.t);drawTrend.t=setTimeout(()=>{const t=$('tTip');if(t)t.innerHTML=''},2600)})}
 
 
