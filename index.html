@@ -851,6 +851,23 @@ html:not([data-theme=light]) .hcard.done .hck i{background:#F2EFEA!important;bor
 /* focus timer: same background as the rest of the app so the strip under it (home-indicator area) matches */
 .fcs{background:var(--bg)!important;bottom:calc(-1 * var(--sb,0px));padding-bottom:var(--sb,0px)}
 html:not([data-theme=light]) .fcs{background:#0B0B0C!important}
+/* week log: words first, numbers small */
+.lstrip{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px;font-family:var(--cond);font-size:14px;letter-spacing:.06em;color:var(--mu)}
+.lstrip b{color:var(--tx);font-weight:600}
+.lmini{display:flex;gap:4px;margin-top:10px}.lmini i{width:14px;height:14px;border-radius:4px;border:1px solid var(--line)}
+.lmini i.on{background:var(--ac);border-color:var(--ac)}.lmini i.drift{background:var(--tx);border-color:var(--tx);opacity:.8}
+.lref .va{font-size:clamp(19px,5.3vw,21px);line-height:1.65}
+.lhab ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:2px}
+.lhab li{display:flex;align-items:center;gap:12px;padding:7px 0}
+.lhab li .ic{display:flex;color:var(--mu)}.lhab li .ic svg{width:17px;height:17px}
+.lhab li b{display:block;font-weight:500;font-size:15px;color:var(--mu)}
+.lhab li small{display:block;font-family:var(--cond);font-size:12.5px;letter-spacing:.05em;color:var(--mu2);margin-top:1px}
+/* Progress list as a journal */
+.jrow{flex-direction:column!important;align-items:flex-start!important;gap:6px!important;padding:20px 2px!important}
+.jrow .hdate{display:flex;justify-content:space-between;width:100%;gap:10px}
+.jstat{color:var(--mu2);letter-spacing:.06em}
+.jword{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1}
+.jex{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 </style>
 </head>
 <body>
@@ -1346,10 +1363,10 @@ function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null
   $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
   $('hbAbout').value=c.about||'';requestAnimationFrame(hbGrow);
   const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
-  $('hbState').textContent=!k?'':st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(c.by)}. You can still do it; it’ll be logged as late.`:st==='fail'?`Marked failed ${day}. This day won’t be kept.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
-  $('hbActs').innerHTML=!k?'':st==='done'?`<button class="btn ghost" data-hb="undo">Mark not done</button>`
+  $('hbState').textContent=!k?'':st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(c.by)}. You can still do it; it’ll be logged as late.`:st==='fail'?`Failed ${day}. This is final.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
+  $('hbActs').innerHTML=!k?'':st==='done'?`<button class="danger" data-hb="fail">Mark failed</button>`
     :st==='miss'?`<button class="btn ghost" data-hb="force">Mark done anyway</button>`
-    :st==='fail'?`<button class="btn ghost" data-hb="unfail">Undo failed</button>`
+    :st==='fail'?''
     :st==='run'?`<button class="btn ghost" data-hb="open">Open timer</button><button class="danger" data-hb="fail">Mark failed</button>`
     :`<button class="danger" data-hb="fail">Mark failed</button>`;
   $('shHabit').onClose=saveHabitAbout;openSheet($('shHabit'))}
@@ -1360,9 +1377,8 @@ function saveHabitAbout(){if(!HB)return;const w=D.weeks.find(x=>x.id===HB.wid),c
 $('hbDone').onclick=()=>closeSheet();
 $('hbActs').onclick=e=>{const b=e.target.closest('[data-hb]');if(!b||!HB)return;const a=b.dataset.hb,{wid,cid,k}=HB,w=D.weeks.find(x=>x.id===wid),c=w&&w.commitments.find(x=>x.id===cid);if(!c)return;
   saveHabitAbout();
-  if(a==='fail'){if(!confirm(`Mark ${c.name} failed for ${k===ymd(new Date())?'today':'this day'}? The day won’t be kept.`))return;if(runOf(w,k,cid))store.setRun(w,k,cid,null);store.setDay(w,k,{[cid]:false,[cid+'@fail']:true},'drift')}
-  else if(a==='unfail'){store.setDay(w,k,{[cid+'@fail']:false},undefined)}
-  else if(a==='undo'){if(c.min)store.setRun(w,k,cid,null);setItem(D.weeks.find(x=>x.id===wid),k,cid,false)}
+  if(a==='fail'){if(!confirm(`Mark ${c.name} failed for ${k===ymd(new Date())?'today':'this day'}? The day won’t be kept, and this can’t be undone.`))return;if(runOf(w,k,cid))store.setRun(w,k,cid,null);store.setDay(w,k,{[cid]:false,[cid+'@fail']:true},'drift')}
+  else if(false){if(c.min)store.setRun(w,k,cid,null);setItem(D.weeks.find(x=>x.id===wid),k,cid,false)}
   else if(a==='force'){if(!confirm(`Mark ${c.name} done even though it wasn’t started in time?`))return;setItem(w,k,cid,true)}
   else if(a==='open'){closeSheet();setTimeout(()=>openFocus(w,c,k),300);return}
   haptic();closeSheet()};
@@ -1386,20 +1402,21 @@ function openVision(w,log){if(!w)return;const s0=new Date(w.sealedAt),e=weekEnd(
   const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
   const tally=c=>{if(!log||!c.by)return'';const dn=w.done||{};let on=0,lt=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id]){x[c.id+'@late']?lt++:on++}});return on||lt?`${on} on time · ${lt} late`:''};
   const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
-  let stats='',review='';
-  if(log){const st=weekStats(w),m=w.marks||{};
-    stats=`<div class="vstat"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept${live?' so far':''}</span></div>
-      <div class="days big vdays">${st.days.map(d=>{const v=m[ymd(d)];return`<span class="dsq ${v||''}"><i></i><span>${DOW[d.getDay()]}</span></span>`}).join('')}</div>`;
-    const ot=onTime(w);if(ot.pct!=null)stats+=`<div class="otbox"><div class="othd"><span class="ottl">On time</span><span class="otpct"><b>${ot.pct}</b>%</span></div>
-      ${ot.per.map(x=>`<div class="otrow"><span class="ic">${ico(x.c.icon||'check')}</span><span class="otn">${esc(x.c.name)}<small>by ${clock(x.c.by)}</small></span>
-        <span class="otbar" role="img" aria-label="${x.on} on time, ${x.lt} late">${'<i class="on"></i>'.repeat(x.on)}${'<i class="lt"></i>'.repeat(x.lt)}</span><span class="otc">${x.on}<em>/${x.on+x.lt}</em></span></div>`).join('')}
-      <p class="otkey"><i class="on"></i>on time <i class="lt"></i>late</p></div>`;
-    if(!live){const blocks=(w.reflection||'').split(/\n{2,}/).filter(x=>x.trim());
-      review=`<div class="vsec"><div class="lbl">Review${w.closedAt?` · ${fmtDate(new Date(w.closedAt))}`:''}</div>${blocks.length?blocks.map(bk=>{const ls=bk.split('\n'),q=ls.length>1&&/\?\s*$/.test(ls[0]);
-        return q?`<p class="vq">${esc(ls[0])}</p><p class="va">${esc(ls.slice(1).join('\n')).replace(/\n/g,'<br>')}</p>`:`<p class="va">${esc(bk).replace(/\n/g,'<br>')}</p>`}).join(''):`<p class="vempty">No review written.</p>`}</div>`}}
-  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${log?(live?' · in progress':' · closed'):''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${stats}<hr class="lrrule">
-    ${log?'<div class="lbl vlbl">Vision</div>':''}${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">${live?'No vision written for this week. Add one from Settings → Re-plan this week.':'No vision written.'}</p>`}
-    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>${review}`;
+  if(log){const st=weekStats(w),m=w.marks||{},ot=onTime(w),closed=w.closedAt?fmtDate(new Date(w.closedAt)):'';
+    const blocks=(w.reflection||'').split(/\n{2,}/).filter(x=>x.trim());
+    const refl=blocks.length?blocks.map(bk=>{const ls=bk.split('\n'),q=ls.length>1&&/\?\s*$/.test(ls[0]);
+      return q?`<p class="vq">${esc(ls[0])}</p><p class="va">${esc(ls.slice(1).join('\n')).replace(/\n/g,'<br>')}</p>`:`<p class="va">${esc(bk).replace(/\n/g,'<br>')}</p>`}).join(''):`<p class="vempty">${live?'Written when you close the week on Saturday.':'No reflection written.'}</p>`;
+    const strip=`<div class="lstrip"><span><b>${st.pct}%</b> kept</span><span><b>${st.kept}/${st.days.length}</b> days</span>${ot.pct!=null?`<span><b>${ot.pct}%</b> on time</span>`:''}</div>
+      <div class="lmini">${st.days.map(d=>{const v=m[ymd(d)];return`<i class="${v||''}" title="${DOWL[d.getDay()]}"></i>`}).join('')}</div>`;
+    const hab=w.commitments.map(c=>{const t=tally(c);return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${t||c.days?`<small>${[c.days?DAYS_L[c.days]:'',t].filter(Boolean).join(' · ')}</small>`:''}</span></li>`}).join('');
+    $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${strip}<hr class="lrrule">
+      <div class="lbl vlbl">Vision</div>${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written.</p>`}
+      <div class="vsec lref"><div class="lbl vlbl">Reflection${closed?` · ${closed}`:''}</div>${refl}</div>
+      <div class="vsec lhab"><div class="lbl">Habits</div><ul>${hab}</ul></div>`;
+  }else{
+  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
+    ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
+    <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>`}
   $('visR').hidden=false;$('visR').scrollTop=0;requestAnimationFrame(()=>$('visR').classList.add('on'));}
 function closeVision(){$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
@@ -1545,8 +1562,10 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
   $('hList').innerHTML=`<div class="tchart" id="tChart"></div>`
     +weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
-      return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
-        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`}).join('');
+      const ot=onTime(w),bl=(w.reflection||'').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean),ans=bl.map(x=>{const ls=x.split('\n');return ls.length>1&&/\?\s*$/.test(ls[0])?ls.slice(1).join(' '):x.replace(/\n/g,' ')}).find(Boolean);
+      const ex=ans||(w.planThoughts||'').split(/\n{2,}/).map(x=>x.trim()).filter(Boolean)[0]||'';
+      return`<button class="hrow jrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="cond hdate"><span>${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><span class="jstat">${st.pct}% kept${ot.pct!=null?` · ${ot.pct}% on time`:''}</span></span>
+        <b class="jword">${esc(w.focus)}</b>${ex?`<span class="jex">${esc(ex)}</span>`:''}</button>`}).join('');
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
@@ -1576,14 +1595,14 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
   $('clBody').innerHTML=`<div class="cond hdate">${fmtRange(s0,e)}</div><h3 id="clFocus" class="hwf">${esc(w.focus)}</h3>
     <div class="hwpct"><b>${st.pct}<small>%</small></b><span>${st.kept} of ${st.days.length} days kept</span></div>
     <div class="days big cl">${st.days.map(d=>{const k=ymd(d),v=m[k];return`<button class="dsq ${v||''}" data-ck="${k}" aria-label="${DOWL[d.getDay()]}: ${v==='on'?'kept':v==='drift'?'missed':'not marked'}"><i></i><span>${DOW[d.getDay()]}</span></button>`}).join('')}</div>
-    <p class="clnote">${unm?`${unm} ${unm===1?'day isn’t':'days aren’t'} marked. Tap a day to fix it, or leave it as missed.`:'Tap a day to change it.'}</p>
+    <p class="clnote">${unm?`${unm} ${unm===1?'day wasn’t':'days weren’t'} kept. Days are recorded as they happened.`:'Days are recorded as they happened.'}</p>
     ${D.settings.cafOn?`<div class="lbl hwl">Caffeine next week</div><p class="hwp">${lim?`Starts at ${lim} mg · AM ${am} · PM ${pm}`:'Caffeine-free'}</p>`:''}
     ${(D.settings.revQs||[]).map((q,i)=>`<p class="rvq">${esc(q)}</p><textarea class="long dk rva" data-qa="${i}" rows="2" placeholder="Answer">${esc(closeAns[i]||'')}</textarea>`).join('')}
     <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="Anything else from the week?">${esc(closeRef)}</textarea>
     <div class="acts"><button class="btn pri" id="clGo">Close &amp; plan next week</button></div>`;
   $('clRef').oninput=ev=>closeRef=ev.target.value;
   $('clBody').querySelectorAll('[data-qa]').forEach(t=>t.oninput=ev=>closeAns[+t.dataset.qa]=ev.target.value);
-  $('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
+  if(false)$('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
   $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
     store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
     closeSheet();setTimeout(()=>openPlan(null,cur),280)}}
