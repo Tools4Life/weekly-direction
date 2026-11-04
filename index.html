@@ -825,6 +825,13 @@ html[data-theme=light] .vsec{border-top:1px solid #E6E3DD}
 .otkey{display:flex;align-items:center;gap:6px;margin:8px 0 0;font-family:var(--cond);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu2)}
 .otkey i{width:8px;height:12px}.otkey i.lt{margin-left:10px}
 .hot{font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin-top:4px}
+/* on-time card: tidy grid so bars sit right next to their counts and rows line up */
+.otbox{padding:16px 16px 14px!important}
+.othd{align-items:center!important;margin-bottom:4px!important}
+.otrow{display:grid!important;grid-template-columns:22px minmax(0,1fr) auto auto;column-gap:12px;align-items:center;padding:11px 0!important}
+.otrow .otbar{justify-self:end}
+.otc{width:auto!important;min-width:26px;margin-left:-2px}
+.otkey{margin-top:10px!important}
 </style>
 </head>
 <body>
