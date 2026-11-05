@@ -980,6 +980,18 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .wcdays .on i{background:var(--ac);border:1.5px solid var(--ac)}.wcdays .drift i{background:var(--tx);border:1.5px solid var(--tx);opacity:.85}
 .wcdays em{font-style:normal;font-family:var(--cond);font-size:12px;letter-spacing:.1em;color:var(--mu2)}
 .wcsub{margin-top:14px;font-family:var(--cond);font-size:14px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu);animation:rise .6s 1.2s var(--spring) both}
+/* Reflect: fixed frame above the keyboard; only the writing scrolls */
+.jrnr{display:flex!important;flex-direction:column;overflow:hidden!important;bottom:auto!important;height:100%}
+.jrnr[hidden]{display:none!important}
+.jrnr .jtop{position:static;flex:none}
+.jrnr .jin{flex:1;min-height:0;display:flex;flex-direction:column;padding-top:1vh!important;padding-bottom:calc(var(--sb) + 12px)!important;width:100%;box-sizing:border-box}
+.jrnr .vdate,.jrnr .jword2{flex:none}
+.jrnr .jtext{flex:1;min-height:0!important;height:auto!important;overflow-y:auto!important;-webkit-overflow-scrolling:touch;padding-bottom:24px}
+.jrnr .jqs{flex:none;max-height:28vh;overflow-y:auto}
+.jrnr.typing .jqs{display:none}
+.jrnr.typing .jword2{font-size:24px;margin:2px 0 10px}
+.jrnr.typing .vdate{display:none}
+.jrnr.typing .jin{padding-bottom:10px!important}
 </style>
 </head>
 <body>
@@ -1562,14 +1574,21 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
     if(t){haptic();openVision(t,true,dx<0?1:-1)}else{const vb=$('visBody');vb.classList.remove('vbump');void vb.offsetWidth;vb.classList.add('vbump')}},{passive:true})}
 // ---- Reflect: a quiet, full-screen place to write this week's reflection; autosaves; Saturday's review starts from it ----
 let JW=null,jrT=null;
-function jrGrow(){const t=$('jrText');t.style.height='auto';t.style.height=Math.max(120,t.scrollHeight+2)+'px'}
+function jrGrow(){} // the text area scrolls itself now
+// fit the Reflect page to the part of the screen above the keyboard, so the line being typed is never hidden
+function jrFit(){const o=$('jrnR');if(o.hidden)return;const vv=window.visualViewport;if(!vv){o.style.height='';return}
+  o.style.height=vv.height+'px';o.style.top=vv.offsetTop+'px';const t=$('jrText');
+  if(document.activeElement===t){const pos=t.selectionEnd;if(pos===t.value.length)t.scrollTop=t.scrollHeight}}
+if(window.visualViewport){visualViewport.addEventListener('resize',jrFit);visualViewport.addEventListener('scroll',jrFit)}
 function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.putWeek({...cur,liveRefl:v});$('jrSaved').textContent='Saved'}}
 function openJournal(w){if(!w)return;JW=w.id;const s0=new Date(w.sealedAt);
   $('jrDate').textContent=`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=w.liveRefl||'';$('jrSaved').textContent='';
   {const jq=qsOf(w);$('jrQs').innerHTML=jq.length?`<div class="lbl">Saturday you’ll answer</div>${jq.map(q=>`<p>${esc(q)}</p>`).join('')}`:''}
   $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
-function closeJournal(){clearTimeout(jrT);jrSave();JW=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
-$('jrText').addEventListener('input',()=>{jrGrow();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
+function closeJournal(){$('jrnR').classList.remove('typing');clearTimeout(jrT);jrSave();JW=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
+$('jrText').addEventListener('focus',()=>{$('jrnR').classList.add('typing');setTimeout(jrFit,50);setTimeout(jrFit,350)});
+$('jrText').addEventListener('blur',()=>{$('jrnR').classList.remove('typing');setTimeout(jrFit,50)});
+$('jrText').addEventListener('input',()=>{jrFit();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
 $('jrDone').onclick=closeJournal;
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
