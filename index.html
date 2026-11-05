@@ -1593,6 +1593,23 @@ $('jrDone').onclick=closeJournal;
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
 let landWord=false;
+// The live timer = how long you've been tracking honestly, without a break. Bad days, failed habits and low weeks don't
+// touch it. It resets only when tracking stops: a day with no week running, or 3 days in a row with nothing recorded
+// (no habit checked, no habit failed). Today never counts against you while it's still going.
+function trackStart(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt);if(!ws.length)return Date.now();
+  const span=w=>{const a=new Date(w.sealedAt);a.setHours(12,0,0,0);const e=w.closedAt?new Date(w.closedAt):weekEnd(new Date(w.sealedAt));e.setHours(12,0,0,0);
+    if(w.status==='active'){const t=new Date();t.setHours(12,0,0,0);if(t>e)e.setTime(t.getTime())}return[a.getTime(),e.getTime()]};
+  const spans=ws.map(w=>({w,s:span(w)})),todayK=ymd(new Date());
+  const weekOn=k=>{const t=new Date(k+'T12:00:00').getTime();return spans.filter(x=>t>=x.s[0]&&t<=x.s[1]).map(x=>x.w)};
+  const recorded=k=>weekOn(k).some(w=>{const d=(w.done||{})[k]||{};return Object.keys(d).some(x=>d[x]===true)||!!(w.marks||{})[k]});
+  const d=new Date();d.setHours(12,0,0,0);let gap=0,lastRec=null,firstWeek=null;
+  for(let i=0;i<2000;i++){const k=ymd(d),on=weekOn(k);
+    if(!on.length)break;                                   // no week running: tracking had stopped
+    firstWeek=on.reduce((a,b)=>a.sealedAt<b.sealedAt?a:b);
+    if(k===todayK||recorded(k)){gap=0;if(recorded(k))lastRec=k}
+    else if(++gap>=3)return new Date((lastRec||todayK)+'T00:00:00').getTime(); // drifted: run starts at the next recorded day
+    d.setDate(d.getDate()-1)}
+  return firstWeek?firstWeek.sealedAt:Date.now()}
 const gearBtn=`<button class="gear" data-gear aria-label="Settings">${ico('gear')}</button>`;
 function renderWeek(animate){
   if(!ready)return;clearInterval(tickT);const el=$('sWeek'),w=active();
@@ -1604,7 +1621,7 @@ function renderWeek(animate){
     $('wkPlan').onclick=()=>openPlan();bindCaf(el);return}
   const now=new Date(),start=new Date(w.sealedAt),end=weekEnd(start),due=now>=end,marks=w.marks||{},todayK=ymd(now);
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
-  const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:w.sealedAt;
+  const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:trackStart();
   const [tm,ts]=elapsedParts(now-tFrom);
   const timer=due?`<div class="timer due">review due</div>`:`<button class="timer tbtn" id="wkTimerBtn" aria-label="Timer. Tap to see it another way"><span id="wkTimer">${tmMode?altTime(now-tFrom):`<span id="tmMain">${tm}</span><span class="sec" id="tmSec"><span>${ts}</span></span>`}</span></button>`;
   const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
