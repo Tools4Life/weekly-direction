@@ -71,16 +71,15 @@ nav.bar svg.i{width:24px;height:24px}
 .timer.due{font-family:var(--serif);font-style:italic;font-size:24px;letter-spacing:0;color:var(--ac)}
 .rows{margin-top:2px}
 .grp+.grp{margin-top:22px}
-.gh{display:flex;align-items:center;gap:8px;padding:6px 0 4px;color:var(--mu2);font-family:var(--cond);font-size:13px;letter-spacing:.16em;text-transform:uppercase}
-.gh svg.i{width:16px;height:16px}
+
 .grp .row:last-child{border-bottom:0}
-.rows.tight .grp+.grp{margin-top:14px}
+
 .wkbar{margin-top:34px;display:flex;align-items:center;justify-content:space-between}
-.fastp~.wkbar{margin-top:14px}
+
 .strip{display:grid;grid-template-columns:repeat(7,11px);gap:5px;flex:none}
 .strip i{width:11px;height:11px;border-radius:3px;background:#1E1E21;box-sizing:border-box}
 .strip i.p{background:#CFCAC2}
-.row.fast .strip i.p{background:var(--ac)}
+
 .strip i.t{outline:1.5px solid var(--mu);outline-offset:1.5px}
 .strip.lt b{font-family:var(--cond);font-weight:500;font-size:11px;text-align:center;color:var(--mu2);width:11px}
 .strip.lt b.t{color:var(--tx)}
@@ -94,13 +93,11 @@ nav.bar svg.i{width:24px;height:24px}
 .row .nm b{display:block;font-weight:400;font-size:17px}
 .row .nm small{display:block;font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
 .row .val{font-family:var(--cond);font-size:15px;letter-spacing:.08em;color:var(--mu);text-transform:uppercase}
-.row.fast .ic,.row.fast .val{color:var(--ac)}
-.linkrow{margin-top:20px;display:flex;align-items:center;justify-content:space-between;width:100%;min-height:48px;color:var(--mu);font-size:15px}
+
 .first{min-height:70vh;display:flex;flex-direction:column;justify-content:center;gap:18px}
 .first h1{margin:0;font-family:var(--serif);font-weight:400;font-size:44px;line-height:1.05;letter-spacing:-.02em}
 .first p{margin:0;color:var(--mu);max-width:30ch}
 
-.timer.sm{margin:0;font-size:20px;color:var(--mu);gap:0}
 .sec{display:inline-block;overflow:hidden;vertical-align:top;height:1.2em;line-height:1.2em}
 #wkTimer{line-height:1.2em}
 .sec span{display:inline-block}.sec span.in{animation:tk .28s var(--ease)}
@@ -118,25 +115,13 @@ nav.bar svg.i{width:24px;height:24px}
 .pill:active{transform:scale(.97)}
 .pill.x.on{background:#F2EFEA;border-color:#F2EFEA;color:#0B0B0C}
 .pill.ok.on{background:var(--ac);border-color:var(--ac);color:#0B0B0C}
-.notday{margin-top:14px;width:100%;min-height:44px;display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--mu2);font-size:14px;text-align:left}
-.notday span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.notday svg.i{width:16px;height:16px;transition:transform .2s;flex:none}.notday.open svg.i{transform:rotate(90deg)}
+
 .dsq.fut i{border:1.5px solid var(--rule)}
-.dsq.press i{transform:scale(.88)}
+
 .dsq:disabled{cursor:default}
-.ask{margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card)}
-.askb{display:flex;gap:8px}
-.btn.sm{min-height:42px;padding:0 14px;font-size:15px;border-radius:10px}
-.fhead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 4px}
-.ffocus{font-family:var(--serif);font-size:28px;letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fastp{overflow:hidden;margin:20px -4px 0;min-height:44vh;border-radius:22px;border:1px solid var(--ac);background:#170E09;padding:26px;display:flex;flex-direction:column;justify-content:space-between;color:var(--ac);transform-origin:top center}
-.fastp .ftop{display:flex;justify-content:space-between;align-items:center}
-.fastp .ftop .cond{font-size:14px;letter-spacing:.22em}
-.fastp svg.i{width:28px;height:28px}
-.fname{font-family:var(--cond);font-weight:600;line-height:.85;letter-spacing:.02em;white-space:nowrap}
-.fastp.grow{animation:grow .6s var(--spring) both}
+
 @keyframes grow{from{opacity:0;transform:scaleY(.6)}to{opacity:1;transform:none}}
-.rows.tight{margin-top:0}
+
 .row.small{padding:11px 0}.row.small .nm b{font-size:16px;color:#C9C3BA}.row.small .val{font-size:14px}
 /* settings */
 .set h2{margin:0 0 24px;font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em}
@@ -182,9 +167,7 @@ select.field{appearance:none;-webkit-appearance:none;min-height:40px;padding:6px
 .step button{width:40px;height:36px;font-size:20px;color:var(--tx)}
 .step button:disabled{opacity:.3}
 .step span{min-width:70px;text-align:center;font-family:var(--cond);font-size:15px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
-.dows{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;width:100%;max-width:300px}
-.dows button{width:100%;height:36px;border-radius:9px;border:1px solid var(--line);font-family:var(--cond);font-size:14px;letter-spacing:.04em;color:var(--mu);background:var(--bg)}
-.dows button.on{background:var(--tx);border-color:var(--tx);color:var(--bg)}
+
 .tag{font-family:var(--cond);font-size:13px;letter-spacing:.14em;color:var(--mu)}
 .sphere{margin-top:22px}
 .sphere .sh{display:flex;align-items:center;gap:8px;margin-bottom:10px;color:var(--mu)}
@@ -272,7 +255,7 @@ textarea.long:focus{border-color:var(--mu)}
 /* v2: prayer, caffeine, simpler home */
 nav.bar{gap:36px}
 .ttl{margin:0;font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em}
-.pradd{margin-top:22px;display:flex;gap:10px}
+
 .btn.sq{width:52px;padding:0;flex:none}
 .prow{display:flex;flex-direction:column;align-items:flex-start;gap:4px;width:100%;text-align:left;padding:16px 2px;border-bottom:1px solid var(--rule)}
 .prow span{font-family:var(--serif);font-size:19px;line-height:1.35;overflow-wrap:anywhere}
@@ -285,16 +268,7 @@ nav.bar{gap:36px}
 .cafn b{font-size:40px;font-weight:600;line-height:1}
 .cafn span{font-size:18px;color:var(--mu)}
 .cafn em{margin-left:auto;font-style:normal;font-size:15px;letter-spacing:.06em;color:var(--ac)}
-.cbar{margin-top:12px;height:6px;border-radius:3px;background:#26262A;overflow:hidden}
-.cbar i{display:block;height:100%;border-radius:3px;background:#CFCAC2;transition:width .4s var(--ease)}
-.cbar.over i{background:var(--ac)}
-.cafbtns{margin-top:14px;display:flex;gap:8px;flex-wrap:wrap}
-.cafbtns button{min-height:42px;padding:0 14px;border-radius:999px;border:1px solid var(--line);font-size:15px;display:inline-flex;align-items:center;gap:6px}
-.cafbtns button small{font-family:var(--cond);font-size:13px;color:var(--mu)}
-.cafbtns button:active{transform:scale(.96)}
-.caflog{margin-top:12px;display:flex;gap:6px;flex-wrap:wrap}
-.caflog button{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 10px;border-radius:8px;background:var(--card2);font-family:var(--cond);font-size:13px;letter-spacing:.04em;color:var(--mu)}
-.caflog svg.i{width:12px;height:12px}
+
 .field.num{width:84px;min-height:40px;padding:6px 10px;text-align:right;background:var(--card2);font-family:var(--cond);font-size:17px}
 .unit{font-family:var(--cond);font-size:14px;letter-spacing:.06em;color:var(--mu);min-width:30px}
 #shCaf .field{font-size:17px}
@@ -306,7 +280,7 @@ nav.bar{gap:36px}
 .cfl.past{opacity:.4}.cfl.cur b{color:var(--ac)}
 /* v3: one-screen home, raised habit cards, tactile pills */
 #sWeek{padding-top:calc(var(--st) + 14px);padding-bottom:calc(var(--sb) + 76px)}
-.wtop{display:flex;align-items:center;justify-content:space-between;min-height:36px}
+
 .gear{width:40px;height:40px;margin-right:-8px;display:flex;align-items:center;justify-content:center;color:var(--mu2)}
 .gear svg.i{width:21px;height:21px}
 #sWeek .focus{margin-top:2px;font-size:48px}
@@ -337,10 +311,7 @@ nav.bar{gap:36px}
 .cafrow .cafn{margin:0;display:flex;align-items:baseline;gap:5px;min-height:40px}
 .cafrow .cafn b{font-size:32px}
 .cafrow .cafn span{font-size:15px}
-#sWeek .cafbtns{margin:0;flex-wrap:nowrap;gap:6px}
-#sWeek .cafbtns button{min-height:40px;padding:0 12px;font-size:14.5px;gap:5px;background:#202024;border-color:#2E2E33}
-#sWeek .cafbtns button[data-caf="other"]{padding:0 10px}
-#sWeek .cbar{margin-top:10px;height:5px}
+
 .clrow{display:grid;grid-template-columns:1fr auto auto 36px;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--rule)}
 .clrow b{font-family:var(--cond);font-weight:600;font-variant-numeric:tabular-nums}
 .clrow small{font-family:var(--cond);color:var(--mu2)}
@@ -360,7 +331,7 @@ nav.bar{gap:36px}
 #sWeek .caf{margin-top:12px;padding:10px 14px 12px}
 .cafrow .cafn{white-space:nowrap;min-height:36px}
 .cafrow .cafn b{font-size:28px}
-#sWeek .cafbtns button{min-height:36px}
+
 nav.bar{padding-top:2px;padding-bottom:calc(var(--sb) + 4px)}
 #sWeek{padding-bottom:calc(var(--sb) + 60px)}
 
@@ -393,8 +364,7 @@ nav.bar button:active{transform:scale(.88)}
 .pill.ok.cel::after{content:"";position:absolute;inset:-2px;border-radius:inherit;box-shadow:0 0 0 0 rgba(232,116,59,.55);animation:ring .7s ease-out forwards;pointer-events:none}
 .pill{position:relative}
 @keyframes ring{to{box-shadow:0 0 0 14px rgba(232,116,59,0)}}
-svg.draw path{stroke-dasharray:24;stroke-dashoffset:24;animation:draw .38s .08s ease-out forwards}
-.pill svg.draw{stroke-width:2.4}
+
 @keyframes draw{to{stroke-dashoffset:0}}
 .dsq.pop i{animation:sqpop .55s var(--spring)}
 @keyframes sqpop{0%{transform:scale(.6)}60%{transform:scale(1.12)}100%{transform:none}}
@@ -407,8 +377,7 @@ svg.draw path{stroke-dasharray:24;stroke-dashoffset:24;animation:draw .38s .08s 
 .caf.in{animation:rise .55s .2s var(--spring) both}
 /* history */
 .trend{display:flex;align-items:flex-end;gap:6px;height:64px;padding:0 2px 10px;border-bottom:1px solid var(--rule)}
-.tb{flex:1;max-width:26px;height:var(--h);min-height:3px;border-radius:4px 4px 2px 2px;background:#CFCAC2;transform-origin:bottom;animation:grow-y .6s var(--spring) both}
-.tb.live{background:transparent;border:1.5px dashed var(--ac)}
+
 @keyframes grow-y{from{transform:scaleY(0)}to{transform:none}}
 .hrow{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;text-align:left;padding:16px 2px;border-bottom:1px solid var(--rule)}
 .hl{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -432,12 +401,9 @@ svg.draw path{stroke-dasharray:24;stroke-dashoffset:24;animation:draw .38s .08s 
 .days.big .dsq.on i{background:var(--ac);border:1.5px solid var(--ac)}.days.big .dsq.drift i{background:#F2EFEA;border:1.5px solid #F2EFEA}
 .hwl{display:block;margin:20px 0 8px}
 .hwl .ed{font-style:normal;color:var(--ac);margin-left:6px;letter-spacing:.1em}
-.hwh{display:flex;flex-wrap:wrap;gap:6px}
-.hwh span{display:inline-flex;align-items:center;gap:6px;padding:7px 11px;border-radius:10px;background:#1C1C1F;border:1px solid #2A2A2E;font-size:15px}
-.hwh svg.i{width:16px;height:16px;color:var(--mu)}
+
 .hwp{margin:0;font-family:var(--serif);font-size:17px;line-height:1.5;white-space:pre-wrap;color:var(--tx)}
 textarea.long.dk{background:#161618;border-color:#2A2A2E;color:var(--tx);min-height:110px}
-#shWeek{max-height:90vh}
 
 /* trend line chart */
 .tchart{padding:6px 0 8px;border-bottom:1px solid var(--rule)}
@@ -511,7 +477,7 @@ nav.bar button:active{opacity:.6}
 .tline2{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 #sWeek .tline2 .timer{margin:0}
 .tline2 .wk-range{font-size:12px;letter-spacing:.18em;color:var(--mu2);white-space:nowrap}
-#sPrayer .pradd{margin-top:16px}
+
 #hList{margin-top:16px!important}
 
 /* steadier tab bar: instant highlight, no slide on screen change, no rubber-band bounce of the whole app */
@@ -528,10 +494,6 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .pvtop{display:flex;justify-content:space-between;align-items:center;min-height:36px}
 .pvdate{font-size:12px;letter-spacing:.16em;color:var(--mu2)}
 .pvedit{color:var(--ac);font-size:15px;padding:6px 0 6px 12px}
-.pvt{margin:6px 0 14px;font-family:var(--serif);font-weight:400;font-size:32px!important;line-height:1.15;letter-spacing:-.01em}
-.pvb{font-family:var(--serif);font-size:19px;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere;padding-bottom:12px}
-.pet{font-family:var(--serif);font-size:22px!important;background:#161618;border-color:#2A2A2E}
-.peb{margin-top:10px;min-height:38vh!important;font-size:18px!important;line-height:1.6!important}
 
 /* prayer: name it, then go deeper; one writing surface */
 .addp{width:44px;height:44px;margin-right:-6px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--onAc);background:var(--ac);flex:none;box-shadow:0 4px 14px rgba(232,116,59,.25)}
@@ -564,11 +526,10 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 
 /* per-item check-off */
 .hcard{width:100%;text-align:left;color:var(--tx);font:inherit}
-.hcard .hchk{margin-left:auto;flex:none;width:24px;height:24px;border-radius:50%;border:1.5px solid #3A3A40;display:flex;align-items:center;justify-content:center;color:transparent;transition:background .2s,border-color .2s,color .2s,transform .15s}
-.hcard .hchk svg{width:14px;height:14px;stroke-width:2.6}
+
 .hcard.done{background:linear-gradient(90deg,rgba(232,116,59,.17) 0%,rgba(232,116,59,.05) 70%,rgba(232,116,59,.03) 100%),#18181B;border-color:rgba(232,116,59,.32)}
 .hcard.done .ic{color:var(--ac)}
-.hcard.done .hchk{background:var(--ac);border-color:var(--ac);color:#0B0B0C;animation:sqpop .4s var(--spring)}
+
 .hcard:active{transform:scale(.985)}
 .dose>button,.dose>div{position:relative;display:flex;align-items:baseline;gap:6px;padding:6px 12px;border-radius:11px;background:#202024;border:1px solid #2E2E33;color:var(--tx);font:inherit;text-align:left}
 .dose .dchk{position:absolute;top:-6px;right:-6px;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--ac);color:#0B0B0C}
@@ -578,17 +539,12 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 .dose>.zero{opacity:.35!important}
 .dsq.part i{background:linear-gradient(to top,rgba(232,116,59,.55) var(--pf),transparent var(--pf));border-style:solid;border-color:rgba(232,116,59,.45)}
 
-/* quiet per-item checks: nothing shows until an item is done; the big check stays the main action */
-.hcard .hchk{border:0!important;background:none!important;width:20px;height:20px;color:transparent}
-.hcard.done .hchk{color:var(--ac);animation:none}
-.hcard .hchk svg{width:16px;height:16px;stroke-width:2.4}
 .hcard.done{background:linear-gradient(90deg,rgba(232,116,59,.12) 0%,rgba(232,116,59,.03) 80%),#18181B;border-color:rgba(232,116,59,.22)}
 .dose .dchk{position:static;display:none;width:auto;height:auto;margin-left:4px;background:none;color:var(--ac);align-self:center}
 .dose .dchk svg{width:13px;height:13px;stroke-width:2.6}
 .dose>.done{border-color:rgba(232,116,59,.35);background:#202024}
 .dose>.done .dchk{display:inline-flex;animation:none}
-/* fill-only: a done habit or dose fills its card; no check marks */
-.hcard .hchk,.dose .dchk{display:none!important}
+.dose .dchk{display:none!important}
 .hcard{position:relative;overflow:hidden}
 .hcard::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(232,116,59,.30),rgba(232,116,59,.18));transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease);pointer-events:none}
 .hcard>*{position:relative}
@@ -613,16 +569,14 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
   background:linear-gradient(160deg,#1C1A18,#141416);border:1px solid #2E2B27;color:var(--tx)}
 .lifecard .lifelbl{font-size:12px;letter-spacing:.2em;color:var(--mu)}
 .lifecard b{font-family:var(--serif);font-weight:400;font-size:23px;line-height:1.2}
-.lifecard .lifesince{font-family:var(--cond);font-size:13px;letter-spacing:.1em;color:var(--mu2);text-transform:uppercase}
+
 .lifecard.empty{background:transparent;border-style:dashed;border-color:#34343A}
 .lifecard.empty b{font-size:18px;color:var(--mu);font-style:italic}
 .lifer{position:fixed;inset:0;z-index:96;background:#0B0B0C;overflow-y:auto;-webkit-overflow-scrolling:touch;opacity:0;transition:opacity .3s ease}
 .lifer.on{opacity:1}
 .lifer .cx{position:fixed;top:calc(var(--st) + 12px);right:12px;z-index:2;background:rgba(11,11,12,.8);border-radius:50%}
 .lrin{max-width:34em;margin:0 auto;padding:calc(var(--st) + 12vh) max(22px,6vw) calc(var(--sb) + 14vh)}
-.lrsince{display:flex;flex-direction:column;align-items:center;margin-bottom:6vh;font-family:var(--cond);font-variant-numeric:tabular-nums}
-.lrsince .lrd{font-size:16px;letter-spacing:.14em;color:var(--mu)}
-.lrsince .lrt2{font-size:clamp(40px,12vw,54px);font-weight:500;line-height:1;letter-spacing:.02em;color:var(--tx)}
+
 .lrt{margin:0;font-family:var(--serif);font-weight:400;font-size:clamp(32px,9vw,44px);line-height:1.12;text-wrap:balance}
 .lrrule{width:44px;height:1px;background:#2A2A2E;border:0;margin:30px 0 34px}
 #lrBody p{margin:0 0 1.15em;font-family:var(--serif);font-size:clamp(19px,5.3vw,22px);line-height:1.68}
@@ -700,10 +654,7 @@ textarea.long.rva{min-height:64px}
 .vhabits li b{display:block;font-weight:500;font-size:17px}
 .vhabits li small{display:block;font-family:var(--cond);font-size:13px;letter-spacing:.06em;color:var(--mu2);margin-top:2px}
 .trow .focus{cursor:pointer}
-.vstat{display:flex;align-items:baseline;gap:12px;margin-top:14px;font-family:var(--cond)}
-.vstat b{font-size:40px;font-weight:600;line-height:1;color:var(--tx)}.vstat b small{font-size:20px;color:var(--mu)}
-.vstat span{font-size:14px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu)}
-.vdays{margin-top:16px}
+
 .vlbl{margin-bottom:14px}
 .vsec{margin-top:6vh;padding-top:26px;border-top:1px solid #222225}
 .vsec .lbl{margin-bottom:6px}
@@ -731,14 +682,13 @@ html[data-theme=light] .dsq.drift i{background:#1B1917;border:1.5px solid #1B191
 html[data-theme=light] .pill{border:1.5px solid #DDD9D2}
 html[data-theme=light] .pill.x.on{background:#1B1917;border-color:#1B1917;color:#F6F5F2}
 html[data-theme=light] .pill.ok.on{color:#F6F5F2}
-html[data-theme=light] .fastp{background:#FFFFFF}
+
 html[data-theme=light] .row.small .nm b{color:#3D3934}
 html[data-theme=light] .hcard.done .hmeta{color:rgba(0,0,0,.55)}
 html[data-theme=light] .hcard.miss .nm{text-decoration-color:rgba(27,25,23,.35)}
 html[data-theme=light] .fcs{background:#F6F5F2}
 html[data-theme=light] .fcic span{background:#F6F5F2;border:1px solid #DDD9D2}
-html[data-theme=light] .cbar{background:#E1DDD6}
-html[data-theme=light] .cbar i{background:#3D3934}
+
 html[data-theme=light] .pill{border:1px solid #D6D2CB;background:linear-gradient(180deg,#F0EEE9 0%,#F0EEE9 100%);
   box-shadow:inset 0 1px 0 rgba(0,0,0,.07),inset 0 -2px 0 rgba(0,0,0,.35),0 6px 14px rgba(0,0,0,.55),0 1px 2px rgba(0,0,0,.6)}
 html[data-theme=light] .pill:active{box-shadow:inset 0 1px 0 rgba(0,0,0,.04),inset 0 2px 6px rgba(0,0,0,.5),0 1px 3px rgba(0,0,0,.5)}
@@ -749,16 +699,16 @@ html[data-theme=light] .pill.ok.on{color:#F6F5F2;
 html[data-theme=light] .hcard{background:#FFFFFF;border:1px solid #E1DDD6;box-shadow:inset 0 1px 0 rgba(0,0,0,.04)}
 html[data-theme=light] .hcard .ic{color:#5E5953}
 html[data-theme=light] #sWeek .caf{background:#FFFFFF;border:1px solid #E1DDD6}
-html[data-theme=light] #sWeek .cafbtns button{background:#F0EEE9;border-color:#D6D2CB}
+
 html[data-theme=light] .dose>div{background:#F0EEE9;border:1px solid #D6D2CB}
 html[data-theme=light] .gear{color:#B8B2AA}
 html[data-theme=light] .fx i.w{background:#1B1917}
-html[data-theme=light] .tb{background:#3D3934}
+
 html[data-theme=light] .mini i{border:1px solid #CFCAC2}
 html[data-theme=light] .mini i.drift{background:#1B1917;border-color:#1B1917}
 html[data-theme=light] .days.big .dsq i{border:1.5px dashed #CFCAC2}
 html[data-theme=light] .days.big .dsq.drift i{background:#1B1917;border:1.5px solid #1B1917}
-html[data-theme=light] .hwh span{background:#F0EEE9;border:1px solid #DDD9D2}
+
 html[data-theme=light] textarea.long.dk{background:#FFFFFF;border-color:#DDD9D2}
 html[data-theme=light] .tipbg{fill:#E1DDD6;stroke:#D6D2CB}
 html[data-theme=light] #sWeek .dsq.sel i{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #1B1917}
@@ -767,14 +717,14 @@ html[data-theme=light] .dose>div.now{border-color:#CFCAC2}
 html[data-theme=light] .ladder i{background:linear-gradient(90deg,var(--ac) var(--f),#DDD9D2 var(--f))}
 html[data-theme=light] .stkl i{background:linear-gradient(90deg,var(--ac) var(--f),#DDD9D2 var(--f))}
 html[data-theme=light] nav.bar{border-top:1px solid #FFFFFF}
-html[data-theme=light] .pet{background:#FFFFFF;border-color:#DDD9D2}
+
 html[data-theme=light] .prow .pri{color:#3D3934}
 html[data-theme=light] .prow .pri.none{color:#B8B2AA}
 html[data-theme=light] .pw-tags button{border:1px solid #DDD9D2;background:#FFFFFF}
 html[data-theme=light] .pw-tags button.on{border-color:#3D3934}
-html[data-theme=light] .hcard .hchk{border:1.5px solid #CFCAC2}
+
 html[data-theme=light] .hcard.done{background:linear-gradient(90deg,rgba(232,116,59,.17) 0%,rgba(232,116,59,.05) 70%,rgba(232,116,59,.03) 100%),#FFFFFF}
-html[data-theme=light] .hcard.done .hchk{color:#F6F5F2}
+
 html[data-theme=light] .dose>button,html[data-theme=light] .dose>div{background:#F0EEE9;border:1px solid #D6D2CB}
 html[data-theme=light] .dose .dchk{color:#F6F5F2}
 html[data-theme=light] .dose>.done{background:linear-gradient(180deg,rgba(232,116,59,.16),rgba(232,116,59,.06)),#F0EEE9}
@@ -810,43 +760,19 @@ html[data-theme=light] .vsec{border-top:1px solid #E6E3DD}
 /* prayer sheet: tighter title and body so more of the prayer fits on screen */
 .pw-sub{font-size:24px!important;line-height:1.25!important}
 .pw-body{font-size:17px!important;line-height:1.55!important}
-/* on-time report */
-.otbox{margin-top:22px;padding:16px 16px 12px;border-radius:16px;background:var(--card)}
-.othd{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
-.otpct{font-family:var(--cond);font-size:16px;color:var(--mu)}.otpct b{font-size:30px;font-weight:600;color:var(--tx)}
-.otrow{display:flex;align-items:center;gap:12px;padding:9px 0;border-top:1px solid var(--rule)}
-.otrow:first-of-type{border-top:0}
-.otrow .ic{display:flex;color:var(--tx)}.otrow .ic svg{width:19px;height:19px}
-.otn{flex:1;min-width:0;font-size:15.5px;line-height:1.2}.otn small{display:block;font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;color:var(--mu2);margin-top:2px}
-.otbar{display:flex;gap:3px;flex:none}.otbar i,.otkey i{display:block;width:9px;height:16px;border-radius:3px}
-.otbar i.on,.otkey i.on{background:var(--ac)}
-.otbar i.lt,.otkey i.lt{background:repeating-linear-gradient(135deg,var(--ac) 0 2px,transparent 2px 5px);box-shadow:inset 0 0 0 1px rgba(232,116,59,.55)}
-.otc{flex:none;width:34px;text-align:right;font-family:var(--cond);font-size:17px;font-weight:600}.otc em{font-style:normal;font-weight:500;color:var(--mu2);font-size:14px}
-.otkey{display:flex;align-items:center;gap:6px;margin:8px 0 0;font-family:var(--cond);font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--mu2)}
-.otkey i{width:8px;height:12px}.otkey i.lt{margin-left:10px}
+
 .hot{font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mu);margin-top:4px}
-/* on-time card: tidy grid so bars sit right next to their counts and rows line up */
-.otbox{padding:16px 16px 14px!important}
-.othd{align-items:center!important;margin-bottom:4px!important}
-.otrow{display:grid!important;grid-template-columns:22px minmax(0,1fr) auto auto;column-gap:12px;align-items:center;padding:11px 0!important}
-.otrow .otbar{justify-self:end}
-.otc{width:auto!important;min-width:26px;margin-left:-2px}
-.otkey{margin-top:10px!important}
-/* on-time card header: a real title, shorter header to match the footer */
-.othd{align-items:baseline!important;margin:0!important;padding-bottom:10px}
-.ottl{font-family:var(--serif);font-size:22px;line-height:1.1;color:var(--tx)}
-.otpct{font-size:14px!important}.otpct b{font-size:24px!important;line-height:1}
-.otbox{padding:14px 16px 14px!important}
-.otkey{margin-top:8px!important}
-/* late segment: solid outline at full color, softer stripes clipped inside the rounded shape */
-.otbar i.lt,.otkey i.lt{box-sizing:border-box;border:1.5px solid var(--ac);box-shadow:none!important;overflow:hidden;background-clip:padding-box!important;
+
+/* on-time card header: a real title{align-items:baseline!important;margin:0!important;padding-bottom:10px}
+
+/* late segment: solid outline at full color{box-sizing:border-box;border:1.5px solid var(--ac);box-shadow:none!important;overflow:hidden;background-clip:padding-box!important;
   background:repeating-linear-gradient(135deg,rgba(232,116,59,.5) 0 1.5px,transparent 1.5px 4px)!important}
 /* softer white in dark mode: main text and icons at ~82%; the done check stays full white so completion still pops */
 html:not([data-theme=light])[data-mode=dark],html:not([data-theme=light]) [data-mode=dark],html:not([data-theme=light]) .dark{--tx:rgba(242,239,234,.82)}
 html:not([data-theme=light]) .hcard .ic,html:not([data-theme=light]) .hcard.done .ic,html:not([data-theme=light]) .hcard.run .ic,html:not([data-theme=light]) .hcards.kept .hcard .ic{color:rgba(242,239,234,.82)!important}
 html:not([data-theme=light]) .hcard .hck i,html:not([data-theme=light]) .hcard .hck.run i,html:not([data-theme=light]) .hcard .hck.open i:not(:empty){color:rgba(242,239,234,.82)!important;border-color:rgba(242,239,234,.45)!important}
 html:not([data-theme=light]) .hcard.done .nm{color:rgba(242,239,234,.82)!important}
-html:not([data-theme=light]) .vhabits li .ic,html:not([data-theme=light]) .otrow .ic{color:rgba(242,239,234,.82)!important}
+html:not([data-theme=light]) .vhabits li .ic{color:rgba(242,239,234,.82)!important}
 html:not([data-theme=light]) .hcard.done .hck i{background:#F2EFEA!important;border-color:#F2EFEA!important;color:#1A0F09!important}
 /* focus timer: same background as the rest of the app so the strip under it (home-indicator area) matches */
 .fcs{background:var(--bg)!important;bottom:calc(-1 * var(--sb,0px));padding-bottom:var(--sb,0px)}
@@ -862,24 +788,14 @@ html:not([data-theme=light]) .fcs{background:#0B0B0C!important}
 .lhab li .ic{display:flex;color:var(--mu)}.lhab li .ic svg{width:17px;height:17px}
 .lhab li b{display:block;font-weight:500;font-size:15px;color:var(--mu)}
 .lhab li small{display:block;font-family:var(--cond);font-size:12.5px;letter-spacing:.05em;color:var(--mu2);margin-top:1px}
-/* Progress list as a journal */
-.jrow{flex-direction:column!important;align-items:flex-start!important;gap:6px!important;padding:20px 2px!important}
-.jrow .hdate{display:flex;justify-content:space-between;width:100%;gap:10px}
-.jstat{color:var(--mu2);letter-spacing:.06em}
-.jword{font-family:var(--serif);font-weight:400;font-size:28px;line-height:1.1}
-.jex{font-family:var(--serif);font-style:italic;font-size:16.5px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+
 .lrhint{margin:4px 0 10px;font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.45;color:var(--mu)}
 textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px;line-height:1.6}
 .lrsaved{margin:6px 2px 0;min-height:16px;font-family:var(--cond);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2)}
 /* Progress: this week stands out, with a way straight into reflecting */
 .hcur{margin:6px -12px 10px;padding:4px 12px 12px;border-radius:18px;background:var(--card);border:1px solid rgba(232,116,59,.35)}
 .hcur .hrow{border-bottom:1px solid var(--rule)}
-.reflbtn{display:flex;align-items:center;gap:12px;width:100%;margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--card2);color:var(--tx);text-align:left}
-.reflbtn>svg{width:20px;height:20px;color:var(--ac);flex:none}
-.reflbtn span{flex:1;display:flex;flex-direction:column;gap:2px;font-family:var(--serif);font-size:19px}
-.reflbtn small{font-family:var(--sans);font-size:13.5px;color:var(--mu)}
-.reflbtn svg.i:last-child{width:16px;height:16px;color:var(--mu2)}
-.reflbtn:active{transform:scale(.98)}
+
 /* Reflect: journaling space */
 .jrnr{background:var(--bg)!important}
 .jtop{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;padding:calc(var(--st) + 10px) max(22px,6vw) 10px;background:linear-gradient(var(--bg) 70%,transparent)}
@@ -1118,7 +1034,6 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <div class="hbhd"><span class="ic" id="hbIc"></span><h3 id="hbName"></h3><button class="pvdone" id="hbDone">Done</button></div><div class="hbmeta" id="hbMeta"></div>
   <span class="lbl l2">About</span><textarea class="long dk" id="hbAbout" rows="5" placeholder="What this habit is about, why it matters, how to do it. Saved with the habit for future weeks."></textarea>
   <p class="hbstate" id="hbState"></p><div class="acts" id="hbActs"></div></div>
-<div class="sheet dark" id="shThoughts" role="dialog" aria-modal="true"><div class="grab"></div><h3>This week</h3><p class="thoughts" id="thText"></p></div>
 <!-- prayer edit (dark) -->
 <div class="sheet dark prsheet" id="shPrayer" role="dialog" aria-modal="true" aria-label="Prayer"><div class="grab"></div>
   <div class="pvtop"><span class="cond pvdate" id="pvDate"></span><span class="pvbtns"><button class="pvedit" id="pvEdit">Edit</button><button class="pvdone" id="pvDone">Done</button></span></div>
@@ -1136,7 +1051,6 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <p class="mu" id="clTotal" style="margin:-8px 0 12px"></p><div id="clList"></div>
   <div class="acts"><button class="btn ghost" id="clOther">Add something else</button></div></div>
 <div class="sheet dark" id="shClose" role="dialog" aria-modal="true" aria-labelledby="clFocus"><div class="grab"></div><div id="clBody"></div></div>
-<div class="sheet dark" id="shWeek" role="dialog" aria-modal="true" aria-labelledby="hwFocus"><div class="grab"></div><div id="hwBody"></div></div>
 <div class="fx" id="fx" aria-hidden="true"></div>
 <label class="hap" aria-hidden="true"><input type="checkbox" switch id="hapIn" tabindex="-1"></label>
 </div>

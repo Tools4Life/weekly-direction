@@ -1,0 +1,3 @@
+#!/bin/sh
+# Refuse to push (and so to publish) a version of the app that errors.
+node "$(git rev-parse --show-toplevel)/.github/scripts/smoke.cjs" || { echo "pre-push: smoke test failed — push refused"; exit 1; }
