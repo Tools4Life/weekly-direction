@@ -908,6 +908,22 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .jrnr.typing .jword2{font-size:24px;margin:2px 0 10px}
 .jrnr.typing .vdate{display:none}
 .jrnr.typing .jin{padding-bottom:10px!important}
+/* Progress: Weeks | Habits */
+.pwhd{display:flex;align-items:center;justify-content:space-between}
+.pwseg{display:inline-flex;padding:2px;border-radius:999px;background:var(--card)}
+.pwseg button{min-height:30px;padding:0 13px;border-radius:999px;font-family:var(--cond);font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mu)}
+.pwseg button.on{background:var(--card2);color:var(--tx)}
+.hhnote{margin:10px 0 4px;font-size:13px;color:var(--mu2)}
+.hhrow{padding:13px 0;border-bottom:1px solid var(--rule)}
+.hhtop{display:flex;align-items:center;gap:12px}
+.hhtop .ic{display:flex;color:var(--tx)}.hhtop .ic svg{width:19px;height:19px}
+.hhn{flex:1;min-width:0;font-size:16px;line-height:1.25}.hhn small{display:block;font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;color:var(--mu2);margin-top:2px}
+.hhp{font-family:var(--cond);font-size:24px;font-weight:600}.hhp small{font-size:13px;color:var(--mu);font-weight:500}
+.hhcells{display:flex;gap:5px;margin:10px 0 0 31px}
+.hhc{width:22px;height:22px;border-radius:6px;border:1px solid rgba(232,116,59,.45);background:rgba(232,116,59,var(--r));padding:0}
+.hhc.none{border:1px dashed var(--line);background:none}
+.hhtip{margin:6px 0 0 31px;min-height:0;font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;color:var(--mu)}
+.hhtip:empty{display:none}
 </style>
 </head>
 <body>
@@ -1673,6 +1689,19 @@ async function importLifeFromLink(){const h=location.hash;if(!h.startsWith('#lif
 function weekStats(w){const days=habitDays(w).filter(d=>dayItems(w,d).length),m=w.marks||{},now=ymd(new Date());const kept=days.filter(d=>m[ymd(d)]==='on').length,past=days.filter(d=>ymd(d)<=now).length;
   const pct=w.status==='closed'&&w.percentage!=null?w.percentage:Math.round(kept/Math.max(1,days.length)*100);return{days,kept,past,pct}}
 const mini=(w,days)=>`<span class="mini">${days.map(d=>{const v=(w.marks||{})[ymd(d)];return`<i class="${v||''}"></i>`}).join('')}</span>`;
+// ---- per-habit history: each habit's kept rate across recent weeks (same habit = same library habit, else same name) ----
+let hView='weeks';
+function habitHistory(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt).slice(-8),todayK=ymd(new Date()),H=new Map();
+  ws.forEach((w,wi)=>{const dn=w.done||{};w.commitments.forEach(c=>{const key=c.chipId||c.name.trim().toLowerCase();
+    if(!H.has(key))H.set(key,{c,cells:Array(ws.length).fill(null),kept:0,tot:0,on:0,late:0,timed:false,last:0});const h=H.get(key);h.c=c;h.last=wi;if(c.by)h.timed=true;
+    let k=0,t=0;habitDays(w).filter(d=>onDay(c,d)).forEach(d=>{const dk=ymd(d),x=dn[dk]||{};if(dk>todayK)return;if(dk===todayK&&!x[c.id]&&!x[c.id+'@fail'])return;
+      t++;if(x[c.id]){k++;if(c.by){x[c.id+'@late']?h.late++:h.on++}}});
+    h.cells[wi]=t?{k,t,f:w.focus}:null;h.kept+=k;h.tot+=t})});
+  const hs=[...H.values()].filter(h=>h.tot).sort((a,b)=>b.last-a.last||a.c.name.localeCompare(b.c.name));
+  if(!hs.length)return'<p class="tempty">Habit history starts once a day has been recorded.</p>';
+  return`<p class="hhnote">Last ${ws.length} week${ws.length>1?'s':''}, oldest to newest. Tap a square for that week.</p>`+hs.map(h=>{const pct=Math.round(h.kept/h.tot*100),ot=h.on+h.late?Math.round(h.on/(h.on+h.late)*100):null;
+    return`<div class="hhrow"><div class="hhtop"><span class="ic">${ico(h.c.icon||'check')}</span><span class="hhn">${esc(h.c.name)}<small>${h.kept} of ${h.tot} days${ot!=null?` · ${ot}% on time`:''}</small></span><b class="hhp">${pct}<small>%</small></b></div>
+      <div class="hhcells">${h.cells.map(x=>x?`<button class="hhc" data-hh="${esc(x.f)}: ${x.k} of ${x.t} days" style="--r:${(x.k/x.t).toFixed(2)}" aria-label="${esc(x.f)}: ${x.k} of ${x.t} days"></button>`:'<span class="hhc none"></span>').join('')}</div><div class="hhtip"></div></div>`}).join('')}
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
@@ -1686,7 +1715,10 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null,bi=ws.length?ws.lastIndexOf(Math.max(...ws)):-1;
   const sum=ws.length>=2?`${ws.length} weeks · avg ${avg}% · best ${esc(trend[bi].focus)} ${ws[bi]}%`:'';
   $('hList').innerHTML=cur+`<div class="trcard"><div class="trhd"><span class="trt">Trend</span>${sum?`<span class="trsum">${sum}</span>`:''}</div><div class="tchart" id="tChart"></div></div>`
-    +(past.length?`<div class="lbl pwl">Past weeks</div><div class="pwlist" id="pwList">${past.join('')}</div>`:'');
+    +(past.length||weeks.length?`<div class="pwl pwhd"><span class="lbl">${hView==='habits'?'Habits':'Past weeks'}</span><span class="pwseg"><button data-hv="weeks" class="${hView!=='habits'?'on':''}">Weeks</button><button data-hv="habits" class="${hView==='habits'?'on':''}">Habits</button></span></div>
+      <div class="pwlist" id="pwList">${hView==='habits'?habitHistory():past.join('')||'<p class="tempty">Past weeks will show here.</p>'}</div>`:'');
+  $('hList').querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{if(hView===b.dataset.hv)return;hView=b.dataset.hv;haptic();renderHistory()});
+  $('hList').querySelectorAll('[data-hh]').forEach(b=>b.onclick=()=>{const t=b.dataset.hh;b.closest('.hhrow').querySelector('.hhtip').textContent=t});
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
   {const aw=weeks.find(w=>w.status==='active'),rb=$('hReflect');rb.hidden=!aw;if(aw){rb.innerHTML=`${ico('pen')}Reflect`;rb.onclick=()=>openJournal(aw)}}
   drawTrend(trend)}
