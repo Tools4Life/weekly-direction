@@ -1059,6 +1059,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <div class="card"><div class="it" style="display:block"><label class="lbl" for="stAnchor" style="display:block;margin-bottom:6px">Anchor · asked every week</label><input class="field" id="stAnchor" style="background:var(--card2)"></div>
   <div class="it" style="display:block"><label class="lbl" for="stQs" style="display:block;margin-bottom:6px">Question library</label><textarea class="long dk" id="stQs" rows="8" style="min-height:220px" placeholder="One per line. Start a line with # for a group name."></textarea></div></div>
   <p class="mu" style="font-size:14px;margin:10px 4px">When you plan a week you pick two from the library; the anchor is always included. One question per line; lines starting with # are group names.</p>
+  <div class="lbl group">Your data</div>
+  <div class="card"><div class="it"><label class="grow">Export my data<small>A copy of every week, habit, reflection, prayer and setting, as one file you can keep.</small></label><button class="btn ghost" id="stExport" style="flex:none;min-height:40px;padding:0 16px">Export</button></div></div>
 </section>
 
 <!-- Plan the week -->
@@ -1275,6 +1277,8 @@ async function firestoreStore(){
     putChip:c=>{const {id,...v}=c;return F.setDoc(F.doc(paths.library,id),v).catch(fail)},
     delChip:id=>F.deleteDoc(F.doc(paths.library,id)).catch(fail),
     putWeek:w=>{const {id,...v}=w;return F.setDoc(F.doc(paths.weeks,id),v).catch(fail)},
+    // update only the named fields, so a save never rewrites checks or marks made elsewhere
+    patchWeek:(w,f)=>F.setDoc(F.doc(paths.weeks,w.id),f,{merge:true}).catch(fail),
     putDraft:v=>F.setDoc(paths.draft,v).catch(fail),
     delDraft:()=>F.deleteDoc(paths.draft).catch(fail),
     mark:(w,k,v)=>F.setDoc(F.doc(paths.weeks,w.id),{marks:{[k]:v??F.deleteField()}},{merge:true}).catch(fail),
@@ -1297,6 +1301,7 @@ function memoryStore(){
     putChip:c=>{const i=D.library.findIndex(x=>x.id===c.id);i<0?D.library.push(c):D.library[i]=c;D.library.sort((a,b)=>a.order-b.order);emit('library')},
     delChip:id=>{D.library=D.library.filter(x=>x.id!==id);emit('library')},
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
+    patchWeek:(w,f)=>{const x=D.weeks.find(y=>y.id===w.id);if(x)Object.assign(x,f);emit('weeks')},
     putDraft:v=>{D.draft=v;emit('draft');if(m.echoReady)emit('ready')},delDraft:()=>{D.draft=null;emit('draft')},
     mark:(w,k,v)=>{const x=D.weeks.find(y=>y.id===w.id);x.marks={...(x.marks||{})};if(v)x.marks[k]=v;else delete x.marks[k];emit('weeks')},
     setRun:(w,k,id,ts)=>m.delay?setTimeout(()=>store.setRun0(w,k,id,ts),m.delay):store.setRun0(w,k,id,ts),
@@ -1512,7 +1517,7 @@ function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null
   $('shHabit').onClose=saveHabitAbout;openSheet($('shHabit'))}
 function saveHabitAbout(){if(!HB)return;const w=D.weeks.find(x=>x.id===HB.wid),c=w&&w.commitments.find(x=>x.id===HB.cid);HB=null;if(!c)return;
   const about=$('hbAbout').value.trim();if(about===(c.about||''))return;
-  store.putWeek({...w,commitments:w.commitments.map(x=>{if(x.id!==c.id)return x;const {about:_a,...rest}=x;return about?{...rest,about}:rest})});
+  store.patchWeek(w,{commitments:w.commitments.map(x=>{if(x.id!==c.id)return x;const {about:_a,...rest}=x;return about?{...rest,about}:rest})});
   const ch=c.chipId&&D.library.find(x=>x.id===c.chipId);if(ch){const {about:_b,...rc}=ch;store.putChip(about?{...rc,about}:rc)}}
 $('hbDone').onclick=()=>closeSheet();
 $('hbActs').onclick=e=>{const b=e.target.closest('[data-hb]');if(!b||!HB)return;const a=b.dataset.hb,{wid,cid,k}=HB,w=D.weeks.find(x=>x.id===wid),c=w&&w.commitments.find(x=>x.id===cid);if(!c)return;
@@ -1556,7 +1561,7 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
       <div class="vsec lref"><div class="lbl vlbl">${live?'Reflection so far':'Reflection'}${closed?` · ${closed}`:''}</div>${refl}</div>
       <div class="vsec lhab"><div class="lbl">Habits</div><ul>${hab}</ul></div>`;
     const lt=$('lrLive');if(lt){const grow=()=>{lt.style.height='auto';lt.style.height=Math.max(160,lt.scrollHeight+2)+'px'};requestAnimationFrame(grow);let tt=null;
-      lt.oninput=()=>{grow();$('lrSaved').textContent='';clearTimeout(tt);tt=setTimeout(()=>{const cur=D.weeks.find(x=>x.id===w.id);if(cur){store.putWeek({...cur,liveRefl:lt.value});$('lrSaved').textContent='Saved'}},700)}}
+      lt.oninput=()=>{grow();$('lrSaved').textContent='';clearTimeout(tt);tt=setTimeout(()=>{const cur=D.weeks.find(x=>x.id===w.id);if(cur){store.patchWeek(cur,{liveRefl:lt.value});$('lrSaved').textContent='Saved'}},700)}}
   }else{
   $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
     ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
@@ -1580,7 +1585,7 @@ function jrFit(){const o=$('jrnR');if(o.hidden)return;const vv=window.visualView
   o.style.height=vv.height+'px';o.style.top=vv.offsetTop+'px';const t=$('jrText');
   if(document.activeElement===t){const pos=t.selectionEnd;if(pos===t.value.length)t.scrollTop=t.scrollHeight}}
 if(window.visualViewport){visualViewport.addEventListener('resize',jrFit);visualViewport.addEventListener('scroll',jrFit)}
-function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.putWeek({...cur,liveRefl:v});$('jrSaved').textContent='Saved'}}
+function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.patchWeek(cur,{liveRefl:v});$('jrSaved').textContent='Saved'}}
 function openJournal(w){if(!w)return;JW=w.id;const s0=new Date(w.sealedAt);
   $('jrDate').textContent=`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=w.liveRefl||'';$('jrSaved').textContent='';
   {const jq=qsOf(w);$('jrQs').innerHTML=jq.length?`<div class="lbl">Saturday you’ll answer</div>${jq.map(q=>`<p>${esc(q)}</p>`).join('')}`:''}
@@ -1818,7 +1823,7 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
   {const t=$('clRef');grow(t);t.addEventListener('input',()=>grow(t))}
   if(false)$('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
   $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
-    store.putWeek({...cur,status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
+    store.patchWeek(cur,{status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
     closeSheet();setTimeout(()=>closeMoment(cur,s2,()=>openPlan(null,cur)),260)}}
 // the week's close: % counts up, days fill in one by one, then planning opens (tap to skip)
 function closeMoment(w,st,next){const o=$('wClose'),m=w.marks||{};let done=false;const go=()=>{if(done)return;done=true;o.classList.remove('on');setTimeout(()=>{o.hidden=true;next()},350)};
@@ -1862,6 +1867,11 @@ $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;cons
   if(b.dataset.tm==='fixed'&&!D.settings.timerFrom){const w=active();v.timerFrom=w?w.sealedAt:Date.now()}store.setSettings(v);Object.assign(D.settings,v);renderSettings()};
 $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
 [['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
+// export: everything in one JSON file (share sheet on iPhone, download elsewhere)
+$('stExport').onclick=async()=>{const data={app:'Weekly Direction',exportedAt:new Date().toISOString(),settings:D.settings,weeks:D.weeks,library:D.library,prayers:D.prayers,draft:D.draft||null};
+  const name=`weekly-direction-${ymd(new Date())}.json`,blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  try{const f=new File([blob],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000)};
 $('stSnd').onchange=e=>{const v=e.target.checked;store.setSettings({sounds:v});D.settings.sounds=v;if(v)snd('done')};
 $('stTheme').onclick=e=>{const b=e.target.closest('[data-th]');if(!b)return;haptic();store.setSettings({theme:b.dataset.th});D.settings.theme=b.dataset.th;applyTheme();renderSettings()};
 $('stQs').onchange=e=>{const v=e.target.value.replace(/\s+$/,'');store.setSettings({qLib:v});D.settings.qLib=v};
@@ -1940,7 +1950,7 @@ $('plSeal').onclick=async()=>{
   let id=P.replan||ymd(new Date(sealedAt));if(!P.replan&&D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
   const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon,...tmg(c)})),percentage:null,reflection:'',
     planThoughts:P.thoughts.trim(),qs:normQs(P.qs),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
-  clearTimeout(saveT);store.putWeek(week);store.delDraft();P=null;landWord=true;
+  clearTimeout(saveT);if(old){const {id:_i,...f}=week;store.patchWeek(old,f)}else store.putWeek(week);store.delDraft();P=null;landWord=true;
   await crossTo('week');
 };
 
