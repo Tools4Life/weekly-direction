@@ -924,6 +924,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .hhc.none{border:1px dashed var(--line);background:none}
 .hhtip{margin:6px 0 0 31px;min-height:0;font-family:var(--cond);font-size:12.5px;letter-spacing:.06em;color:var(--mu)}
 .hhtip:empty{display:none}
+.toast{position:fixed;left:50%;bottom:calc(var(--sb) + 96px);z-index:120;transform:translate(-50%,12px);max-width:86vw;padding:11px 16px;border-radius:12px;background:#26262A;color:#F2EFEA;font-size:15px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s}
+.toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -991,6 +993,14 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <div class="card"><div class="it" style="display:block"><label class="lbl" for="stAnchor" style="display:block;margin-bottom:6px">Anchor · asked every week</label><input class="field" id="stAnchor" style="background:var(--card2)"></div>
   <div class="it" style="display:block"><label class="lbl" for="stQs" style="display:block;margin-bottom:6px">Question library</label><textarea class="long dk" id="stQs" rows="8" style="min-height:220px" placeholder="One per line. Start a line with # for a group name."></textarea></div></div>
   <p class="mu" style="font-size:14px;margin:10px 4px">When you plan a week you pick two from the library; the anchor is always included. One question per line; lines starting with # are group names.</p>
+  <div class="lbl group">Notifications</div>
+  <div class="card"><div class="it"><label class="grow" for="stPush">Notifications on this phone<small id="stPushNote">Reminders from your week, even when the app is closed.</small></label><input type="checkbox" switch id="stPush" class="tgl"></div>
+  <div id="stPushKinds">
+  <div class="it"><label class="grow" for="pkBy">Before a start-by time<small>15 minutes before, if it isn’t started</small></label><input type="checkbox" switch id="pkBy" class="tgl" data-pk="startBy"></div>
+  <div class="it"><label class="grow" for="pkTm">Timer finished<small>When a focus timer ends with the app closed</small></label><input type="checkbox" switch id="pkTm" class="tgl" data-pk="timer"></div>
+  <div class="it"><label class="grow" for="pkEv">Evening check<small>9 pm, if any of today’s habits are open</small></label><input type="checkbox" switch id="pkEv" class="tgl" data-pk="evening"></div>
+  <div class="it"><label class="grow" for="pkRv">Saturday review<small>When the weekly review opens</small></label><input type="checkbox" switch id="pkRv" class="tgl" data-pk="review"></div>
+  </div></div>
   <div class="lbl group">Your data</div>
   <div class="card"><div class="it"><label class="grow">Export my data<small>A copy of every week, habit, reflection, prayer and setting, as one file you can keep.</small></label><button class="btn ghost" id="stExport" style="flex:none;min-height:40px;padding:0 16px">Export</button></div></div>
 </section>
@@ -1204,6 +1214,8 @@ async function firestoreStore(){
         b.set(paths.settings,{seeded:true,libV:2},{merge:true});await b.commit();S.done=true}catch(e){fail(e)}finally{S.migrating=false}
     },
     setSettings:v=>F.setDoc(paths.settings,v,{merge:true}).catch(fail),
+    setPush:v=>F.setDoc(F.doc(db,...base,'push'),v,{merge:true}),
+    getPush:()=>F.getDoc(F.doc(db,...base,'push')).then(x=>x.exists()?x.data():null).catch(()=>null),
     putChip:c=>{const {id,...v}=c;return F.setDoc(F.doc(paths.library,id),v).catch(fail)},
     delChip:id=>F.deleteDoc(F.doc(paths.library,id)).catch(fail),
     putWeek:w=>{const {id,...v}=w;return F.setDoc(F.doc(paths.weeks,id),v).catch(fail)},
@@ -1228,6 +1240,8 @@ function memoryStore(){
     attach(u,e){emit=e;D.syncNote='Preview data';D.library=SEED.map(([name,icon],i)=>({id:'c'+i,name,icon,order:i}));D.weeks=m.weeks||[];if(m.settings)Object.assign(D.settings,m.settings);
       D.draft=m.draft||null;D.prayers=m.prayers||[];D.caf=m.caf||{};setTimeout(()=>emit('ready'))},
     setSettings:v=>{Object.assign(D.settings,v);emit('settings')},
+    setPush:v=>{D.push={...(D.push||{}),...v,prefs:{...((D.push||{}).prefs||{}),...(v.prefs||{})},subs:{...((D.push||{}).subs||{}),...(v.subs||{})}};return Promise.resolve()},
+    getPush:()=>Promise.resolve(D.push||null),
     putChip:c=>{const i=D.library.findIndex(x=>x.id===c.id);i<0?D.library.push(c):D.library[i]=c;D.library.sort((a,b)=>a.order-b.order);emit('library')},
     delChip:id=>{D.library=D.library.filter(x=>x.id!==id);emit('library')},
     putWeek:w=>{D.weeks=[w,...D.weeks.filter(x=>x.id!==w.id)].sort((a,b)=>b.sealedAt-a.sealedAt);emit('weeks')},
@@ -1786,7 +1800,7 @@ function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textConten
   const sh=portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width),gap=sa?sh-innerHeight:0;
   document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap/2:0)+'px')};
   fix();addEventListener('resize',fix);visualViewport&&visualViewport.addEventListener('resize',fix);setTimeout(fix,500)})();
-function renderSettings(){renderSettingsAccount();const s=D.settings,act=document.activeElement;
+function renderSettings(){renderSettingsAccount();renderPush();const s=D.settings,act=document.activeElement;
   $('stSnd').checked=s.sounds!==false;
   $('stTheme').querySelectorAll('[data-th]').forEach(b=>b.classList.toggle('on',b.dataset.th===(s.theme||'dark')));
   if(act!==$('stQs'))$('stQs').value=s.qLib||'';if(act!==$('stAnchor'))$('stAnchor').value=s.anchorQ||'';
@@ -1814,6 +1828,28 @@ $('stTimer').onclick=e=>{const b=e.target.closest('[data-tm]');if(!b)return;cons
 $('stFrom').onchange=e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){store.setSettings({timerFrom:t});D.settings.timerFrom=t}};
 [['cfStart','cafStart',0],['cfStep','cafStep',1],['cfDays','cafDays',1]].forEach(([id,k,min])=>$(id).onchange=e=>{const v=Math.max(min,Math.round(+e.target.value||0));store.setSettings({[k]:v});D.settings[k]=v;renderSettings()});
 // export: everything in one JSON file (share sheet on iPhone, download elsewhere)
+function toastMsg(t){let el=document.getElementById('toast');if(!el){el=document.createElement('div');el.id='toast';el.className='toast';document.body.appendChild(el)}el.textContent=t;el.classList.add('on');clearTimeout(toastMsg.t);toastMsg.t=setTimeout(()=>el.classList.remove('on'),3200)}
+// ---- push notifications: subscribe this phone; the Firebase function sends the reminders ----
+const PUSH_KEY_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/vapidKey';
+const pushDev=()=>{try{let d=localStorage.getItem('wdPushDev');if(!d){d=uid();localStorage.setItem('wdPushDev',d)}return d}catch(e){return'dev'}};
+const b64u=s=>{const p='='.repeat((4-s.length%4)%4),b=atob((s+p).replace(/-/g,'+').replace(/_/g,'/'));return Uint8Array.from(b,c=>c.charCodeAt(0))};
+const pushOK=()=>'serviceWorker' in navigator&&'PushManager' in window&&'Notification' in window;
+let PUSH=null;
+async function renderPush(){if(!$('stPush'))return;PUSH=PUSH||await store.getPush()||{};const on=!!(PUSH.subs&&PUSH.subs[pushDev()])&&pushOK()&&Notification.permission==='granted',pf=PUSH.prefs||{};
+  $('stPush').checked=on;$('stPushKinds').hidden=!on;$('stPushKinds').querySelectorAll('[data-pk]').forEach(x=>x.checked=pf[x.dataset.pk]!==false);
+  const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
+  $('stPushNote').textContent=!pushOK()?(standalone?'This phone’s browser doesn’t support notifications.':'Open the app from your Home Screen icon to turn these on.'):Notification.permission==='denied'?'Notifications are blocked: iPhone Settings › Notifications › Weekly Direction.':'Reminders from your week, even when the app is closed.'}
+$('stPush').onchange=async e=>{const want=e.target.checked,dev=pushDev();
+  try{if(want){if(!pushOK())throw new Error('unsupported');const perm=await Notification.requestPermission();if(perm!=='granted')throw new Error('denied');
+      const key=(await (await fetch(PUSH_KEY_URL)).json()).publicKey,reg=await navigator.serviceWorker.ready;
+      const sub=(await reg.pushManager.getSubscription())||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64u(key)});
+      const tz=Intl.DateTimeFormat().resolvedOptions().timeZone;await store.setPush({tz,subs:{[dev]:sub.toJSON()},prefs:{startBy:true,timer:true,evening:true,review:true,...((PUSH||{}).prefs||{})}});
+      PUSH=null;haptic()}
+    else{const reg=await navigator.serviceWorker.ready,sub=await reg.pushManager.getSubscription();if(sub)await sub.unsubscribe();
+      const subs={...((PUSH||{}).subs||{})};delete subs[dev];await store.setPush({subs:{[dev]:null}});PUSH=null}}
+  catch(err){e.target.checked=false;const m=String(err&&err.message||err);toastMsg(m==='denied'?'Notifications weren’t allowed.':m==='unsupported'?'Open the app from your Home Screen icon first.':'Couldn’t reach the reminder server yet.')}
+  renderPush()};
+$('stPushKinds').addEventListener('change',e=>{const k=e.target.dataset.pk;if(!k)return;store.setPush({prefs:{[k]:e.target.checked}});PUSH=null});
 $('stExport').onclick=async()=>{const data={app:'Weekly Direction',exportedAt:new Date().toISOString(),settings:D.settings,weeks:D.weeks,library:D.library,prayers:D.prayers,draft:D.draft||null};
   const name=`weekly-direction-${ymd(new Date())}.json`,blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
   try{const f=new File([blob],name,{type:'application/json'});if(navigator.canShare&&navigator.canShare({files:[f]})){await navigator.share({files:[f],title:name});return}}catch(e){if(e&&e.name==='AbortError')return}

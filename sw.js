@@ -1,5 +1,5 @@
 // Weekly Direction service worker: lets the home-screen app open with no signal.
-const CACHE='wd-v98';
+const CACHE='wd-v99';
 const FB='https://www.gstatic.com/firebasejs/10.12.2/';
 const SHELL=['./','./index.html','./manifest.json','./apple-touch-icon.png','./icon-192.png','./icon-512.png'];
 const SDK=[FB+'firebase-app.js',FB+'firebase-auth.js',FB+'firebase-firestore.js'];
@@ -15,3 +15,7 @@ self.addEventListener('fetch',e=>{
     e.respondWith(caches.match(r).then(m=>m||fetch(r).then(res=>{if(res.ok||res.type==='opaque'){const cp=res.clone();caches.open(CACHE).then(c=>c.put(r,cp))}return res})))}
   // everything else (Firestore, sign-in) goes straight to the network; Firestore keeps its own offline copy
 });
+// push notifications (sent by the Firebase reminder function); tapping one opens the app
+self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch(x){d={title:'Weekly Direction',body:e.data&&e.data.text()}}
+  e.waitUntil(self.registration.showNotification(d.title||'Weekly Direction',{body:d.body||'',tag:d.tag,icon:'./icon-192.png',badge:'./icon-192.png'}))});
+self.addEventListener('notificationclick',e=>{e.notification.close();e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs=>{for(const c of cs){if('focus' in c)return c.focus()}return self.clients.openWindow('./')}))});
