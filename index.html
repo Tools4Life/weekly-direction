@@ -1410,23 +1410,27 @@ function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur
 // c.by "HH:MM": must be tapped (or its timer started) before then, or the day's habit is missed.
 // c.min: tapping starts a focus timer; the habit is done when it runs out.
 const clock=t=>{const [h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)} ${h<12?'am':'pm'}`};
+const clock2=ms=>{const d=new Date(ms);return clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)};
 const tmLabel=(c,dl=true)=>[dl&&c.days?DAYS_L[c.days]:'',c.by?clock(c.by)+(c.byWe?` · wknd ${clock(c.byWe)}`:''):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
 const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
 // a habit's start-by for a day: its own time, or the one-time reschedule for that day
 // the day's normal start-by: weekend time on Sat/Sun if set, else the weekday time
 const baseBy=(k,c)=>{if(!c.by)return null;const d=new Date(k+'T12:00:00').getDay();return(d===0||d===6)&&c.byWe?c.byWe:c.by};
 const byOf=(w,k,c)=>c.by?((w&&((w.done||{})[k]||{})[c.id+'@rs'])||baseBy(k,c)):null;
+// grace rule (from Nov 8 2026): start within 2 h of the start-by and it counts on time; after that the habit is missed. No late, no reschedule.
+const GRACE_FROM='2026-11-08',GRACE_MS=2*36e5,graceDay=k=>k>=GRACE_FROM;
+const wasGr=(w,k,id)=>!!(((w.done||{})[k]||{})[id+'@grace']);
 const wasRs=(w,k,id)=>!!(((w.done||{})[k]||{})[id+'@rs']);
 const deadline=(k,c,w)=>{const b=byOf(w,k,c);return b?new Date(`${k}T${b}:00`).getTime():null};
 function hState(w,k,c,now=Date.now()){const dx=(w.done||{})[k]||{};if(dx[c.id+'@fail'])return'fail';if(dx[c.id])return'done';const r=runOf(w,k,c.id);
-  if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c,w);return dl&&now>dl?'late':'open'}
+  if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c,w);if(!dl||now<=dl)return'open';return!graceDay(k)?'late':now>dl+GRACE_MS?'miss':'grace'}
 const wasLate=(w,k,id)=>!!((w.done||{})[k]||{})[id+'@late'];
 const mmss=ms=>{const t=Math.max(0,Math.ceil(ms/1e3));return`${Math.floor(t/60)}:${pad(t%60)}`};
 // sets one item for a day and keeps the day's kept mark in step with it
 function setItem(w,k,id,val){const day=habitDays(w).find(d=>ymd(d)===k)||new Date(k+'T12:00:00'),items=dayItems(w,day),
   dn={...((w.done||{})[k]||{}),[id]:val},all=items.every(x=>dn[x]),cur=(w.marks||{})[k];let nv=cur;
-  if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;const c=w.commitments.find(x=>x.id===id),dl=c&&deadline(k,c,w),r=runOf(w,k,id),late=!!(val&&dl&&(r||Date.now())>dl);
-  store.setDay(w,k,c?{[id]:val,[id+'@late']:late}:{[id]:val},nv);return nv!==cur}
+  if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;const c=w.commitments.find(x=>x.id===id),dl=c&&deadline(k,c,w),r=runOf(w,k,id),past=!!(val&&dl&&(r||Date.now())>dl),late=past&&!graceDay(k);
+  store.setDay(w,k,c?{[id]:val,[id+'@late']:late,...(graceDay(k)?{[id+'@grace']:past}:{})}:{[id]:val},nv);return nv!==cur}
 let FC=null,fcRAF=null,fcLock=null;
 function fcDialStatic(span){const R=150,step=span<=60?5:span<=120?10:30,tick=span<=120?1:5;const L=LIGHT(),FACE=L?'#FFFFFF':'#0E0E10',RIM=L?'#DDD9D2':'#2C2C30',TK1=L?'#6F6A63':'#8E8A84',TK2=L?'#CFCAC2':'#3A3A3E',NUM=L?'#5E5953':'#B5B0A8',HAND=L?'#1B1917':'#F2EFEA';
   let o=`<circle r="${R}" fill="${FACE}" stroke="${RIM}" stroke-width="1.5"/><path id="fcWedge" fill="rgba(232,116,59,.85)"/>`;
@@ -1462,15 +1466,15 @@ function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null
   $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}${c.byWe?`, weekends ${clock(c.byWe)}`:''}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
   $('hbAbout').value=c.about||'';requestAnimationFrame(hbGrow);
   const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
-  $('hbState').textContent=!k?'':k<ymd(new Date())?(st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late. Locked.`:`Done ${day}. Locked.`):st==='fail'?`Failed ${day}. Locked.`:`Missed ${day}. Locked.`):st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(byOf(w,k,c))}. You can still do it; it’ll be logged as late.`:st==='fail'?`Failed ${day}. This is final.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
+  $('hbState').textContent=!k?'':k<ymd(new Date())?(st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late. Locked.`:`Done ${day}. Locked.`):st==='fail'?`Failed ${day}. Locked.`:`Missed ${day}. Locked.`):st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(byOf(w,k,c))}. You can still do it; it’ll be logged as late.`:st==='grace'?`Past ${clock(byOf(w,k,c))}. Start by ${clock2(deadline(k,c,w)+GRACE_MS)} and it still counts on time. After that it’s missed.`:st==='miss'?`Missed today. The grace window closed at ${clock2(deadline(k,c,w)+GRACE_MS)}. This is final.`:st==='fail'?`Failed ${day}. This is final.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
   const past=k&&k<ymd(new Date());
   $('hbActs').innerHTML=!k||past?'':st==='done'?`<button class="danger" data-hb="fail">Mark failed</button>`
-    :st==='miss'?`<button class="btn ghost" data-hb="force">Mark done anyway</button>`
+    :st==='miss'?''
     :st==='fail'?''
     :st==='run'?`<button class="btn ghost" data-hb="open">Open timer</button><button class="danger" data-hb="fail">Mark failed</button>`
     :`<button class="danger" data-hb="fail">Mark failed</button>`;
   // one reschedule per habit per day, for habits with a start-by that aren't done, failed or running
-  const canRs=k&&!past&&c.by&&(st==='open'||st==='late')&&!wasRs(w,k,c.id);
+  const canRs=k&&!past&&!graceDay(k)&&c.by&&(st==='open'||st==='late')&&!wasRs(w,k,c.id);
   if(canRs)$('hbActs').insertAdjacentHTML('afterbegin',`<div class="rsbox"><div class="rshd"><b>Reschedule today</b><small>Once per day. Finish by the new time and it counts as on time; the reschedule is still recorded.</small></div>
     <div class="rsrow"><input type="time" class="field" id="hbRsT" value="${(()=>{const d=new Date(Date.now()+60*6e4);return`${pad(d.getHours())}:${pad(Math.floor(d.getMinutes()/15)*15)}`})()}"><button class="btn ink" data-hb="rs">Reschedule</button></div><p class="rserr" id="hbRsE"></p></div>`);
   else if(k&&c.by&&wasRs(w,k,c.id))$('hbState').textContent+=` Rescheduled today from ${clock(baseBy(k,c))} to ${clock(byOf(w,k,c))}.`;
@@ -1513,7 +1517,7 @@ function onTime(w){const dn=w.done||{},per=w.commitments.filter(c=>c.by).map(c=>
 let VW=null;
 function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
   const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
-  const tally=c=>{if(!log||!c.by)return'';const dn=w.done||{};let on=0,lt=0,rs=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id+'@rs'])rs++;if(x[c.id]){x[c.id+'@late']?lt++:on++}});return on||lt||rs?`${on} on time · ${lt} late${rs?` · ${rs} rescheduled`:''}`:''};
+  const tally=c=>{if(!log||!c.by)return'';const dn=w.done||{};let on=0,lt=0,rs=0,gr=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id+'@rs'])rs++;if(x[c.id]&&x[c.id+'@grace'])gr++;if(x[c.id]){x[c.id+'@late']?lt++:on++}});return on||lt||rs?`${on} on time${gr?` (${gr} in grace)`:''}${lt?` · ${lt} late`:graceDay(ymd(habitDays(w)[0]||new Date()))?'':' · 0 late'}${rs?` · ${rs} rescheduled`:''}`:''};
   const item=c=>{const m=[c.by?`start by ${clock(c.by)}${c.byWe?`, weekends ${clock(c.byWe)}`:''}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
   if(log){const st=weekStats(w),m=w.marks||{},ot=onTime(w),closed=w.closedAt?fmtDate(new Date(w.closedAt)):'';
     const blocks=(w.reflection||'').split(/\n{2,}/).filter(x=>x.trim());
@@ -1609,8 +1613,8 @@ function renderWeek(animate){
     <div class="hcards">${w.commitments.filter(c=>!selDay||onDay(c,selDay)).map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
         return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</span></button></div>`}
       const st0=hState(w,selKey,c),st=selKey<todayK&&st0!=='done'&&st0!=='fail'?'miss':st0,r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
-      const rs=wasRs(w,selKey,c.id),meta=st==='miss'?'missed':st==='fail'?'failed':st==='late'?`late · ${clock(byOf(w,selKey,c))}`:rs&&(st==='open')?`${clock(byOf(w,selKey,c))} · rescheduled`:st==='done'&&rs&&!wasLate(w,selKey,c.id)?(c.min?`done · rescheduled · ${c.min} min`:'done · rescheduled'):st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):[c.by?clock(byOf(w,selKey,c)):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
-      const ck=st==='done'?ico('ok'):st==='run'||(c.min&&(st==='open'||st==='late')&&selKey===todayK)?ico('timer'):st==='miss'||st==='fail'?ico('x'):'';
+      const rs=wasRs(w,selKey,c.id),meta=st==='miss'?'missed':st==='fail'?'failed':st==='late'?`late · ${clock(byOf(w,selKey,c))}`:st==='grace'?`grace · until ${clock2(deadline(selKey,c,w)+GRACE_MS)}`:rs&&(st==='open')?`${clock(byOf(w,selKey,c))} · rescheduled`:st==='done'&&rs&&!wasLate(w,selKey,c.id)?(c.min?`done · rescheduled · ${c.min} min`:'done · rescheduled'):st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):[c.by?clock(byOf(w,selKey,c)):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
+      const ck=st==='done'?ico('ok'):st==='run'||(c.min&&(st==='open'||st==='late'||st==='grace')&&selKey===todayK)?ico('timer'):st==='miss'||st==='fail'?ico('x'):'';
       const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':st==='fail'?'failed':c.min&&selKey===todayK?'start timer':'mark done';
       return`<div class="hcard${on?' done':''}${st==='miss'||st==='fail'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st==='fail'?'miss':st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
   const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
@@ -1631,13 +1635,13 @@ function renderWeek(animate){
   // one item at a time; finishing the last one fills the big check (and un-ticking one takes it back)
   const toggleItem=k=>{const c=w.commitments.find(x=>x.id===k);
     if(selKey!==ymd(new Date())){b0(k);if(todayK!==ymd(new Date()))renderWeek(false);return}
-    if(c){const st=hState(w,selKey,c);if(st==='done'||st==='fail'){b0(k);return}
-      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'||st==='late'?Date.now():null;if(t0){store.setRun(w,selKey,k,t0);snd('start')}openFocus(w,c,selKey,t0);return}}
+    if(c){const st=hState(w,selKey,c);if(st==='done'||st==='fail'||st==='miss'){b0(k);return}
+      if(c.min&&selKey===todayK&&st!=='done'){haptic();const t0=st==='open'||st==='late'||st==='grace'?Date.now():null;if(t0){store.setRun(w,selKey,k,t0);snd('start')}openFocus(w,c,selKey,t0);return}}
     const dn={...selDn,[k]:!selDn[k]},all=items.every(x=>dn[x]),cur=(w.marks||{})[selKey];
     let nv=cur;if(all&&cur!=='on'){nv='on';celebrate={v:'on'}}else if(!all&&cur==='on')nv=undefined;
     if(dn[k])snd(nv==='on'&&cur!=='on'?'day':'done');
-    const dl=c&&deadline(selKey,c,w),lt=!!(dn[k]&&dl&&Date.now()>dl);
-    haptic();store.setDay(w,selKey,c?{[k]:dn[k],[k+'@late']:lt}:{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
+    const dl=c&&deadline(selKey,c,w),pst=!!(dn[k]&&dl&&Date.now()>dl),lt=pst&&!graceDay(selKey);
+    haptic();store.setDay(w,selKey,c?{[k]:dn[k],[k+'@late']:lt,...(graceDay(selKey)?{[k+'@grace']:pst}:{})}:{[k]:dn[k]},nv);if(nv===cur)renderWeek(false)};
   const b0=k=>{const x=el.querySelector(`[data-h="${k}"]`)?.closest('.hcard');if(x){x.classList.remove('nudge');void x.offsetWidth;x.classList.add('nudge')}};
   el.querySelectorAll('[data-hd]').forEach(b=>b.onclick=()=>{const c=w.commitments.find(x=>x.id===b.dataset.hd);if(c)openHabit(w,c,selKey)});
   el.querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>toggleItem(b.dataset.h));
@@ -1649,7 +1653,7 @@ function renderWeek(animate){
   if(animate)el.querySelectorAll('.dose b').forEach(b=>countUp(b,+b.textContent));
   bindCaf(el);
   if(selKey){const fin=w.commitments.filter(c=>onDay(c,selDay)&&hState(w,selKey,c)==='fin');if(fin.length&&!FC)setTimeout(()=>fin.forEach(c=>setItem(w,selKey,c.id,true)),60)}
-  const flips=selKey?w.commitments.filter(c=>onDay(c,selDay)).flatMap(c=>{const st=hState(w,selKey,c),r=runOf(w,selKey,c.id);return st==='run'?[r+c.min*6e4]:st==='open'&&c.by?[deadline(selKey,c,w)]:[]}).filter(t=>t>Date.now()):[],flipAt=flips.length?Math.min(...flips):Infinity;
+  const flips=selKey?w.commitments.filter(c=>onDay(c,selDay)).flatMap(c=>{const st=hState(w,selKey,c),r=runOf(w,selKey,c.id);return st==='run'?[r+c.min*6e4]:st==='open'&&c.by?[deadline(selKey,c,w)]:st==='grace'?[deadline(selKey,c,w)+GRACE_MS]:[]}).filter(t=>t>Date.now()):[],flipAt=flips.length?Math.min(...flips):Infinity;
   if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!$('wkTimer')||tab!=='week')return clearInterval(tickT);
     if(new Date()>=end||Date.now()>=flipAt)return renderWeek(false);
     el.querySelectorAll('[data-left]').forEach(x=>{const c=w.commitments.find(y=>y.id===x.dataset.left),r=c&&runOf(w,selKey,c.id);if(!r)return;
@@ -1729,14 +1733,14 @@ const mini=(w,days)=>`<span class="mini">${days.map(d=>{const v=(w.marks||{})[ym
 let hView='weeks';
 function habitHistory(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt).slice(-8),todayK=ymd(new Date()),H=new Map();
   ws.forEach((w,wi)=>{const dn=w.done||{};w.commitments.forEach(c=>{const key=c.chipId||c.name.trim().toLowerCase();
-    if(!H.has(key))H.set(key,{c,cells:Array(ws.length).fill(null),kept:0,tot:0,on:0,late:0,rs:0,timed:false,last:0});const h=H.get(key);h.c=c;h.last=wi;if(c.by)h.timed=true;
+    if(!H.has(key))H.set(key,{c,cells:Array(ws.length).fill(null),kept:0,tot:0,on:0,late:0,rs:0,gr:0,timed:false,last:0});const h=H.get(key);h.c=c;h.last=wi;if(c.by)h.timed=true;
     let k=0,t=0;habitDays(w).filter(d=>onDay(c,d)).forEach(d=>{const dk=ymd(d),x=dn[dk]||{};if(dk>todayK)return;if(dk===todayK&&!x[c.id]&&!x[c.id+'@fail'])return;
-      t++;if(x[c.id+'@rs'])h.rs++;if(x[c.id]){k++;if(c.by){x[c.id+'@late']?h.late++:h.on++}}});
+      t++;if(x[c.id+'@rs'])h.rs++;if(x[c.id]&&x[c.id+'@grace'])h.gr++;if(x[c.id]){k++;if(c.by){x[c.id+'@late']?h.late++:h.on++}}});
     h.cells[wi]=t?{k,t,f:w.focus}:null;h.kept+=k;h.tot+=t})});
   const hs=[...H.values()].filter(h=>h.tot).sort((a,b)=>b.last-a.last||a.c.name.localeCompare(b.c.name));
   if(!hs.length)return'<p class="tempty">Habit history starts once a day has been recorded.</p>';
   return`<p class="hhnote">Last ${ws.length} week${ws.length>1?'s':''}, oldest to newest. Tap a square for that week.</p>`+hs.map(h=>{const pct=Math.round(h.kept/h.tot*100),ot=h.on+h.late?Math.round(h.on/(h.on+h.late)*100):null;
-    return`<div class="hhrow"><div class="hhtop"><span class="ic">${ico(h.c.icon||'check')}</span><span class="hhn">${esc(h.c.name)}<small>${h.kept} of ${h.tot} days${ot!=null?` · ${ot}% on time`:''}${h.rs?` · ${h.rs} rescheduled`:''}</small></span><b class="hhp">${pct}<small>%</small></b></div>
+    return`<div class="hhrow"><div class="hhtop"><span class="ic">${ico(h.c.icon||'check')}</span><span class="hhn">${esc(h.c.name)}<small>${h.kept} of ${h.tot} days${ot!=null?` · ${ot}% on time`:''}${h.gr?` · ${h.gr} in grace`:''}${h.rs?` · ${h.rs} rescheduled`:''}</small></span><b class="hhp">${pct}<small>%</small></b></div>
       <div class="hhcells">${h.cells.map(x=>x?`<button class="hhc" data-hh="${esc(x.f)}: ${x.k} of ${x.t} days" style="--r:${(x.k/x.t).toFixed(2)}" aria-label="${esc(x.f)}: ${x.k} of ${x.t} days"></button>`:'<span class="hhc none"></span>').join('')}</div><div class="hhtip"></div></div>`}).join('')}
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
