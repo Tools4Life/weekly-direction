@@ -26,8 +26,9 @@ function dueReminders({ from, to, week, settings, prefs, tz }) {
   const open = c => !dn[c.id] && !dn[c.id + '@fail'];
   const inWin = t => t > from && t <= to;
   if (prefs.startBy !== false) for (const c of habits) if (c.by && open(c) && !runs[c.id]) {
-    const t = at(k, c.by, tz) - 15 * 60e3;
-    if (inWin(t)) out.push({ id: `by:${k}:${c.id}`, title: c.name, body: `Start by ${clock(c.by)} — 15 minutes left.` });
+    const by = dn[c.id + '@rs'] || ((p.dow === 0 || p.dow === 6) && c.byWe) || c.by;
+    const t = at(k, by, tz) - 15 * 60e3;
+    if (inWin(t)) out.push({ id: `by:${k}:${c.id}`, title: c.name, body: `Start by ${clock(by)} — 15 minutes left.` });
   }
   if (prefs.timer !== false) for (const c of week.commitments || []) { const r = runs[c.id]; if (r && c.min && !dn[c.id]) { const t = r + c.min * 60e3; if (inWin(t)) out.push({ id: `timer:${k}:${c.id}`, title: `${c.name} · done`, body: `Your ${c.min}-minute timer finished.` }); } }
   if (prefs.evening !== false) { const t = at(k, '21:00', tz), left = habits.filter(open); if (inWin(t) && left.length) out.push({ id: `eve:${k}`, title: 'Today isn’t finished', body: `${left.length} habit${left.length > 1 ? 's' : ''} still open: ${left.map(c => c.name).join(', ')}.` }); }

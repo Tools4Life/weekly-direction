@@ -1056,6 +1056,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <span class="lbl l2">Timing <em class="ed">optional</em></span>
   <div class="chrow"><label>Days</label><div class="seg" id="chDays"><button data-d="">Every day</button><button data-d="wd">Weekdays</button><button data-d="we">Weekends</button></div></div>
   <div class="chrow"><label for="chBy">Start by</label><input class="field" id="chBy" type="time"><button class="clr" id="chByClr" aria-label="Clear start-by time">&times;</button></div>
+  <div class="chrow" id="chWeRow"><label for="chByWe">Weekends<small style="display:block;font-size:12.5px;color:var(--mu)">Sat &amp; Sun, if different</small></label><input class="field" id="chByWe" type="time"><button class="clr" id="chByWeClr" aria-label="Clear weekend start-by time">&times;</button></div>
   <div class="chrow"><label for="chMin">Timer</label><input class="field num" id="chMin" type="number" inputmode="numeric" min="1" max="240" placeholder="Off"><span class="unit">min</span></div>
   <p class="chnote">Start by: tap it before this time or it counts as missed. Timer: tapping it opens a focus timer, and it’s done when the time runs out.</p>
   <div class="acts" id="chActs"></div>
@@ -1153,7 +1154,7 @@ const OLD_SEEDED=['Strength training','Walk','In bed by 10','No caffeine','On ti
 // c.days: 'wd' = weekdays (Mon–Fri), 'we' = weekend (Sat/Sun); absent = every day
 const onDay=(c,day)=>!c.days||(c.days==='wd')===(day.getDay()>0&&day.getDay()<6);
 const DAYS_L={wd:'weekdays',we:'weekends'};
-const tmg=c=>({...(c.days==='wd'||c.days==='we'?{days:c.days}:{}),...(c.by?{by:c.by}:{}),...(c.min?{min:c.min}:{}),...(c.about?{about:c.about}:{})});
+const tmg=c=>({...(c.days==='wd'||c.days==='we'?{days:c.days}:{}),...(c.by?{by:c.by}:{}),...(c.by&&c.byWe&&c.byWe!==c.by&&c.days!=='wd'?{byWe:c.byWe}:{}),...(c.min?{min:c.min}:{}),...(c.about?{about:c.about}:{})});
 const habitOf=ch=>({id:uid(),chipId:ch.id||null,name:ch.name,icon:ch.icon||'check',...tmg(ch)});
 const CAF_PRESETS=()=>[['Pill',D.settings.cafPill||50],['Coffee',95],['Energy drink',160]];
 
@@ -1409,10 +1410,12 @@ function streakCard(anim){const {cur,best}=streakInfo(),next=MILES.find(m=>m>cur
 // c.by "HH:MM": must be tapped (or its timer started) before then, or the day's habit is missed.
 // c.min: tapping starts a focus timer; the habit is done when it runs out.
 const clock=t=>{const [h,m]=t.split(':').map(Number);return`${h%12||12}:${pad(m)} ${h<12?'am':'pm'}`};
-const tmLabel=(c,dl=true)=>[dl&&c.days?DAYS_L[c.days]:'',c.by?clock(c.by):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
+const tmLabel=(c,dl=true)=>[dl&&c.days?DAYS_L[c.days]:'',c.by?clock(c.by)+(c.byWe?` · wknd ${clock(c.byWe)}`:''):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
 const runOf=(w,k,id)=>((w.runs||{})[k]||{})[id]||null;
 // a habit's start-by for a day: its own time, or the one-time reschedule for that day
-const byOf=(w,k,c)=>c.by?((w&&((w.done||{})[k]||{})[c.id+'@rs'])||c.by):null;
+// the day's normal start-by: weekend time on Sat/Sun if set, else the weekday time
+const baseBy=(k,c)=>{if(!c.by)return null;const d=new Date(k+'T12:00:00').getDay();return(d===0||d===6)&&c.byWe?c.byWe:c.by};
+const byOf=(w,k,c)=>c.by?((w&&((w.done||{})[k]||{})[c.id+'@rs'])||baseBy(k,c)):null;
 const wasRs=(w,k,id)=>!!(((w.done||{})[k]||{})[id+'@rs']);
 const deadline=(k,c,w)=>{const b=byOf(w,k,c);return b?new Date(`${k}T${b}:00`).getTime():null};
 function hState(w,k,c,now=Date.now()){const dx=(w.done||{})[k]||{};if(dx[c.id+'@fail'])return'fail';if(dx[c.id])return'done';const r=runOf(w,k,c.id);
@@ -1456,7 +1459,7 @@ let HB=null;
 const hbGrow=()=>{const t=$('hbAbout');t.style.height='auto';t.style.height=Math.max(140,t.scrollHeight+2)+'px'};
 $('hbAbout').addEventListener('input',hbGrow);
 function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null,isT=k===ymd(new Date());
-  $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
+  $('hbIc').innerHTML=ico(c.icon||'check');$('hbName').textContent=c.name;$('hbMeta').textContent=[c.days?DAYS_L[c.days]:'every day',c.by?`start by ${clock(c.by)}${c.byWe?`, weekends ${clock(c.byWe)}`:''}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
   $('hbAbout').value=c.about||'';requestAnimationFrame(hbGrow);
   const day=k?(isT?'today':DOWL[new Date(k+'T12:00:00').getDay()]):'';
   $('hbState').textContent=!k?'':k<ymd(new Date())?(st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late. Locked.`:`Done ${day}. Locked.`):st==='fail'?`Failed ${day}. Locked.`:`Missed ${day}. Locked.`):st==='done'?(wasLate(w,k,c.id)?`Done ${day}, late.`:`Done ${day}.`):st==='late'?`Not started by ${clock(byOf(w,k,c))}. You can still do it; it’ll be logged as late.`:st==='fail'?`Failed ${day}. This is final.`:st==='run'?`Timer running.`:`Not done ${day} yet.`;
@@ -1470,7 +1473,7 @@ function openHabit(w,c,k){HB={wid:w.id,cid:c.id,k};const st=k?hState(w,k,c):null
   const canRs=k&&!past&&c.by&&(st==='open'||st==='late')&&!wasRs(w,k,c.id);
   if(canRs)$('hbActs').insertAdjacentHTML('afterbegin',`<div class="rsbox"><div class="rshd"><b>Reschedule today</b><small>Once per day. Finish by the new time and it counts as on time; the reschedule is still recorded.</small></div>
     <div class="rsrow"><input type="time" class="field" id="hbRsT" value="${(()=>{const d=new Date(Date.now()+60*6e4);return`${pad(d.getHours())}:${pad(Math.floor(d.getMinutes()/15)*15)}`})()}"><button class="btn ink" data-hb="rs">Reschedule</button></div><p class="rserr" id="hbRsE"></p></div>`);
-  else if(k&&c.by&&wasRs(w,k,c.id))$('hbState').textContent+=` Rescheduled today from ${clock(c.by)} to ${clock(byOf(w,k,c))}.`;
+  else if(k&&c.by&&wasRs(w,k,c.id))$('hbState').textContent+=` Rescheduled today from ${clock(baseBy(k,c))} to ${clock(byOf(w,k,c))}.`;
   $('shHabit').onClose=saveHabitAbout;openSheet($('shHabit'))}
 function saveHabitAbout(){if(!HB)return;const w=D.weeks.find(x=>x.id===HB.wid),c=w&&w.commitments.find(x=>x.id===HB.cid);HB=null;if(!c)return;
   const about=$('hbAbout').value.trim();if(about===(c.about||''))return;
@@ -1480,7 +1483,7 @@ $('hbDone').onclick=()=>closeSheet();
 $('hbActs').onclick=e=>{const b=e.target.closest('[data-hb]');if(!b||!HB)return;const a=b.dataset.hb,{wid,cid,k}=HB,w=D.weeks.find(x=>x.id===wid),c=w&&w.commitments.find(x=>x.id===cid);if(!c)return;
   if(a==='rs'){const t=$('hbRsT').value,at=t&&new Date(`${k}T${t}:00`).getTime();   // check first: a rejected time keeps the sheet as it is
     if(!t||at<=Date.now()+5*6e4){$('hbRsE').textContent='Pick a time later today, at least 5 minutes from now.';return}
-    if(t<=c.by){$('hbRsE').textContent=`Pick a time after ${clock(c.by)}.`;return}
+    if(t<=baseBy(k,c)){$('hbRsE').textContent=`Pick a time after ${clock(baseBy(k,c))}.`;return}
     if(k!==ymd(new Date())||wasRs(w,k,cid)||!confirm(`Reschedule ${c.name} to ${clock(t)} today? You can only do this once today.`))return;
     saveHabitAbout();store.setDay(w,k,{[cid+'@rs']:t},(w.marks||{})[k]);haptic();closeSheet();return}
   saveHabitAbout();
@@ -1511,7 +1514,7 @@ let VW=null;
 function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active',paras=(w.planThoughts||'').split(/\n{2,}/).filter(x=>x.trim());
   const grp=[['Every day',w.commitments.filter(c=>!c.days)],['Weekdays',w.commitments.filter(c=>c.days==='wd')],['Weekends',w.commitments.filter(c=>c.days==='we')]].filter(g=>g[1].length);
   const tally=c=>{if(!log||!c.by)return'';const dn=w.done||{};let on=0,lt=0,rs=0;habitDays(w).forEach(d=>{const x=dn[ymd(d)]||{};if(x[c.id+'@rs'])rs++;if(x[c.id]){x[c.id+'@late']?lt++:on++}});return on||lt||rs?`${on} on time · ${lt} late${rs?` · ${rs} rescheduled`:''}`:''};
-  const item=c=>{const m=[c.by?`start by ${clock(c.by)}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
+  const item=c=>{const m=[c.by?`start by ${clock(c.by)}${c.byWe?`, weekends ${clock(c.byWe)}`:''}`:'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${m?`<small>${m}</small>`:''}</span></li>`};
   if(log){const st=weekStats(w),m=w.marks||{},ot=onTime(w),closed=w.closedAt?fmtDate(new Date(w.closedAt)):'';
     const blocks=(w.reflection||'').split(/\n{2,}/).filter(x=>x.trim());
     const refl=live?`<p class="lrhint">How is the week going so far? Add to this anytime; it carries into Saturday’s review.</p><textarea class="long dk lrlive" id="lrLive" placeholder="Write as the week goes…">${esc(w.liveRefl||'')}</textarea><p class="lrsaved" id="lrSaved"></p>`:blocks.length?blocks.map(bk=>{const ls=bk.split('\n'),q=ls.length>1&&/\?\s*$/.test(ls[0]);
@@ -1606,7 +1609,7 @@ function renderWeek(animate){
     <div class="hcards">${w.commitments.filter(c=>!selDay||onDay(c,selDay)).map((c,i)=>{const on=!!selDn[c.id];if(!selKey){const tl=tmLabel(c);
         return`<div class="hcard${animate?' rise':''}" style="animation-delay:${i*40}ms"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${tl?`<span class="hmeta">${tl}</span>`:''}</span></button></div>`}
       const st0=hState(w,selKey,c),st=selKey<todayK&&st0!=='done'&&st0!=='fail'?'miss':st0,r=runOf(w,selKey,c.id),rp=st==='run'?Math.min(1,(Date.now()-r)/(c.min*6e4)):0;
-      const rs=wasRs(w,selKey,c.id),meta=st==='miss'?'missed':st==='fail'?'failed':st==='late'?`late · ${clock(byOf(w,selKey,c))}`:rs&&(st==='open')?`${clock(byOf(w,selKey,c))} · rescheduled`:st==='done'&&rs&&!wasLate(w,selKey,c.id)?(c.min?`done · rescheduled · ${c.min} min`:'done · rescheduled'):st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):tmLabel(c,false);
+      const rs=wasRs(w,selKey,c.id),meta=st==='miss'?'missed':st==='fail'?'failed':st==='late'?`late · ${clock(byOf(w,selKey,c))}`:rs&&(st==='open')?`${clock(byOf(w,selKey,c))} · rescheduled`:st==='done'&&rs&&!wasLate(w,selKey,c.id)?(c.min?`done · rescheduled · ${c.min} min`:'done · rescheduled'):st==='done'&&wasLate(w,selKey,c.id)?(c.min?`done late · ${c.min} min`:'done late'):st==='run'?`<span data-left="${c.id}">${mmss(r+c.min*6e4-Date.now())}</span>`:st==='done'?(c.min?`${c.min} min`:''):[c.by?clock(byOf(w,selKey,c)):'',c.min?`${c.min} min`:''].filter(Boolean).join(' · ');
       const ck=st==='done'?ico('ok'):st==='run'||(c.min&&(st==='open'||st==='late')&&selKey===todayK)?ico('timer'):st==='miss'||st==='fail'?ico('x'):'';
       const ckl=st==='done'?'done':st==='run'?'open timer':st==='miss'?'missed':st==='fail'?'failed':c.min&&selKey===todayK?'start timer':'mark done';
       return`<div class="hcard${on?' done':''}${st==='miss'||st==='fail'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st==='fail'?'miss':st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
@@ -1961,9 +1964,9 @@ function openChipSheet(o){
   const s=o.mode==='edit'?o.chip:o.mode==='tray'?o.item:null;if(o.mode!=='new'&&!s)return;
   CS={mode:o.mode,id:s?.id,name:s?.name||'',icon:s?.icon||'sun',days:s?.days||''};
   $('chTitle').textContent=o.mode==='edit'?'Edit habit':o.mode==='tray'?'This week’s habit':'New habit';$('chName').value=CS.name;
-  $('chBy').value=s?.by||'';$('chMin').value=s?.min||'';$('chAbout').value=s?.about||'';
+  $('chBy').value=s?.by||'';$('chByWe').value=s?.byWe||'';$('chMin').value=s?.min||'';$('chAbout').value=s?.about||'';
   renderChipSheet();openSheet($('shChip'));setTimeout(()=>{if(o.mode!=='edit')$('chName').focus()},320)}
-function renderChipSheet(){$('chDays').querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',b.dataset.d===CS.days));
+function renderChipSheet(){$('chWeRow').hidden=CS.days==='wd';$('chDays').querySelectorAll('[data-d]').forEach(b=>b.classList.toggle('on',b.dataset.d===CS.days));
   $('chIcons').innerHTML=ICON_CHOICES.map(n=>`<button data-ic="${n}" class="${CS.icon===n?'on':''}" aria-label="${n}">${ico(n)}</button>`).join('');
   $('chActs').innerHTML=CS.mode==='tray'?`<button class="btn ink" data-a="tray">Save for this week</button>`:CS.mode==='edit'?`<button class="btn ink" data-a="save">Save</button><button class="danger" data-a="del">Remove from library</button>`
     :`<button class="btn ink" data-a="lib">Save to library and add</button><button class="btn ghost" data-a="week">This week only</button>`}
@@ -1973,14 +1976,15 @@ $('shChip').addEventListener('click',e=>{const t=e.target.closest('button');if(!
   const a=t.dataset.a;if(!a)return;const name=$('chName').value.trim();
   if(a==='del'){if(confirm(`Remove “${CS.name}” from your library? Past weeks keep their own copy.`)){store.delChip(CS.id);closeSheet();setTimeout(renderChips,50)}return}
   if(!name){$('chName').focus();$('chName').style.borderColor='var(--ac)';return}
-  const days=CS.days||null,about=$('chAbout').value.trim()||null,by=$('chBy').value||null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
-  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,min:_m,about:_a,days:_d,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,min:mn,about,days})}}closeSheet();renderTray();saveDraft();return}
-  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,min:mn,about,days});closeSheet();setTimeout(renderChips,50);return}
-  const chip={id:uid(),name,icon:CS.icon,...tmg({by,min:mn,about,days}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
+  const days=CS.days||null,about=$('chAbout').value.trim()||null,by=$('chBy').value||null,byWe=(by&&days!=='wd'&&$('chByWe').value&&$('chByWe').value!==by)?$('chByWe').value:null,mn=Math.max(0,Math.min(240,Math.round(+$('chMin').value||0)))||null;
+  if(a==='tray'){const i=P.tray.findIndex(x=>x.id===CS.id);if(i>=0){const {by:_b,byWe:_w,min:_m,about:_a,days:_d,...rest}=P.tray[i];P.tray[i]={...rest,name,icon:CS.icon,...tmg({by,byWe,min:mn,about,days})}}closeSheet();renderTray();saveDraft();return}
+  if(a==='save'){const old=D.library.find(c=>c.id===CS.id);store.putChip({...old,id:CS.id,name,icon:CS.icon,by,byWe,min:mn,about,days});closeSheet();setTimeout(renderChips,50);return}
+  const chip={id:uid(),name,icon:CS.icon,...tmg({by,byWe,min:mn,about,days}),order:(Math.max(-1,...D.library.map(c=>c.order??0))+1)};
   if(a==='lib')store.putChip(chip);
   const nc=habitOf(a==='lib'?chip:{...chip,id:null});P.justAdded=nc.id;P.tray.push(nc);closeSheet();renderTray();renderChips();updateSeal();saveDraft()});
 $('chName').addEventListener('input',e=>e.target.style.borderColor='');
 $('chByClr').onclick=()=>{$('chBy').value=''};
+$('chByWeClr').onclick=()=>{$('chByWe').value=''};
 
 /* ---------- boot ---------- */
 function onData(kind){
