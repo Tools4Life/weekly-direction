@@ -849,6 +849,16 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* ---- Week stats page ---- */
 .str{z-index:97}
 .stseg{margin-bottom:22px}
+.stchart{margin-top:16px;padding:14px 14px 6px;border-radius:18px;background:var(--card)}
+.stch{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:2px 10px;margin-bottom:4px}.stch .lbl{white-space:nowrap}.stchs{font-size:12.5px;color:var(--mu);text-align:right}
+.stsvg{display:block;width:100%;height:auto;overflow:visible}
+.stsvg .tg{stroke:var(--line);stroke-width:1}.stsvg .tl,.stsvg .tx{font-family:var(--cond);font-size:11px;fill:var(--mu)}
+.stsvg .tv{font-family:var(--cond);font-size:14px;font-weight:600;fill:var(--tx)}
+.stln{fill:none;stroke:var(--ac);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.stdot{fill:var(--ac);stroke:var(--card);stroke-width:2}.stdot.live{fill:var(--card);stroke:var(--ac)}
+.stlist{display:grid;grid-template-columns:1fr 1fr;column-gap:22px;margin-top:14px}
+.stlist div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px solid var(--rule)}
+.stlist span{font-size:14px;color:var(--mu)}.stlist b{font-family:var(--cond);font-weight:500;font-size:16px;color:var(--tx);white-space:nowrap}
 .pghero{width:100%;text-align:left}.pghero:active{transform:scale(.99)}
 .pgr{text-align:left;align-items:stretch}
 .pgall{font-size:13px;color:var(--ac);margin-top:2px}
@@ -1965,38 +1975,43 @@ function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>
 function cellOf(w,k,c){const d=new Date(k+'T12:00:00');if(!onDay(c,d))return'na';const today=ymd(new Date());if(k>today)return'fut';
   const x=(w.done||{})[k]||{};if(x[c.id+'@fail'])return'fail';if(x[c.id])return x[c.id+'@late']?'late':x[c.id+'@grace']?'grace':'on';
   if(k<today)return'miss';const st=hState(w,k,c);return st==='miss'?'miss':'open'}
+// focal trend line for the stats page: pts=[{l:'x label',v:0-100|null,live,t:'tooltip'}]
+function stChart(pts,title,sub){const W=340,H=170,L=30,R=14,T=26,B=26,n=pts.length,xs=i=>n===1?L+(W-L-R)/2:L+i*(W-L-R)/(n-1),ys=v=>T+(1-v/100)*(H-T-B);
+  const P=pts.map((p,i)=>({...p,x:xs(i),y:p.v==null?null:ys(p.v)})),Q=P.filter(p=>p.y!=null);
+  const line=Q.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' '),area=Q.length>1?`${line} L${Q[Q.length-1].x.toFixed(1)} ${ys(0)} L${Q[0].x.toFixed(1)} ${ys(0)} Z`:'';
+  const grid=[0,50,100].map(v=>`<line x1="${L}" x2="${W-R}" y1="${ys(v)}" y2="${ys(v)}" class="tg"/><text x="${L-8}" y="${ys(v)+4}" class="tl" text-anchor="end">${v}</text>`).join('');
+  const step=n>8?Math.ceil(n/6):1,xl=P.map((p,i)=>i%step===0||i===n-1?`<text x="${p.x}" y="${H-6}" class="tx" text-anchor="middle">${esc(p.l)}</text>`:'').join('');
+  const last=Q[Q.length-1];
+  const svg=Q.length?`<svg viewBox="0 0 ${W} ${H}" class="stsvg" role="img" aria-label="${esc(title)}: ${Q.map(p=>p.v+'%').join(', ')}"><defs><linearGradient id="stg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--ac)" stop-opacity=".28"/><stop offset="1" stop-color="var(--ac)" stop-opacity="0"/></linearGradient></defs>
+    ${grid}${area?`<path d="${area}" fill="url(#stg)"/>`:''}${Q.length>1?`<path d="${line}" class="stln"/>`:''}
+    ${Q.map(p=>`<circle cx="${p.x}" cy="${p.y}" r="${p===last?5:3.5}" class="stdot${p.live?' live':''}"><title>${esc(p.t||'')}</title></circle>`).join('')}
+    <text x="${Math.min(last.x,W-R-4)}" y="${last.y-12}" class="tv" text-anchor="${last.x>W-R-30?'end':'middle'}">${last.v}%</text>${xl}</svg>`:`<p class="tempty">Nothing recorded yet.</p>`;
+  return`<div class="stchart"><div class="stch"><span class="lbl">${esc(title)}</span>${sub?`<span class="stchs">${sub}</span>`:''}</div>${svg}</div>`}
+const stList=rows=>`<div class="stlist">${rows.filter(Boolean).map(([l,v])=>`<div><span>${l}</span><b>${v}</b></div>`).join('')}</div>`;
 let SV=null; // week shown by the stats page's Week view
 function stSeg(on){return`<div class="pwseg stseg"><button data-sv="all" class="${on==='all'?'on':''}">All time</button><button data-sv="week" class="${on==='week'?'on':''}">Week</button></div>`}
 function stWire(){$('stBody').querySelectorAll('[data-sv]').forEach(b=>b.onclick=()=>{haptic();b.dataset.sv==='all'?openAllStats():openStats(D.weeks.find(x=>x.id===SV)||D.weeks.find(x=>x.status==='active')||D.weeks[0])})}
 function stShow(){const o=$('stR');o.scrollTop=0;if(o.hidden){o.hidden=false;requestAnimationFrame(()=>o.classList.add('on'))}stWire()}
 function openAllStats(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt);if(!ws.length)return;
-  const H=new Map(),wd=Array.from({length:7},()=>({done:0,due:0}));let done=0,due=0,on=0,grace=0,late=0,fail=0,miss=0,tDone=0,tOn=0,kept=0,days=0,perfect=0;
+  const H=new Map();let done=0,due=0,on=0,grace=0,late=0,fail=0,miss=0,tDone=0,tOn=0,kept=0,days=0,perfect=0;
   const wk=ws.map(w=>{const st=weekStats(w);kept+=st.kept;days+=st.days.length;if(w.status==='closed'&&st.pct===100)perfect++;
     st.days.map(ymd).forEach(k=>w.commitments.forEach(c=>{const v=cellOf(w,k,c);if(!['on','grace','late','fail','miss'].includes(v))return;
       const key=c.chipId||c.name.trim().toLowerCase();if(!H.has(key))H.set(key,{c,done:0,due:0,on:0,tdone:0});const h=H.get(key);h.c=c;
-      const ok=v==='on'||v==='grace'||v==='late',dw=new Date(k+'T12:00:00').getDay();due++;h.due++;wd[dw].due++;
-      if(ok){done++;h.done++;wd[dw].done++;if(c.by){tDone++;h.tdone++;if(v!=='late'){tOn++;h.on++}}}
+      const ok=v==='on'||v==='grace'||v==='late';due++;h.due++;
+      if(ok){done++;h.done++;if(c.by){tDone++;h.tdone++;if(v!=='late'){tOn++;h.on++}}}
       if(v==='on')on++;else if(v==='grace')grace++;else if(v==='late')late++;else if(v==='fail')fail++;else miss++}));
     return{w,pct:st.pct}});
   const closed=wk.filter(x=>x.w.status==='closed'),avg=closed.length?Math.round(closed.reduce((a,x)=>a+x.pct,0)/closed.length):null;
   const best=closed.length?closed.reduce((a,x)=>x.pct>=a.pct?x:a):null,{cur,best:bestRun}=streakInfo(),pct=due?Math.round(done/due*100):0;
-  const tile=(v,l,sub='')=>`<div class="sttile"><b>${v}</b><span>${l}</span>${sub?`<small>${sub}</small>`:''}</div>`;
-  const tiles=[tile(`${kept}/${days}`,'days kept',days?Math.round(kept/days*100)+'%':''),tile(cur,'day streak',`best ${bestRun}`),tile(tDone?Math.round(tOn/tDone*100)+'%':'—','on time',tDone?`${tOn} of ${tDone}`:''),
-    tile(avg!=null?avg+'%':'—','avg week',best?`best ${esc(best.w.focus)} ${best.pct}%`:''),tile(perfect,'perfect weeks'),tile(closed.length,'weeks closed'),
-    tile(grace,'in grace'),tile(miss,'missed'),tile(fail,'failed')].join('');
-  const bars=`<div class="stbars">${wk.map(x=>`<button class="stb${x.w.status==='active'?' live':''}" data-sw="${x.w.id}" title="${esc(x.w.focus)} ${x.pct}%"><i style="height:${Math.max(3,x.pct)}%"></i><span>${esc(x.w.focus.slice(0,3))}</span></button>`).join('')}</div>`;
-  const wmax=Math.max(...wd.map(x=>x.due?x.done/x.due:0)),wmin=Math.min(...wd.filter(x=>x.due).map(x=>x.done/x.due));
-  const order=[1,2,3,4,5,6,0],wdh=`<div class="stbars wd">${order.map(i=>{const x=wd[i],r=x.due?x.done/x.due:0;return`<div class="stb${x.due&&r===wmax?' hi':x.due&&r===wmin?' lo':''}"><em>${x.due?Math.round(r*100):'–'}</em><i style="height:${Math.max(3,Math.round(r*100))}%"></i><span>${DOW[i]}</span></div>`}).join('')}</div>`;
   const hs=[...H.values()].sort((a,b)=>b.due-a.due).map(h=>{const p=h.due?Math.round(h.done/h.due*100):0,bits=[`${h.done}/${h.due} days`,h.tdone?`${Math.round(h.on/h.tdone*100)}% on time`:''].filter(Boolean).join(' · ');
     return`<div class="sthab"><span class="ic">${ico(h.c.icon||'check')}</span><span class="sthn">${esc(h.c.name)}<small>${bits}</small></span><span class="stbar"><i style="width:${p}%"></i></span><b>${p}<small>%</small></b></div>`}).join('');
+  const chart=stChart(wk.map(x=>{const d=new Date(x.w.sealedAt+864e5);return{l:`${d.getMonth()+1}/${d.getDate()}`,v:x.pct,live:x.w.status==='active',t:`${x.w.focus}: ${x.pct}%`}}),'Weekly trend',avg!=null?`avg ${avg}%${best?` · best ${esc(best.w.focus)} ${best.pct}%`:''}`:'');
+  const list=stList([['Days kept',`${kept}/${days}`],['Day streak',`${cur} · best ${bestRun}`],['On time',tDone?`${Math.round(tOn/tDone*100)}%`:'—'],['Perfect weeks',perfect],['Weeks closed',closed.length],['In grace',grace],['Missed',miss],['Failed',fail]]);
   const s0=new Date(ws[0].sealedAt);
   $('stBody').innerHTML=`${stSeg('all')}<div class="vdate">Since ${s0.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})} · ${ws.length} week${ws.length>1?'s':''}</div><h1 class="lrt vword">All time</h1>
     <div class="sthead"><b class="stpct">${pct}<small>%</small></b><span class="stdelta">of all habits done</span></div>
-    <div class="sttiles">${tiles}</div>
-    <div class="vsec"><div class="lbl">Every week</div>${bars}</div>
-    <div class="vsec"><div class="lbl">By weekday</div>${wdh}<p class="stnote">Share of habits done on each day of the week, all weeks together.</p></div>
+    ${chart}${list}
     <div class="vsec"><div class="lbl">By habit</div>${hs}</div>`;
-  $('stBody').querySelectorAll('[data-sw]').forEach(b=>b.onclick=()=>{haptic();openStats(D.weeks.find(x=>x.id===b.dataset.sw))});
   stShow()}
 function openStats(w){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=weekStats(w),days=st.days,keys=days.map(ymd),hs=w.commitments;
   const per=hs.map(c=>{const t={c,on:0,grace:0,late:0,fail:0,miss:0,due:0};keys.forEach(k=>{const v=cellOf(w,k,c);if(['on','grace','late','fail','miss'].includes(v)){t[v]++;t.due++}});t.done=t.on+t.grace+t.late;return t});
@@ -2004,9 +2019,10 @@ function openStats(w){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=week
   const timed=per.filter(t=>t.c.by),tDone=timed.reduce((a,t)=>a+t.done,0),tOn=timed.reduce((a,t)=>a+t.on+t.grace,0);
   const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===w.id),pv=ws[i-1],nx=ws[i+1],pvPct=pv?weekStats(pv).pct:null;
   const delta=pvPct==null?'':`<span class="stdelta ${st.pct>=pvPct?'up':'dn'}">${st.pct>=pvPct?'▲':'▼'} ${Math.abs(st.pct-pvPct)} vs ${esc(pv.focus)}</span>`;
-  const tile=(v,l,sub='')=>`<div class="sttile"><b>${v}</b><span>${l}</span>${sub?`<small>${sub}</small>`:''}</div>`;
-  const tiles=[tile(`${st.kept}/${days.length}`,'days kept',`${st.pct}%`),tile(`${sum.done||0}/${sum.due||0}`,'habits done',sum.due?Math.round(sum.done/sum.due*100)+'%':''),
-    tDone?tile(Math.round(tOn/tDone*100)+'%','on time',`${tOn} of ${tDone}`):tile('—','on time','no timed habits'),tile(sum.grace||0,'in grace'),tile(sum.miss||0,'missed'),tile(sum.fail||0,'failed')].join('');
+  const today=ymd(new Date()),daily=keys.map((k,i)=>{let dn=0,du=0;hs.forEach(c=>{const v=cellOf(w,k,c);if(['on','grace','late','fail','miss'].includes(v)){du++;if(v==='on'||v==='grace'||v==='late')dn++}});
+    return{l:DOW[days[i].getDay()],v:k>today||!du?null:Math.round(dn/du*100),live:k===today,t:`${DOWL[days[i].getDay()]}: ${dn} of ${du}`}});
+  const chart=stChart(daily,'Daily trend','share of habits done each day');
+  const list=stList([['Days kept',`${st.kept}/${days.length}`],['Habits done',`${sum.done||0}/${sum.due||0}`],['On time',tDone?`${Math.round(tOn/tDone*100)}% · ${tOn}/${tDone}`:'—'],['In grace',sum.grace||0],['Missed',sum.miss||0],['Failed',sum.fail||0]]);
   const SYM={on:'',grace:'',late:'',fail:'✕',miss:'',open:'',fut:'',na:''};
   const grid=`<div class="stgrid" style="--n:${keys.length}"><span></span>${days.map(d=>`<span class="stdh">${DOW[d.getDay()]}</span>`).join('')}
     ${hs.map(c=>`<span class="stdn" title="${esc(c.name)}">${ico(c.icon||'check')}</span>${keys.map(k=>{const v=cellOf(w,k,c);return`<i class="stc ${v}" title="${esc(c.name)} · ${DOWL[new Date(k+'T12:00:00').getDay()]}: ${v}">${SYM[v]}</i>`}).join('')}`).join('')}</div>
@@ -2015,7 +2031,7 @@ function openStats(w){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=week
     return`<div class="sthab"><span class="ic">${ico(t.c.icon||'check')}</span><span class="sthn">${esc(t.c.name)}<small>${bits}</small></span><span class="stbar"><i style="width:${pct}%"></i></span><b>${pct}<small>%</small></b></div>`}).join('');
   $('stBody').innerHTML=`${stSeg('week')}<div class="vdate">${fmtRange(s0,weekEnd(s0))}${w.status==='active'?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>
     <div class="sthead"><b class="stpct">${st.pct}<small>%</small></b>${delta}</div>
-    <div class="sttiles">${tiles}</div>
+    ${chart}${list}
     <div class="vsec"><div class="lbl">Day by day</div>${grid}</div>
     <div class="vsec"><div class="lbl">By habit</div>${rows}</div>
     <button class="stvis" id="stVis">${ico('book')}Vision &amp; reflection for this week</button>
