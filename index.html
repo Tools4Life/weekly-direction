@@ -1001,6 +1001,10 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
 nav.bar svg.i{width:32px;height:32px;stroke-width:1.5}
+/* a small bounce on the icon when its tab becomes active */
+nav.bar button.on svg.i{animation:tabpop .42s cubic-bezier(.34,1.56,.64,1)}
+@keyframes tabpop{0%{transform:scale(1)}30%{transform:scale(.86)}65%{transform:scale(1.07)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){nav.bar button.on svg.i{animation:none}}
 body:not([data-screen=prayer]) :is(.vcdock,.vcglow),body[data-rv=p] :is(.vcdock,.vcglow){display:none!important}
 body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 .rfseg button{min-height:34px;padding:0 15px}
