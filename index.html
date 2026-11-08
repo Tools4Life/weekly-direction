@@ -2005,8 +2005,10 @@ async function vq(mode,fn){const db=await vdb();return new Promise((ok,no)=>{con
 const vqAll=()=>vq('readonly',s=>s.getAll()).catch(()=>[]),vqPut=x=>vq('readwrite',s=>s.put(x)),vqDel=id=>vq('readwrite',s=>s.delete(id)).catch(()=>{});
 function vcRender(){const box=$('vcBox');if(!box)return;const aw=D.weeks.find(w=>w.status==='active');box.hidden=!aw;if(!aw)return;
   if(!box.firstChild){box.innerHTML=`<div class="vcline"><span class="vcwave" id="vcWave" aria-hidden="true">${'<i></i>'.repeat(24)}</span><span class="vcst" id="vcSt" aria-live="polite"></span><span class="vcpend" id="vcPend"></span></div><button class="vcmic" id="vcMic" aria-label="Speak a reflection"></button><div class="vcout" id="vcOut"></div>`;
-    $('vcMic').onclick=()=>VC.st==='idle'?vcStart():VC.st==='rec'?vcStop():null}
-  if(!$('vcfC').firstChild){$('vcfC').innerHTML=ico('stop');$('vcfB').onclick=()=>{if(VC.st==='rec')vcStop()};$('vcfX').onclick=()=>{if(VC.st==='rec'){VC.cancel=true;vcStop()}else if(VC.st!=='busy')vcFocus(false)}}
+    $('vcMic').onclick=()=>{if(VC.lp){VC.lp=false;return}VC.st==='idle'?vcStart():VC.st==='rec'?vcStop():null};
+    // press and hold: a preview of the recording screen with sample words; records and saves nothing
+    {const m=$('vcMic');let t;const off=()=>clearTimeout(t);m.addEventListener('pointerdown',()=>{off();if(VC.st==='idle')t=setTimeout(()=>{VC.lp=true;vcDemo()},550)});['pointerup','pointerleave','pointercancel'].forEach(e=>m.addEventListener(e,off));m.addEventListener('contextmenu',e=>e.preventDefault())}}
+  if(!$('vcfC').firstChild){$('vcfC').innerHTML=ico('stop');$('vcfB').onclick=()=>{if(VC.demo)return vcDemoEnd(true);if(VC.st==='rec')vcStop()};$('vcfX').onclick=()=>{if(VC.demo)return vcDemoEnd(false);if(VC.st==='rec'){VC.cancel=true;vcStop()}else if(VC.st!=='busy')vcFocus(false)}}
   vcPaint();vcPendPaint()}
 function vcPaint(){const b=$('vcMic');if(!b)return;
   if(VC.st==='rec'&&Date.now()-VC.t0>=VMAX)return vcStop();
@@ -2088,6 +2090,16 @@ function liveStop(){const my=LV;if(!my)return;try{if(my.dc&&my.dc.readyState==='
 function liveEnd(my){if(!my)return;my.off=true;try{my.dc&&my.dc.close()}catch(e){}try{my.pc&&my.pc.close()}catch(e){}}
 function liveText(){const el=$('vcfTx');if(!el||!LV)return;const t=LV.order.map(id=>LV.items[id].t.trim()).filter(Boolean).join(' ');
   el.textContent=t;$('vcfPh').hidden=!!t;const b=$('vcfLive');b.scrollTop=b.scrollHeight}
+// preview of the recording space (hold the mic): sample words type in, the orb breathes; nothing is recorded or saved
+const VC_DEMO='This is a preview of live words. As you talk, what you say shows up here a few words at a time, so you can see your thoughts take shape. When you finish, the full recording is turned into your entry for the week.';
+function vcDemo(){if(VC.st!=='idle'||VC.demo)return;VC.demo={t0:Date.now(),i:0};haptic();vcFocus(true);$('vcF').classList.remove('busy');$('vcfS').textContent='Preview · tap to finish';
+  const g=$('vcGlow'),f=$('vcF'),w=VC_DEMO.split(' ');g.classList.add('on');let ph=0;
+  const tick=()=>{if(!VC.demo)return;ph+=.09;const lv=Math.max(0,.35+.3*Math.sin(ph)+.25*Math.sin(ph*2.7)+.1*(Math.random()-.5));g.style.setProperty('--lv',lv.toFixed(3));f.style.setProperty('--lv',lv.toFixed(3));
+    $('vcfT').textContent=mmss(Math.floor((Date.now()-VC.demo.t0)/1e3)*1e3);VC.demo.raf=requestAnimationFrame(tick)};tick();
+  VC.demo.iv=setInterval(()=>{if(!VC.demo)return;if(VC.demo.i>=w.length){clearInterval(VC.demo.iv);return}VC.demo.i+=1+(Math.random()<.4?1:0);
+    $('vcfTx').textContent=w.slice(0,VC.demo.i).join(' ');$('vcfPh').hidden=true;const b=$('vcfLive');b.scrollTop=b.scrollHeight},260)}
+function vcDemoEnd(done){const d=VC.demo;if(!d)return;clearInterval(d.iv);cancelAnimationFrame(d.raf);vcMeterOff();
+  if(done){$('vcF').classList.add('busy');$('vcfS').textContent='Preview · nothing saved';setTimeout(()=>{VC.demo=null;vcFocus(false)},900)}else{VC.demo=null;vcFocus(false)}}
 // ---- AI week summaries: written once a week is closed, stored beside the reflection (never replacing it) ----
 const SUM_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/summarize';let sumBusy=false;
 async function sumWeek(w){const text=(w.reflection||'').trim();if(!w||w.summary||text.length<20)return false;
