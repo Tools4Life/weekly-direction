@@ -922,10 +922,23 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .stpr{display:flex;flex-direction:column;align-items:flex-end;gap:2px}.stpr .stdelta{font-size:12.5px}
 .stnav{flex-wrap:nowrap}.stnav .vdate{white-space:nowrap;letter-spacing:.14em}
 .str .stnav .stvis{margin:0 0 0 auto;height:32px;padding:0 12px;font-size:13px}
+/* centered stats page */
+.str .stseg{display:flex;width:max-content;margin:0 auto 18px}
+.str .stnav{justify-content:center;margin:0;gap:14px}
+.str .sttitle{flex-direction:column;align-items:center;gap:0}
+.str .sttitle .vword{text-align:center}
+.str .stpr{flex-direction:row;align-items:center;justify-content:center;gap:12px;margin-top:2px}
+.str .stpr .stvis{margin:0;height:30px;padding:0 11px;font-size:13px}
+.str .vdate,.str>.lrin>.lrt,.str .lrin>h1{text-align:center}
+.str .sthead{justify-content:center}
+.str .stch{justify-content:center}
+.str .stlist div{align-items:center;text-align:center}
+.str .vsec>.lbl{text-align:center}
+.str .stleg{justify-content:center}
 /* week view: header, chart, stats and day grid fit one screen; By habit scrolls */
 .str .stchart{margin-top:12px;padding:10px 12px 2px}
 .str .stlist{grid-template-columns:repeat(3,1fr);column-gap:14px;margin-top:8px}
-.str .stlist div{flex-direction:column-reverse;align-items:flex-start;gap:0;padding:6px 0}
+.str .stlist div{flex-direction:column-reverse;align-items:center;text-align:center;gap:0;padding:6px 0}
 .str .stlist b{font-size:18px}.str .stlist span{font-size:12.5px}
 .str .vsec{margin-top:16px;padding:12px 14px 4px}
 .str .stgrid{grid-template-columns:24px repeat(var(--n),28px);gap:6px 0}
@@ -2063,7 +2076,7 @@ function openStats(w,dir){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=
   const delta=pvPct==null?'':`<span class="stdelta ${st.pct>=pvPct?'up':'dn'}">${st.pct>=pvPct?'▲':'▼'} ${Math.abs(st.pct-pvPct)} vs ${esc(pv.focus)}</span>`;
   const today=ymd(new Date()),daily=keys.map((k,i)=>{let dn=0,du=0;hs.forEach(c=>{const v=cellOf(w,k,c);if(['on','grace','late','fail','miss'].includes(v)){du++;if(v==='on'||v==='grace'||v==='late')dn++}});
     return{l:DOW[days[i].getDay()],v:k>today||!du?null:Math.round(dn/du*100),live:k===today,t:`${DOWL[days[i].getDay()]}: ${dn} of ${du}`}});
-  const chart=stChart(daily,'Daily trend','',122);
+  const chart=stChart(daily,'Daily trend','',112);
   const list=stList([['Days kept',`${st.kept}/${days.length}`],['Habits done',`${sum.done||0}/${sum.due||0}`],['On time',tDone?`${Math.round(tOn/tDone*100)}% · ${tOn}/${tDone}`:'—'],['In grace',sum.grace||0],['Missed',sum.miss||0],['Failed',sum.fail||0]]);
   const SYM={on:'',grace:'',late:'',fail:'✕',miss:'',open:'',fut:'',na:''};
   const grid=`<div class="stgrid" style="--n:${keys.length}"><span></span>${days.map(d=>`<span class="stdh">${DOW[d.getDay()]}</span>`).join('')}
@@ -2071,8 +2084,8 @@ function openStats(w,dir){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=
     <div class="stleg"><span><i class="stc on"></i>on time</span><span><i class="stc grace"></i>grace</span><span><i class="stc late"></i>late</span><span><i class="stc miss"></i>missed</span><span><i class="stc fail">✕</i>failed</span></div>`;
   const rows=per.map(t=>{const pct=t.due?Math.round(t.done/t.due*100):0,bits=[`${t.done}/${t.due}`,t.c.by&&t.done?`${Math.round((t.on+t.grace)/t.done*100)}% on time`:'',t.grace?`${t.grace} grace`:'',t.late?`${t.late} late`:'',t.fail?`${t.fail} failed`:''].filter(Boolean).join(' · ');
     return`<div class="sthab"><span class="ic">${ico(t.c.icon||'check')}</span><span class="sthn">${esc(t.c.name)}<small>${bits}</small></span><span class="stbar"><i style="width:${pct}%"></i></span><b>${pct}<small>%</small></b></div>`}).join('');
-  $('stBody').innerHTML=`${stSeg('week')}<div class="stnav"><button class="stnb" data-sn="${pv?pv.id:''}" ${pv?'':'disabled'} aria-label="Previous week">‹</button><span class="vdate">${fmtRange(s0,weekEnd(s0))}</span><button class="stnb" data-sn="${nx?nx.id:''}" ${nx?'':'disabled'} aria-label="Next week">›</button><button class="stvis" id="stVis">${ico('book')}Vision</button></div>
-    <div class="sttitle"><h1 class="lrt vword">${esc(w.focus)}</h1><span class="stpr"><b class="stpct">${st.pct}<small>%</small></b>${delta}</span></div>
+  $('stBody').innerHTML=`${stSeg('week')}<div class="stnav"><button class="stnb" data-sn="${pv?pv.id:''}" ${pv?'':'disabled'} aria-label="Previous week">‹</button><span class="vdate">${fmtRange(s0,weekEnd(s0))}</span><button class="stnb" data-sn="${nx?nx.id:''}" ${nx?'':'disabled'} aria-label="Next week">›</button></div>
+    <div class="sttitle"><h1 class="lrt vword">${esc(w.focus)}</h1><span class="stpr"><b class="stpct">${st.pct}<small>%</small></b>${delta}<button class="stvis" id="stVis">${ico('book')}Vision</button></span></div>
     ${chart}${list}
     <div class="vsec"><div class="lbl">Day by day</div>${grid}</div>
     <div class="vsec"><div class="lbl">By habit</div>${rows}</div>
