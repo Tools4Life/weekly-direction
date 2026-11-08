@@ -1979,10 +1979,10 @@ async function vcStopped(){const dur=Date.now()-VC.t0,type=(VC.rec&&VC.rec.mimeT
 async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
   try{const M=window.__WD_MOCK,tok=await store.auth.token();
     const r=M&&M.transcribe?await M.transcribe(item):await fetch(VOICE_URL,{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':item.type,'X-Duration':String(Math.round(item.dur/1e3))},body:item.blob});
-    const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||`Error ${r.status}`),{status:r.status});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||`Error ${r.status}`),{status:r.status,detail:String(j.detail||'')});
     const text=String(j.text||'').trim();if(text)vcAppend(item.at,text);await vqDel(item.id);ok=true;
     VC.msg=text?'Added to this week':'Nothing heard';VC.last=text||null;snd('done')}
-  catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':'Couldn’t transcribe · saved';console.warn('voice',e)}
+  catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':/insufficient_quota|billing/i.test(e.detail||'')?'OpenAI has no credit · saved':/invalid_api_key|Incorrect API key|\b401\b/i.test(e.detail||'')?'OpenAI key rejected · saved':/model/i.test(e.detail||'')?'OpenAI model error · saved':/\b429\b/.test(e.detail||'')?'OpenAI rate limit · saved':'Couldn’t transcribe · saved';console.warn('voice',e)}
   VC.st='idle';vcPaint();vcPendPaint();return ok}
 // adds the words to this week's live reflection, under a day-and-time line
 function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const d=new Date(at),stamp=`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`;
