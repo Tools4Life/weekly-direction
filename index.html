@@ -991,7 +991,10 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 .rfpw{display:block;width:100%;text-align:left;padding:18px 0 20px;border-top:1px solid var(--rule)}
 .rfpw:first-of-type{border-top:0;padding-top:4px}
 .rfpw b{display:block;margin:2px 0 8px;font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.01em;color:var(--tx)}
-.rfpw .rfpt{-webkit-line-clamp:6;font-size:16px}
+.rfpe{display:block;margin-top:10px}
+.rfpq{display:block;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--mu)}
+.rfpx{display:-webkit-box;margin-top:2px;font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--tx);-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rfpm{display:block;margin-top:8px;font-size:13px;color:var(--mu)}
 .reflpill{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:999px;border:1px solid rgba(232,116,59,.55);color:var(--tx);font-family:var(--serif);font-size:17px;flex:none}
 .reflpill svg{width:16px;height:16px;color:var(--ac)}.reflpill:active{transform:scale(.96)}
 #hList{margin-top:12px!important}
@@ -1972,7 +1975,10 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
 function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!ws.length){el.innerHTML='';return}
   el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div>${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
-    return`<button class="rfpw" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${w.summary?'<span class="rfsum lbl">Summary</span>':''}<span class="rfpt">${esc(t).replace(/\n\s*\n/g,'<br><br>').replace(/\n/g,'<br>')}</span></button>`}).join('')}`;
+    const ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
+    const bl=w.summary?[{l:'Summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
+    const more=bl.length-2;
+    return`<button class="rfpw" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${bl.slice(0,2).map(e=>`<span class="rfpe">${e.l?`<span class="${e.q?'rfpq':'rfet'}">${esc(e.l)}</span>`:''}<span class="rfpx">${esc(e.x)}</span></span>`).join('')}${more>0?`<span class="rfpm">+${more} more</span>`:''}</button>`}).join('')}`;
   el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true))}
 // ---- Week stats: the in-depth page behind a week on Progress ----
 // one habit on one day: on | grace | late | fail | miss | open | fut | na
