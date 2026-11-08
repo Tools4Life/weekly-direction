@@ -31,7 +31,7 @@ async function handle(req, res) {
   const ok = await admin.firestore().runTransaction(async tx => {
     const s = await tx.get(ref), u = s.exists && s.data().day === day ? s.data() : { day, sec: 0, n: 0 };
     if (u.sec + sec > DAY_SEC || u.n + 1 > DAY_REQ) return false;
-    tx.set(ref, { day, sec: u.sec + sec, n: u.n + 1 }); return true;
+    tx.set(ref, { day, sec: u.sec + sec, n: u.n + 1 }, { merge: true }); return true;
   });
   if (!ok) return res.status(429).json({ error: 'Daily voice limit reached.' });
   let last = '';

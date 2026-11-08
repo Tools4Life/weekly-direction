@@ -966,18 +966,21 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .hhnote{margin:8px 0 2px!important}
 .rfhd.rf1{margin-top:22px}
 .rflink{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ac)}.rflink svg.i{width:16px;height:16px}
-/* this week reads like a journal page: the word and verse at the top, days as headings, times in the margin */
-.rfpage{margin:22px 0 0;padding-bottom:14px;border-bottom:1px solid var(--rule)}
-body[data-screen=prayer][data-rv=j]{overflow:hidden;height:100%}
-body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0;min-height:0}
-.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:0 -24px;padding:6px 24px 48px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 64px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 18px,#000 calc(100% - 64px),transparent)}
+/* the journal list: past weeks above, this week by the mic; only it scrolls, page height stays the viewport */
+body[data-screen=prayer][data-rv=j]{overflow:hidden}
+body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
+.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 36px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent)}
 .rfscroll::-webkit-scrollbar{display:none}
-.rfscroll>.rfday:first-child{margin-top:14px}
-.rfwrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.rfwl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
-.rfword{font-family:var(--serif);font-style:italic;font-size:40px;line-height:1.1;letter-spacing:-.01em;color:var(--tx)}
-.rfverse{margin:8px 0 0;font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.rfverse span{display:block;margin-top:4px;font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.rfwk{display:block;width:100%;text-align:left;padding:26px 0 24px;border-top:1px solid var(--rule)}
+.rfwk:first-child{border-top:0}
+.rfwhr{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rfwd{display:block;font-family:var(--cond);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu2)}
+.rfww{display:block;margin:4px 0 2px;font-family:var(--serif);font-size:28px;line-height:1.2;letter-spacing:-.01em;color:var(--tx)}
+.rfold .rfww{color:var(--mu)}
+.rfold .rfpe{display:block;margin-top:10px}
+.rfet2{display:block;font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.rfverse{margin:6px 0 0;font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.5;color:var(--mu)}
+.rfverse span{display:block;margin-top:3px;font-family:var(--cond);font-style:normal;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
 .rfday{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 4px}
 .rfday>span:first-child{font-family:var(--serif);font-size:22px;color:var(--tx)}
 .rfdd{font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
@@ -992,7 +995,7 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0;min-height:0}
 .rfsum{font-size:11px;color:var(--ac)}
 .rfpt{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* voice dock: its own solid strip above the tab bar, nothing scrolls under the button */
-.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 24px calc(var(--sb) + 80px);background:var(--bg);--lv:0}
+.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 24px calc(var(--sb) + 72px);background:var(--bg);--lv:0;gap:8px}
 .rfcount{font-size:13px;color:var(--mu2)}
 .rfent.rfnew{animation:rfnew 1.6s var(--ease)}
 @keyframes rfnew{0%{opacity:0;transform:translateY(10px)}25%{opacity:1;transform:none}}
@@ -1006,9 +1009,10 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0;min-height:0}
 .vcwave i{display:block;width:3px;height:3px;border-radius:2px;background:var(--ac)}
 .vcdock.rec .vcwave{display:flex}.vcdock.rec .vcst{color:var(--tx)}
 .vcout{display:none}
-.vcmic{position:relative;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
-  box-shadow:0 0 0 7px color-mix(in srgb,var(--ac) 13%,transparent);transition:transform .2s var(--spring),box-shadow .12s linear,opacity .2s}
-.vcmic svg.i{width:36px;height:36px;stroke-width:1.9}
+.vcmic{position:relative;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
+  box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 13%,transparent);transition:transform .2s var(--spring),box-shadow .12s linear,opacity .2s}
+.vcmic svg.i{width:27px;height:27px;stroke-width:1.9}
+.vcline[hidden]{display:none}
 .vcmic::after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--ac) 55%,transparent);opacity:0;pointer-events:none;animation:vcinvite 3.6s ease-out infinite}
 .vcmic.rec::after,.vcmic.busy::after{animation:none;opacity:0}
 @keyframes vcinvite{0%{transform:scale(1);opacity:.7}70%{transform:scale(1.45);opacity:0}100%{opacity:0}}
@@ -1020,25 +1024,45 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0;min-height:0}
 .vcmic.busy .vcring{display:block;border-top-color:var(--ac);animation:vcspin .9s linear infinite}
 @keyframes vcspin{to{transform:rotate(360deg)}}
 /* glow along the edges of the lower third while recording; --lv follows your voice */
-.vcglow{position:fixed;left:0;right:0;bottom:0;height:36vh;z-index:26;pointer-events:none;opacity:0;transition:opacity .5s var(--ease);
+.vcglow{position:fixed;left:0;right:0;bottom:0;height:36vh;z-index:45;pointer-events:none;opacity:0;transition:opacity .5s var(--ease);
   border-radius:0 0 46px 46px;--lv:0;
   box-shadow:inset 0 0 calc(24px + 64px*var(--lv)) calc(2px + 14px*var(--lv)) color-mix(in srgb,var(--ac) calc(45% + 50%*var(--lv)),transparent);
   -webkit-mask-image:linear-gradient(to top,#000 35%,transparent);mask-image:linear-gradient(to top,#000 35%,transparent)}
 .vcglow.on{opacity:1;animation:vcbreathe 2.4s ease-in-out infinite}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcmic::after{animation:none}.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
+/* recording space */
+.vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);opacity:0;transition:opacity .3s var(--ease);--lv:0}
+.vcf.on{opacity:1}
+.vcftop{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--st) + 12px) 24px 0}
+.vcfx{color:var(--mu);font-size:16px;padding:8px 8px 8px 0}
+.vcft{font-family:var(--cond);font-size:15px;letter-spacing:.12em;color:var(--mu);font-variant-numeric:tabular-nums}
+.vcfsp{width:56px}
+.vcflive{flex:1;overflow-y:auto;padding:28px 28px 20px;scrollbar-width:none;display:flex;flex-direction:column;justify-content:flex-end;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 40px);mask-image:linear-gradient(to bottom,transparent 0,#000 40px)}
+.vcflive::-webkit-scrollbar{display:none}
+.vcfph{margin:0;font-family:var(--serif);font-style:italic;font-size:22px;color:var(--mu2)}
+.vcftx{margin:0;font-family:var(--serif);font-size:24px;line-height:1.5;color:var(--tx);white-space:pre-wrap}
+.vcforb{display:flex;flex-direction:column;align-items:center;gap:18px;padding:16px 0 calc(var(--sb) + 44px)}
+.vcfb{position:relative;width:132px;height:132px;display:grid;place-items:center}
+.vcfc{position:relative;z-index:1;width:104px;height:104px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
+  transform:scale(calc(1 + .1*var(--lv)));transition:transform .08s linear}
+.vcfc svg.i{width:30px;height:30px;stroke-width:2}
+.vcfr{position:absolute;inset:14px;border-radius:50%;background:color-mix(in srgb,var(--ac) 22%,transparent);animation:vcring 2.8s ease-out infinite}
+.vcfr.r2{animation-delay:.93s}.vcfr.r3{animation-delay:1.86s}
+@keyframes vcring{0%{transform:scale(1);opacity:.9}100%{transform:scale(calc(1.9 + .6*var(--lv)));opacity:0}}
+.vcf.busy .vcfr{animation:none;opacity:0}.vcf.busy .vcfc{opacity:.55;transform:none}
+.vcfs{font-size:14px;color:var(--mu)}
+@media (prefers-reduced-motion:reduce){.vcfr{animation:none;opacity:0}}
 nav.bar svg.i{width:32px;height:32px;stroke-width:1.5}
 /* a small bounce on the icon when its tab becomes active */
 nav.bar button.on svg.i{animation:tabpop .42s cubic-bezier(.34,1.56,.64,1)}
 @keyframes tabpop{0%{transform:scale(1)}30%{transform:scale(.86)}65%{transform:scale(1.07)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){nav.bar button.on svg.i{animation:none}}
-body:not([data-screen=prayer]) :is(.vcdock,.vcglow),body:is([data-rv=p],[data-rv=h]) :is(.vcdock,.vcglow){display:none!important}
-body:is([data-rv=p],[data-rv=h]) #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
-#rfH .rfpw:first-child{border-top:0;padding-top:22px}
+body:not([data-screen=prayer]) .vcdock,body[data-rv=p] .vcdock{display:none!important}
+body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 .rfnone{padding:40px 4px;color:var(--mu);font-size:15px;line-height:1.5}
-#sPrayer .trow{flex-wrap:wrap;height:auto;row-gap:0}
-.rfseg{display:flex;width:100%;margin-top:14px}
-.rfseg button{flex:1;min-height:38px;padding:0 12px}
+.rfseg button{min-height:34px;padding:0 15px}
 .rfpw{display:block;width:100%;text-align:left;padding:18px 0 20px;border-top:1px solid var(--rule)}
 .rfpw:first-of-type{border-top:0;padding-top:4px}
 .rfpw b{display:block;margin:2px 0 8px;font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.01em;color:var(--tx)}
@@ -1154,8 +1178,8 @@ body:is([data-rv=p],[data-rv=h]) #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <!-- Prayer -->
 <section class="scr" id="sPrayer" data-mode="dark" hidden>
-  <div class="trow"><h2 class="ttl">Reflect</h2><span class="pwseg rfseg" role="tablist"><button data-rv="j" class="on" role="tab">Week</button><button data-rv="h" role="tab">Past</button><button data-rv="p" role="tab">Prayer</button></span></div>
-  <div id="rfJ"><div id="rfWeek"></div></div><div id="rfH" hidden><div id="rfPast"></div></div>
+  <div class="trow"><h2 class="ttl">Reflect</h2><span class="pwseg rfseg" role="tablist"><button data-rv="j" class="on" role="tab">Journal</button><button data-rv="p" role="tab">Prayer</button></span></div>
+  <div id="rfJ"><div id="rfWeek"></div></div>
   <div id="rfP" hidden><div class="rfhd rf1"><span class="lbl">Your prayers</span><button class="rflink" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New</button></div>
   <div id="prLife"></div><div id="prList"></div></div>
 </section>
@@ -1242,6 +1266,7 @@ body:is([data-rv=p],[data-rv=h]) #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 </section>
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
+<div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
 <nav class="bar" id="bar" hidden>
   <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" class="sh"/><path d="M3.5 8.8h17"/><path d="M8.5 2.5v2.6M15.5 2.5v2.6"/><path d="m9.2 14.4 2 2 3.8-3.8"/></svg></button>
   <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5H7.5a4 4 0 0 0-4 4v9a4 4 0 0 0 4 4h9a4 4 0 0 0 4-4V12" class="sh"/><path d="M18.2 3.3a1.9 1.9 0 0 1 2.7 2.7L13.4 13.5l-3.5.8.8-3.5z"/></svg></button>
@@ -1970,38 +1995,42 @@ const vqAll=()=>vq('readonly',s=>s.getAll()).catch(()=>[]),vqPut=x=>vq('readwrit
 function vcRender(){const box=$('vcBox');if(!box)return;const aw=D.weeks.find(w=>w.status==='active');box.hidden=!aw;if(!aw)return;
   if(!box.firstChild){box.innerHTML=`<div class="vcline"><span class="vcwave" id="vcWave" aria-hidden="true">${'<i></i>'.repeat(24)}</span><span class="vcst" id="vcSt" aria-live="polite"></span><span class="vcpend" id="vcPend"></span></div><button class="vcmic" id="vcMic" aria-label="Speak a reflection"></button><div class="vcout" id="vcOut"></div>`;
     $('vcMic').onclick=()=>VC.st==='idle'?vcStart():VC.st==='rec'?vcStop():null}
+  if(!$('vcfC').firstChild){$('vcfC').innerHTML=ico('stop');$('vcfB').onclick=()=>{if(VC.st==='rec')vcStop()};$('vcfX').onclick=()=>{if(VC.st==='rec'){VC.cancel=true;vcStop()}else if(VC.st!=='busy')vcFocus(false)}}
   vcPaint();vcPendPaint()}
 function vcPaint(){const b=$('vcMic');if(!b)return;
   if(VC.st==='rec'&&Date.now()-VC.t0>=VMAX)return vcStop();
   b.className='vcmic'+(VC.st==='rec'?' rec':VC.st==='busy'?' busy':'');$('vcBox').classList.toggle('rec',VC.st==='rec');b.disabled=VC.st==='busy';
   const ic=VC.st==='rec'?'stop':'mic';if(b.dataset.ic!==ic){b.dataset.ic=ic;b.innerHTML=`<span class="vcring"></span>${ico(ic)}`}
   b.setAttribute('aria-label',VC.st==='rec'?'Stop recording':'Speak a reflection');
-  $('vcSt').textContent=VC.st==='rec'?mmss(Math.floor((Date.now()-VC.t0)/1e3)*1e3):VC.st==='busy'?'Transcribing…':VC.msg||'Tap and talk';
+  $('vcSt').textContent=VC.st==='busy'?'Transcribing…':VC.msg||'';$('vcSt').closest('.vcline').hidden=!$('vcSt').textContent&&!vcPend;
+  {const f=$('vcF');if(f){if(VC.st==='rec')$('vcfT').textContent=mmss(Math.floor((Date.now()-VC.t0)/1e3)*1e3);f.classList.toggle('busy',VC.st==='busy');$('vcfS').textContent=VC.st==='busy'?'Saving…':'Tap to finish'}}
   const o=$('vcOut');o.innerHTML=VC.st==='idle'&&VC.last?`<p class="vclast">${esc(VC.last)}</p><button class="vcedit" data-vce>Added to this week’s reflection · Edit</button>`:'';
   const e=o.querySelector('[data-vce]');if(e)e.onclick=()=>{const aw=D.weeks.find(x=>x.status==='active');if(aw)openJournal(aw)}}
 async function vcPendPaint(){const el=$('vcPend');if(!el)return;const q=await vqAll();vcPend=q.length;
-  el.innerHTML=q.length&&VC.st==='idle'?`· ${q.length} waiting<button data-vcr>Retry</button>`:'';
+  el.innerHTML=q.length&&VC.st==='idle'?`${q.length} waiting<button data-vcr>Retry</button>`:'';{const ln=el.closest('.vcline');if(ln)ln.hidden=!$('vcSt').textContent&&!el.innerHTML}
   const r=el.querySelector('[data-vcr]');if(r)r.onclick=()=>vcFlush()}
 // reads the mic level so the edge glow breathes with your voice
 function vcMeter(stream){const g=$('vcGlow');if(!g)return;g.classList.add('on');
   try{const AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),an=ac.createAnalyser();an.fftSize=512;ac.createMediaStreamSource(stream).connect(an);
     const buf=new Uint8Array(an.fftSize),dock=$('vcBox'),bars=[...document.querySelectorAll('#vcWave i')],hist=bars.map(()=>0);let lv=0,fr=0;VC.ac=ac;
     const loop=()=>{an.getByteTimeDomainData(buf);let sq=0;for(const v of buf){const x=(v-128)/128;sq+=x*x}
-      const rms=Math.sqrt(sq/buf.length),t=Math.min(1,rms*5.5);lv+=(t-lv)*(t>lv?.35:.08);g.style.setProperty('--lv',lv.toFixed(3));dock.style.setProperty('--lv',lv.toFixed(3));if(++fr%3===0){hist.shift();hist.push(lv);bars.forEach((b,i)=>b.style.height=(3+23*hist[i]).toFixed(1)+'px')}VC.raf=requestAnimationFrame(loop)};loop()}
+      const rms=Math.sqrt(sq/buf.length),t=Math.min(1,rms*5.5);lv+=(t-lv)*(t>lv?.35:.08);g.style.setProperty('--lv',lv.toFixed(3));dock.style.setProperty('--lv',lv.toFixed(3));{const f=$('vcF');if(f)f.style.setProperty('--lv',lv.toFixed(3))}if(++fr%3===0){hist.shift();hist.push(lv);bars.forEach((b,i)=>b.style.height=(3+23*hist[i]).toFixed(1)+'px')}VC.raf=requestAnimationFrame(loop)};loop()}
   catch(e){g.style.setProperty('--lv','.4')}}
 function vcMeterOff(){cancelAnimationFrame(VC.raf);const g=$('vcGlow');if(g){g.classList.remove('on');g.style.setProperty('--lv','0')}const dk=$('vcBox');if(dk)dk.style.setProperty('--lv','0');if(VC.ac){VC.ac.close().catch(()=>{});VC.ac=null}}
 async function vcStart(){
   if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||vcMime()===null){VC.msg='This browser can’t record audio';return vcPaint()}
-  try{VC.stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){VC.msg='Mic blocked: allow it in iPhone Settings';return vcPaint()}
+  VC.msg=null;vcFocus(true);
+  try{VC.stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){vcFocus(false);VC.msg='Mic blocked: allow it in iPhone Settings';return vcPaint()}
   const mt=vcMime();try{VC.rec=new MediaRecorder(VC.stream,mt?{mimeType:mt}:undefined)}catch(e){VC.rec=new MediaRecorder(VC.stream)}
   VC.chunks=[];VC.rec.ondataavailable=e=>{if(e.data&&e.data.size)VC.chunks.push(e.data)};VC.rec.onstop=vcStopped;
   vcMeter(VC.stream);
-  VC.t0=Date.now();VC.st='rec';VC.msg=null;rfRender();VC.last=null;VC.rec.start(1000);haptic();snd('start');clearInterval(VC.tick);VC.tick=setInterval(vcPaint,250);vcPaint()}
-function vcStop(){if(VC.st!=='rec')return;clearInterval(VC.tick);vcMeterOff();VC.st='busy';vcPaint();try{VC.rec.stop()}catch(e){vcStopped()}if(VC.stream)VC.stream.getTracks().forEach(t=>t.stop());haptic()}
+  VC.t0=Date.now();VC.st='rec';VC.msg=null;rfRender();VC.last=null;VC.rec.start(1000);liveStart(VC.stream);haptic();snd('start');clearInterval(VC.tick);VC.tick=setInterval(vcPaint,250);vcPaint()}
+function vcStop(){if(VC.st!=='rec')return;clearInterval(VC.tick);vcMeterOff();liveStop();clearTimeout(VC.fsT);VC.fsT=setTimeout(()=>vcFocus(false),20000);VC.st='busy';vcPaint();try{VC.rec.stop()}catch(e){vcStopped()}if(VC.stream)VC.stream.getTracks().forEach(t=>t.stop());haptic()}
 async function vcStopped(){const dur=Date.now()-VC.t0,type=(VC.rec&&VC.rec.mimeType)||vcMime()||'audio/mp4',blob=new Blob(VC.chunks||[],{type});VC.chunks=[];
-  if(dur<1500||!blob.size){VC.st='idle';VC.msg='Too short';return vcPaint()}
+  if(VC.cancel){VC.cancel=false;VC.st='idle';VC.msg=null;vcFocus(false);return vcPaint()}
+  if(dur<1500||!blob.size){VC.st='idle';VC.msg='Too short';vcFocus(false);return vcPaint()}
   const item={id:'v'+VC.t0,at:VC.t0,dur,type:type.split(';')[0],blob};try{await vqPut(item)}catch(e){}
-  if(await vcSend(item))vcFlush()}
+  const ok=await vcSend(item);clearTimeout(VC.fsT);vcFocus(false);if(ok)vcFlush()}
 async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
   try{const M=window.__WD_MOCK,tok=await store.auth.token();
     const r=M&&M.transcribe?await M.transcribe(item):await fetch(VOICE_URL,{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':item.type,'X-Duration':String(Math.round(item.dur/1e3))},body:item.blob});
@@ -2017,6 +2046,37 @@ function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)re
 async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return;vcFlushing=true;
   try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
 addEventListener('online',()=>setTimeout(vcFlush,1500));
+// ---- the recording space: tap the mic, a quiet full screen with the voice orb and the words as you say them ----
+const LIVE_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/liveToken';let LV=null;
+function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);
+  if(on){$('vcfTx').textContent='';$('vcfPh').hidden=false;f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'))}
+  else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},320)}}
+// live words: an OpenAI realtime transcription session over WebRTC, fed the same mic as the recording.
+// It is only for seeing the words; the saved entry still comes from the full recording, so a dropped connection loses nothing.
+async function liveStart(stream){const my={items:{},order:[],pc:null,dc:null,off:false},M=window.__WD_MOCK;LV=my;
+  try{if(M&&M.live){M.live(t=>{if(LV!==my)return;my.items.m={t};my.order=['m'];liveText()});return}
+    if(!window.RTCPeerConnection||!navigator.onLine)return;
+    const r=await fetch(LIVE_URL,{method:'POST',headers:{Authorization:'Bearer '+await store.auth.token()}}),j=await r.json().catch(()=>({}));
+    if(!r.ok||!j.value){console.warn('live token',r.status,j);return}
+    if(LV!==my||my.off)return;
+    const pc=new RTCPeerConnection();my.pc=pc;stream.getAudioTracks().forEach(t=>pc.addTrack(t,stream));
+    const dc=pc.createDataChannel('oai-events');my.dc=dc;
+    dc.onmessage=e=>{let ev;try{ev=JSON.parse(e.data)}catch(x){return}
+      if(ev.type==='error'){console.warn('live',ev);return}
+      const id=ev.item_id;if(!id||!/input_audio_transcription\.(delta|completed)$/.test(ev.type||''))return;
+      if(!my.items[id]){my.items[id]={t:''};my.order.push(id)}
+      if(/delta$/.test(ev.type))my.items[id].t+=ev.delta||'';else my.items[id].t=ev.transcript||my.items[id].t;
+      if(LV===my)liveText()};
+    const offer=await pc.createOffer();await pc.setLocalDescription(offer);
+    const sr=await fetch('https://api.openai.com/v1/realtime/calls',{method:'POST',body:offer.sdp,headers:{Authorization:'Bearer '+j.value,'Content-Type':'application/sdp'}});
+    if(!sr.ok){console.warn('live sdp',sr.status,(await sr.text()).slice(0,300));return liveEnd(my)}
+    if(my.off)return liveEnd(my);
+    await pc.setRemoteDescription({type:'answer',sdp:await sr.text()})}
+  catch(e){console.warn('live',e);liveEnd(my)}}
+function liveStop(){const my=LV;if(!my)return;try{if(my.dc&&my.dc.readyState==='open')my.dc.send(JSON.stringify({type:'input_audio_buffer.commit'}))}catch(e){}setTimeout(()=>liveEnd(my),2500)}
+function liveEnd(my){if(!my)return;my.off=true;try{my.dc&&my.dc.close()}catch(e){}try{my.pc&&my.pc.close()}catch(e){}}
+function liveText(){const el=$('vcfTx');if(!el||!LV)return;const t=LV.order.map(id=>LV.items[id].t.trim()).filter(Boolean).join(' ');
+  el.textContent=t;$('vcfPh').hidden=!!t;const b=$('vcfLive');b.scrollTop=b.scrollHeight}
 // ---- AI week summaries: written once a week is closed, stored beside the reflection (never replacing it) ----
 const SUM_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/summarize';let sumBusy=false;
 async function sumWeek(w){const text=(w.reflection||'').trim();if(!w||w.summary||text.length<20)return false;
@@ -2030,35 +2090,37 @@ async function sumBackfill(){if(sumBusy||!navigator.onLine)return;sumBusy=true;
 addEventListener('online',()=>setTimeout(sumBackfill,3000));
 // this week's reflection on the Reflect page: newest entries showing, tap to write
 let rfView='j';
-function rfSetView(v){if(v!=='j'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfH').hidden=v!=='h';$('rfP').hidden=v!=='p';
+function rfSetView(v){if(v!=='j'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfP').hidden=v!=='p';
   document.querySelectorAll('[data-rv]').forEach(b=>{b.classList.toggle('on',b.dataset.rv===v);b.setAttribute('aria-selected',b.dataset.rv===v)});$('sPrayer').scrollTop=0;window.scrollTo(0,0);if(v==='j'){rfFit();rfToEnd()}}
 document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{if(rfView!==b.dataset.rv){haptic();rfSetView(b.dataset.rv)}});
 document.body.dataset.rv='j';
 function rfFit(){const sc=$('rfScroll'),dk=$('vcBox');if(!sc||tab!=='prayer'||rfView!=='j')return;window.scrollTo(0,0);const top=sc.getBoundingClientRect().top,bot=dk&&!dk.hidden?dk.getBoundingClientRect().top:innerHeight-90;sc.style.height=Math.max(120,bot-top)+'px'}
 addEventListener('resize',()=>rfFit());
 function rfToEnd(){if(tab!=='prayer'||rfView!=='j')return;requestAnimationFrame(()=>{rfFit();const sc=$('rfScroll');if(sc)sc.scrollTop=sc.scrollHeight})}
-function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');if(!aw){el.innerHTML='';rfPast();return}
-  const STAMP=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{1,2}:\d{2} [ap]m)$/;
-  const ents=(aw.liveRefl||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),m=ls[0].trim().match(STAMP);return m&&ls.length>1?{d:m[1],t:m[2],x:ls.slice(1).join('\n')}:{d:'',t:'',x:ls.join('\n')}}).filter(e=>e.x.trim());
-  // dates for each weekday inside this week, so day headings read "Sunday · Nov 8"
-  const s0=new Date(aw.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
-  const now=new Date(),todayN=DOWL[now.getDay()],fresh=Date.now()-rfJust<4000,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-  const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
-  const head=d=>`<div class="rfday"><span>${d===todayN?'Today':esc(d||'Earlier')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
-  let n=0;const last=ents.length-1;
-  el.innerHTML=`<div class="rfpage"><div class="rfwrow"><span class="lbl rfwl">${esc(aw.focus)}${aw.verseRef?` · ${esc(aw.verseRef)}`:''}</span><button class="rflink" id="rfWrite">${ico('pen')}Write</button></div>${aw.verse?`<p class="rfverse">${esc(aw.verse)}</p>`:''}</div><div class="rfscroll" id="rfScroll">`
-    +groups.map(g=>head(g.d)+g.e.map(e=>{const i=n++;return`<button class="rfent${fresh&&i===last?' rfnew':''}" data-rfo><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
-    +(ents.length?'':`<p class="rfnone">Nothing yet this week.</p>`)+'</div>';
-  const op=()=>openJournal(aw);el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);$('rfWrite').onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}};rfFit();rfPast()}
-// one card per past week; a summary shows here once that week has one (w.summary), else the start of the reflection
-function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
-  if(!ws.length){el.innerHTML='<p class="rfnone">Closed weeks show here with their focus word and a summary of what you said that week.</p>';return}
-  el.innerHTML=`${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
-    const ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
-    const bl=w.summary?[{l:'AI summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
-    const more=bl.length-2;
-    return`<button class="rfpw" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${bl.slice(0,2).map(e=>`<span class="rfpe">${e.l?`<span class="${e.q?'rfpq':'rfet'}">${esc(e.l)}</span>`:''}<span class="rfpx">${esc(e.x)}</span></span>`).join('')}${more>0?`<span class="rfpm">+${more} more</span>`:''}</button>`}).join('')}`;
-  el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true))}
+const RF_ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{1,2}:\d{2} [ap]m)$/;
+const rfEnts=t=>(t||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),m=ls[0].trim().match(RF_ST);return m&&ls.length>1?{d:m[1],t:m[2],x:ls.slice(1).join('\n')}:{d:'',t:'',x:ls.join('\n')}}).filter(e=>e.x.trim());
+// a past week: dates, its word, then the AI summary (or the start of what was said); tap to open it
+function rfPastWeek(w){const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
+  const bl=w.summary?[{l:'AI summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(RF_ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!RF_ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
+  const more=bl.length-2;
+  return`<button class="rfwk rfold" data-rw="${w.id}"><span class="rfwd">${fmtRange(s0,weekEnd(s0))}</span><span class="rfww">${esc(w.focus)}</span>${bl.slice(0,2).map(e=>`<span class="rfpe">${e.l?`<span class="${e.q?'rfpq':'rfet2'}">${esc(e.l)}</span>`:''}<span class="rfpx">${esc(e.x)}</span></span>`).join('')}${more>0?`<span class="rfpm">+${more} more</span>`:''}</button>`}
+// the journal: past weeks above, this week at the bottom by the mic; only this list scrolls
+function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');
+  const past=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>a.sealedAt-b.sealedAt);
+  let html=past.map(rfPastWeek).join('');
+  if(aw){const ents=rfEnts(aw.liveRefl),s0=new Date(aw.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
+    const todayN=DOWL[new Date().getDay()],fresh=Date.now()-rfJust<4000,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+    const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
+    const head=d=>`<div class="rfday"><span>${d===todayN?'Today':esc(d||'Earlier')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
+    let n=0;const last=ents.length-1,a0=new Date(aw.sealedAt);
+    html+=`<div class="rfwk rfnow"><div class="rfwhr"><span class="rfwd">This week · ${fmtRange(a0,weekEnd(a0))}</span><button class="rflink" id="rfWrite">${ico('pen')}Write</button></div><span class="rfww">${esc(aw.focus)}</span>${aw.verse||aw.verseRef?`<p class="rfverse">${aw.verse?esc(aw.verse):''}${aw.verseRef?`<span>${esc(aw.verseRef)}</span>`:''}</p>`:''}`
+      +groups.map(g=>head(g.d)+g.e.map(e=>{const i=n++;return`<button class="rfent${fresh&&i===last?' rfnew':''}" data-rfo><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
+      +(ents.length?'':`<p class="rfnone">Nothing yet this week.</p>`)+'</div>'}
+  el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
+  el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true));
+  if(aw){const op=()=>openJournal(aw);el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);$('rfWrite').onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}}}
+  rfFit()}
+function rfPast(){} // past weeks live in the same journal list now
 // ---- Week stats: the in-depth page behind a week on Progress ----
 // one habit on one day: on | grace | late | fail | miss | open | fut | na
 function cellOf(w,k,c){const d=new Date(k+'T12:00:00');if(!onDay(c,d))return'na';const today=ymd(new Date());if(k>today)return'fut';
