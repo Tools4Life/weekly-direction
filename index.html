@@ -849,7 +849,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .trcard,.trcard .tchart{overflow:visible!important}
 /* Progress, compact: more room for past weeks */
 /* ---- Reflect page ---- */
-#sPrayer{padding-bottom:calc(var(--sb) + 290px)}
+#sPrayer{padding-bottom:calc(var(--sb) + 340px)}
 .rfhd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 10px}
 /* ---- Week stats page ---- */
 .str{z-index:97}
@@ -986,13 +986,14 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .rfsum{font-size:11px;color:var(--ac)}
 .rfpt{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* voice dock: its own solid strip above the tab bar, nothing scrolls under the button */
-.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 24px calc(var(--sb) + 80px);background:var(--bg);--lv:0}
+.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 24px calc(var(--sb) + 80px);--lv:0}
 .rfcount{font-size:13px;color:var(--mu2)}
 .rfent.rfnew{animation:rfnew 1.6s var(--ease)}
 @keyframes rfnew{0%{opacity:0;transform:translateY(10px)}25%{opacity:1;transform:none}}
 .jrcancel{color:var(--mu);font-size:16px;padding:6px 12px 6px 0}
 .jnew .jtop{justify-content:space-between}
-.vcdock::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:40px;background:linear-gradient(to top,var(--bg),transparent);pointer-events:none}
+/* long, eased fade so entries dissolve into the mic area instead of being cut off */
+.vcdock::before{content:"";position:absolute;left:0;right:0;bottom:0;top:-160px;z-index:-1;pointer-events:none;background:linear-gradient(to top,var(--bg) 0,var(--bg) calc(100% - 165px),color-mix(in srgb,var(--bg) 90%,transparent) calc(100% - 130px),color-mix(in srgb,var(--bg) 66%,transparent) calc(100% - 90px),color-mix(in srgb,var(--bg) 34%,transparent) calc(100% - 48px),color-mix(in srgb,var(--bg) 10%,transparent) calc(100% - 18px),transparent 100%)}
 .vcline{min-height:26px;max-width:100%;flex-wrap:wrap;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--mu)}
 .vcst{font-variant-numeric:tabular-nums}
 .vcpend{white-space:nowrap}.vcpend:empty{display:none}.vcpend button{color:var(--ac);margin-left:4px}
