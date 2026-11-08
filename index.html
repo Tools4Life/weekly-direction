@@ -849,7 +849,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .trcard,.trcard .tchart{overflow:visible!important}
 /* Progress, compact: more room for past weeks */
 /* ---- Reflect page ---- */
-#sPrayer{padding-bottom:calc(var(--sb) + 250px)}
+#sPrayer{padding-bottom:calc(var(--sb) + 290px)}
 .rfhd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 10px}
 /* ---- Week stats page ---- */
 .str{z-index:97}
@@ -966,11 +966,18 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .hhnote{margin:8px 0 2px!important}
 .rfhd.rf1{margin-top:22px}
 .rflink{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ac)}.rflink svg.i{width:16px;height:16px}
-.rfents{border-radius:16px;background:var(--card);padding:4px 18px}
-.rfent{display:block;width:100%;text-align:left;padding:14px 0;border-top:1px solid var(--rule)}
-.rfent:first-child{border-top:0}
-.rfet{display:block;font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
-.rfex{display:-webkit-box;margin-top:3px;font-family:var(--serif);font-size:17px;line-height:1.5;color:var(--tx);-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+/* this week reads like a journal page: the word and verse at the top, days as headings, times in the margin */
+.rfpage{margin:26px 0 6px;padding-bottom:22px;border-bottom:1px solid var(--rule)}
+.rfwrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rfword{font-family:var(--serif);font-style:italic;font-size:40px;line-height:1.1;letter-spacing:-.01em;color:var(--tx)}
+.rfverse{margin:10px 0 0;font-family:var(--serif);font-size:16px;line-height:1.55;color:var(--mu)}
+.rfverse span{display:block;margin-top:4px;font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.rfday{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 4px}
+.rfday>span:first-child{font-family:var(--serif);font-size:22px;color:var(--tx)}
+.rfdd{font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.rfent{display:grid;grid-template-columns:62px 1fr;gap:10px;width:100%;text-align:left;padding:9px 0}
+.rfet{padding-top:4px;font-family:var(--cond);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mu2);white-space:nowrap}
+.rfex{font-family:var(--serif);font-size:18px;line-height:1.55;color:var(--tx);white-space:pre-line}
 .rfmore{display:block;width:100%;padding:12px 0 10px;border-top:1px solid var(--rule);font-size:14px;color:var(--mu);text-align:left}
 .rfempty{display:block;width:100%;text-align:left;border-radius:16px;background:var(--card);padding:18px;font-family:var(--serif);font-style:italic;font-size:16px;color:var(--mu)}
 .rfstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -24px;padding:0 24px 2px;scrollbar-width:none}.rfstrip::-webkit-scrollbar{display:none}
@@ -979,7 +986,12 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .rfsum{font-size:11px;color:var(--ac)}
 .rfpt{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* voice dock: its own solid strip above the tab bar, nothing scrolls under the button */
-.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 24px calc(var(--sb) + 76px);background:var(--bg);--lv:0}
+.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:10px 24px calc(var(--sb) + 80px);background:var(--bg);--lv:0}
+.rfcount{font-size:13px;color:var(--mu2)}
+.rfent.rfnew{animation:rfnew 1.6s var(--ease)}
+@keyframes rfnew{0%{opacity:0;transform:translateY(10px)}25%{opacity:1;transform:none}}
+.jrcancel{color:var(--mu);font-size:16px;padding:6px 12px 6px 0}
+.jnew .jtop{justify-content:space-between}
 .vcdock::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:40px;background:linear-gradient(to top,var(--bg),transparent);pointer-events:none}
 .vcline{min-height:26px;max-width:100%;flex-wrap:wrap;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--mu)}
 .vcst{font-variant-numeric:tabular-nums}
@@ -988,9 +1000,12 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .vcwave i{display:block;width:3px;height:3px;border-radius:2px;background:var(--ac)}
 .vcdock.rec .vcwave{display:flex}.vcdock.rec .vcst{color:var(--tx)}
 .vcout{display:none}
-.vcmic{position:relative;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
+.vcmic{position:relative;width:96px;height:96px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
   box-shadow:0 0 0 7px color-mix(in srgb,var(--ac) 13%,transparent);transition:transform .2s var(--spring),box-shadow .12s linear,opacity .2s}
-.vcmic svg.i{width:32px;height:32px;stroke-width:1.9}
+.vcmic svg.i{width:36px;height:36px;stroke-width:1.9}
+.vcmic::after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--ac) 55%,transparent);opacity:0;pointer-events:none;animation:vcinvite 3.6s ease-out infinite}
+.vcmic.rec::after,.vcmic.busy::after{animation:none;opacity:0}
+@keyframes vcinvite{0%{transform:scale(1);opacity:.7}70%{transform:scale(1.45);opacity:0}100%{opacity:0}}
 .vcmic:active{transform:scale(.93)}
 .vcmic.rec{box-shadow:0 0 0 calc(7px + 16px*var(--lv)) color-mix(in srgb,var(--ac) 20%,transparent)}
 .vcmic.rec svg.i{width:26px;height:26px}
@@ -1005,7 +1020,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   -webkit-mask-image:linear-gradient(to top,#000 35%,transparent);mask-image:linear-gradient(to top,#000 35%,transparent)}
 .vcglow.on{opacity:1;animation:vcbreathe 2.4s ease-in-out infinite}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
-@media (prefers-reduced-motion:reduce){.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
+@media (prefers-reduced-motion:reduce){.vcmic::after{animation:none}.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
 nav.bar svg.i{width:32px;height:32px;stroke-width:1.5}
 /* a small bounce on the icon when its tab becomes active */
 nav.bar button.on svg.i{animation:tabpop .42s cubic-bezier(.34,1.56,.64,1)}
@@ -1086,6 +1101,7 @@ body:is([data-rv=p],[data-rv=h]) #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 .jrnr.typing .jqs{display:none}
 .jrnr.typing .jword2{font-size:24px;margin:2px 0 10px}
 .jrnr.typing .vdate{display:none}
+.jrnr.jnew.typing .vdate{display:block}
 .jrnr.typing .jin{padding-bottom:10px!important}
 /* Progress: Weeks | Habits */
 .pwhd{display:flex;align-items:center;justify-content:space-between}
@@ -1288,7 +1304,7 @@ body:is([data-rv=p],[data-rv=h]) #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
   <button class="cx" id="stClose" aria-label="Close">&times;</button>
   <div class="lrin" id="stBody"></div></div>
 <div class="lifer jrnr" id="jrnR" hidden role="dialog" aria-modal="true" aria-label="Reflect">
-  <div class="jtop"><span class="jsaved" id="jrSaved"></span><button class="pvdone" id="jrDone">Done</button></div>
+  <div class="jtop"><button class="jrcancel" id="jrCancel" hidden>Cancel</button><span class="jsaved" id="jrSaved"></span><button class="pvdone" id="jrDone">Done</button></div>
   <div class="lrin jin"><div class="vdate" id="jrDate"></div><div class="jword2" id="jrWord"></div>
   <textarea id="jrText" class="jtext" placeholder="How is this week going so far? What are you noticing, in your walk, at work, at home?"></textarea>
   <div class="jqs" id="jrQs"></div></div></div>
@@ -1468,7 +1484,7 @@ MQ.addEventListener&&MQ.addEventListener('change',()=>{if(D.settings.theme==='au
 function show(name){if(name!=='prayer'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();tab=name;document.body.dataset.screen=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hidden=k!==name);
   setMode($(SCREENS[name]).dataset.mode);$('bar').hidden=name==='plan'||name==='settings';
   document.querySelectorAll('nav.bar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
-  if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer')renderPrayer(true);if(name==='history')renderHistory();if(name==='settings')renderSettings();
+  if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer'){renderPrayer(true);setTimeout(rfToEnd,30)}if(name==='history')renderHistory();if(name==='settings')renderSettings();
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
   scrollTo(0,0)}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
@@ -1742,23 +1758,23 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===VW),t=ws[i+(dx<0?1:-1)];
     if(t){haptic();openVision(t,true,dx<0?1:-1)}else{const vb=$('visBody');vb.classList.remove('vbump');void vb.offsetWidth;vb.classList.add('vbump')}},{passive:true})}
 // ---- Reflect: a quiet, full-screen place to write this week's reflection; autosaves; Saturday's review starts from it ----
-let JW=null,jrT=null;
+let JW=null,jrT=null,JNEW=false;
 function jrGrow(){} // the text area scrolls itself now
 // fit the Reflect page to the part of the screen above the keyboard, so the line being typed is never hidden
 function jrFit(){const o=$('jrnR');if(o.hidden)return;const vv=window.visualViewport;if(!vv){o.style.height='';return}
   o.style.height=vv.height+'px';o.style.top=vv.offsetTop+'px';const t=$('jrText');
   if(document.activeElement===t){const pos=t.selectionEnd;if(pos===t.value.length)t.scrollTop=t.scrollHeight}}
 if(window.visualViewport){visualViewport.addEventListener('resize',jrFit);visualViewport.addEventListener('scroll',jrFit)}
-function jrSave(){if(!JW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.patchWeek(cur,{liveRefl:v});$('jrSaved').textContent='Saved'}}
-function openJournal(w){if(!w)return;JW=w.id;const s0=new Date(w.sealedAt);
-  $('jrDate').textContent=`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=w.liveRefl||'';$('jrSaved').textContent='';
+function jrSave(){if(!JW||JNEW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.patchWeek(cur,{liveRefl:v});$('jrSaved').textContent='Saved'}}
+function openJournal(w,fresh){if(!w)return;JW=w.id;JNEW=!!fresh;const s0=new Date(w.sealedAt);$('jrCancel').hidden=!JNEW;$('jrSaved').hidden=JNEW;$('jrDone').textContent=JNEW?'Add':'Done';$('jrnR').classList.toggle('jnew',JNEW);
+  $('jrDate').textContent=JNEW?`New entry · ${stampOf(Date.now())}`:`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=JNEW?'':w.liveRefl||'';$('jrText').placeholder=JNEW?'':'How is this week going so far? What are you noticing, in your walk, at work, at home?';$('jrSaved').textContent='';
   {const jq=qsOf(w);$('jrQs').innerHTML=jq.length?`<div class="lbl">Saturday you’ll answer</div>${jq.map(q=>`<p>${esc(q)}</p>`).join('')}`:''}
   $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
-function closeJournal(){$('jrnR').classList.remove('typing');clearTimeout(jrT);jrSave();JW=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
+function closeJournal(cancel){$('jrnR').classList.remove('typing');clearTimeout(jrT);if(JNEW){const t=$('jrText').value.trim();if(t&&cancel!==true)vcAppend(Date.now(),t)}else jrSave();JW=null;JNEW=false;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
 $('jrText').addEventListener('focus',()=>{$('jrnR').classList.add('typing');setTimeout(jrFit,50);setTimeout(jrFit,350)});
 $('jrText').addEventListener('blur',()=>{$('jrnR').classList.remove('typing');setTimeout(jrFit,50)});
 $('jrText').addEventListener('input',()=>{jrFit();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
-$('jrDone').onclick=closeJournal;
+$('jrDone').onclick=()=>closeJournal();$('jrCancel').onclick=()=>{const t=$('jrText').value.trim();if(t&&!confirm('Discard this entry?'))return;closeJournal(true)};
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
 let landWord=false;
@@ -1989,7 +2005,8 @@ async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
   catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':/insufficient_quota|billing/i.test(e.detail||'')?'OpenAI has no credit · saved':/invalid_api_key|Incorrect API key|\b401\b/i.test(e.detail||'')?'OpenAI key rejected · saved':/model/i.test(e.detail||'')?'OpenAI model error · saved':/\b429\b/.test(e.detail||'')?'OpenAI rate limit · saved':`Failed ${e.status||'?'}: ${String((e.detail||e.message||'').replace(/^\d+\s*/,'').replace(/[{}"]/g,' ').replace(/\s+/g,' ').trim()).slice(0,60)}`;console.warn('voice',e)}
   VC.st='idle';vcPaint();vcPendPaint();return ok}
 // adds the words to this week's live reflection, under a day-and-time line
-function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const d=new Date(at),stamp=`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`;
+const stampOf=at=>{const d=new Date(at);return`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`};let rfJust=0;
+function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const stamp=stampOf(at);rfJust=Date.now();setTimeout(rfToEnd,150);
   const cur=(w.liveRefl||'').replace(/\s+$/,'');store.patchWeek(w,{liveRefl:(cur?cur+'\n\n':'')+stamp+'\n'+text})}
 async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return;vcFlushing=true;
   try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
@@ -2008,17 +2025,23 @@ addEventListener('online',()=>setTimeout(sumBackfill,3000));
 // this week's reflection on the Reflect page: newest entries showing, tap to write
 let rfView='j';
 function rfSetView(v){if(v!=='j'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfH').hidden=v!=='h';$('rfP').hidden=v!=='p';
-  document.querySelectorAll('[data-rv]').forEach(b=>{b.classList.toggle('on',b.dataset.rv===v);b.setAttribute('aria-selected',b.dataset.rv===v)});$('sPrayer').scrollTop=0;window.scrollTo(0,0)}
+  document.querySelectorAll('[data-rv]').forEach(b=>{b.classList.toggle('on',b.dataset.rv===v);b.setAttribute('aria-selected',b.dataset.rv===v)});$('sPrayer').scrollTop=0;window.scrollTo(0,0);if(v==='j')rfToEnd()}
 document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{if(rfView!==b.dataset.rv){haptic();rfSetView(b.dataset.rv)}});
 document.body.dataset.rv='j';
+function rfToEnd(){if(tab!=='prayer'||rfView!=='j')return;requestAnimationFrame(()=>{const sc=$('sPrayer');sc.scrollTop=sc.scrollHeight;window.scrollTo(0,document.documentElement.scrollHeight)})}
 function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');if(!aw){el.innerHTML='';rfPast();return}
-  const STAMP=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
-  const ents=(aw.liveRefl||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n');return STAMP.test(ls[0].trim())&&ls.length>1?{t:ls[0].trim(),x:ls.slice(1).join(' ')}:{t:'',x:ls.join(' ')}}).filter(e=>e.x.trim()).reverse();
-  const shown=ents;
-  el.innerHTML=`<div class="rfhd rf1"><span class="lbl">This week · ${esc(aw.focus)}</span><button class="rflink" id="rfOpen">${ico('pen')}Write</button></div>`
-    +(ents.length?`<div class="rfents">${shown.map(e=>`<button class="rfent" data-rfo>${e.t?`<span class="rfet">${esc(e.t)}</span>`:''}<span class="rfex">${esc(e.x)}</span></button>`).join('')}</div>`
-      :`<button class="rfempty" data-rfo>Nothing yet this week. Tap the mic and talk, or tap Write.</button>`);
-  const op=()=>openJournal(aw);$('rfOpen').onclick=op;el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);rfPast()}
+  const STAMP=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{1,2}:\d{2} [ap]m)$/;
+  const ents=(aw.liveRefl||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),m=ls[0].trim().match(STAMP);return m&&ls.length>1?{d:m[1],t:m[2],x:ls.slice(1).join('\n')}:{d:'',t:'',x:ls.join('\n')}}).filter(e=>e.x.trim());
+  // dates for each weekday inside this week, so day headings read "Sunday · Nov 8"
+  const s0=new Date(aw.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
+  const now=new Date(),todayN=DOWL[now.getDay()],fresh=Date.now()-rfJust<4000,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+  const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
+  const head=d=>`<div class="rfday"><span>${d===todayN?'Today':esc(d||'Earlier')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
+  let n=0;const last=ents.length-1;
+  el.innerHTML=`<div class="rfpage"><div class="rfwrow"><div class="rfword">${esc(aw.focus)}</div><button class="rflink" id="rfWrite">${ico('pen')}Write</button></div>${aw.verse?`<p class="rfverse">${esc(aw.verse)}${aw.verseRef?`<span>${esc(aw.verseRef)}</span>`:''}</p>`:aw.verseRef?`<p class="rfverse"><span>${esc(aw.verseRef)}</span></p>`:''}</div>`
+    +groups.map(g=>head(g.d)+g.e.map(e=>{const i=n++;return`<button class="rfent${fresh&&i===last?' rfnew':''}" data-rfo><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
+    +(ents.length?'':`<p class="rfnone">Nothing yet this week.</p>`);
+  const op=()=>openJournal(aw);el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);$('rfWrite').onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}};rfPast()}
 // one card per past week; a summary shows here once that week has one (w.summary), else the start of the reflection
 function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!ws.length){el.innerHTML='<p class="rfnone">Closed weeks show here with their focus word and a summary of what you said that week.</p>';return}
