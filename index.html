@@ -1011,9 +1011,13 @@ nav.bar svg.i{width:32px;height:32px;stroke-width:1.5}
 nav.bar button.on svg.i{animation:tabpop .42s cubic-bezier(.34,1.56,.64,1)}
 @keyframes tabpop{0%{transform:scale(1)}30%{transform:scale(.86)}65%{transform:scale(1.07)}100%{transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){nav.bar button.on svg.i{animation:none}}
-body:not([data-screen=prayer]) :is(.vcdock,.vcglow),body[data-rv=p] :is(.vcdock,.vcglow){display:none!important}
-body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
-.rfseg button{min-height:34px;padding:0 15px}
+body:not([data-screen=prayer]) :is(.vcdock,.vcglow),body:is([data-rv=p],[data-rv=h]) :is(.vcdock,.vcglow){display:none!important}
+body:is([data-rv=p],[data-rv=h]) #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
+#rfH .rfpw:first-child{border-top:0;padding-top:22px}
+.rfnone{padding:40px 4px;color:var(--mu);font-size:15px;line-height:1.5}
+#sPrayer .trow{flex-wrap:wrap;height:auto;row-gap:0}
+.rfseg{display:flex;width:100%;margin-top:14px}
+.rfseg button{flex:1;min-height:38px;padding:0 12px}
 .rfpw{display:block;width:100%;text-align:left;padding:18px 0 20px;border-top:1px solid var(--rule)}
 .rfpw:first-of-type{border-top:0;padding-top:4px}
 .rfpw b{display:block;margin:2px 0 8px;font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.01em;color:var(--tx)}
@@ -1128,8 +1132,8 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <!-- Prayer -->
 <section class="scr" id="sPrayer" data-mode="dark" hidden>
-  <div class="trow"><h2 class="ttl">Reflect</h2><span class="pwseg rfseg" role="tablist"><button data-rv="j" class="on" role="tab">Journal</button><button data-rv="p" role="tab">Prayer</button></span></div>
-  <div id="rfJ"><div id="rfWeek"></div><div id="rfPast"></div></div>
+  <div class="trow"><h2 class="ttl">Reflect</h2><span class="pwseg rfseg" role="tablist"><button data-rv="j" class="on" role="tab">Week</button><button data-rv="h" role="tab">Past</button><button data-rv="p" role="tab">Prayer</button></span></div>
+  <div id="rfJ"><div id="rfWeek"></div></div><div id="rfH" hidden><div id="rfPast"></div></div>
   <div id="rfP" hidden><div class="rfhd rf1"><span class="lbl">Your prayers</span><button class="rflink" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New</button></div>
   <div id="prLife"></div><div id="prList"></div></div>
 </section>
@@ -2003,22 +2007,22 @@ async function sumBackfill(){if(sumBusy||!navigator.onLine)return;sumBusy=true;
 addEventListener('online',()=>setTimeout(sumBackfill,3000));
 // this week's reflection on the Reflect page: newest entries showing, tap to write
 let rfView='j';
-function rfSetView(v){if(v==='p'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfP').hidden=v!=='p';
+function rfSetView(v){if(v!=='j'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfH').hidden=v!=='h';$('rfP').hidden=v!=='p';
   document.querySelectorAll('[data-rv]').forEach(b=>{b.classList.toggle('on',b.dataset.rv===v);b.setAttribute('aria-selected',b.dataset.rv===v)});$('sPrayer').scrollTop=0;window.scrollTo(0,0)}
 document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{if(rfView!==b.dataset.rv){haptic();rfSetView(b.dataset.rv)}});
 document.body.dataset.rv='j';
 function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');if(!aw){el.innerHTML='';rfPast();return}
   const STAMP=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
   const ents=(aw.liveRefl||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n');return STAMP.test(ls[0].trim())&&ls.length>1?{t:ls[0].trim(),x:ls.slice(1).join(' ')}:{t:'',x:ls.join(' ')}}).filter(e=>e.x.trim()).reverse();
-  const shown=ents.slice(0,3);
+  const shown=ents;
   el.innerHTML=`<div class="rfhd rf1"><span class="lbl">This week · ${esc(aw.focus)}</span><button class="rflink" id="rfOpen">${ico('pen')}Write</button></div>`
-    +(ents.length?`<div class="rfents">${shown.map(e=>`<button class="rfent" data-rfo>${e.t?`<span class="rfet">${esc(e.t)}</span>`:''}<span class="rfex">${esc(e.x)}</span></button>`).join('')}${ents.length>3?`<button class="rfmore" data-rfo>All ${ents.length} entries</button>`:''}</div>`
+    +(ents.length?`<div class="rfents">${shown.map(e=>`<button class="rfent" data-rfo>${e.t?`<span class="rfet">${esc(e.t)}</span>`:''}<span class="rfex">${esc(e.x)}</span></button>`).join('')}</div>`
       :`<button class="rfempty" data-rfo>Nothing yet this week. Tap the mic and talk, or tap Write.</button>`);
   const op=()=>openJournal(aw);$('rfOpen').onclick=op;el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);rfPast()}
 // one card per past week; a summary shows here once that week has one (w.summary), else the start of the reflection
 function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
-  if(!ws.length){el.innerHTML='';return}
-  el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div>${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
+  if(!ws.length){el.innerHTML='<p class="rfnone">Closed weeks show here with their focus word and a summary of what you said that week.</p>';return}
+  el.innerHTML=`${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
     const ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
     const bl=w.summary?[{l:'AI summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
     const more=bl.length-2;
