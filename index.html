@@ -847,6 +847,23 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .trsum{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
 .trcard,.trcard .tchart{overflow:visible!important}
 /* Progress, compact: more room for past weeks */
+.vcbox{display:flex;flex-direction:column;align-items:center;margin:22px 0 4px}
+.vcmic{position:relative;width:88px;height:88px;border-radius:50%;display:grid;place-items:center;background:var(--card);border:1px solid rgba(232,116,59,.55);color:var(--ac);transition:transform .25s var(--spring),background .3s var(--ease)}
+.vcmic svg.i{width:34px;height:34px;stroke-width:1.5;position:relative}
+.vcmic:active{transform:scale(.94)}
+.vcmic .vcring{position:absolute;inset:-1px;border-radius:50%;border:2px solid var(--ac);opacity:0}
+.vcmic.rec{background:var(--ac);color:var(--onAc);border-color:var(--ac)}
+.vcmic.rec .vcring{animation:vcpulse 1.6s var(--ease) infinite}
+.vcmic.busy{opacity:.6}
+.vcmic.busy .vcring{opacity:1;border-color:transparent;border-top-color:var(--ac);animation:vcspin .9s linear infinite}
+@keyframes vcpulse{0%{opacity:.7;transform:scale(1)}100%{opacity:0;transform:scale(1.35)}}
+@keyframes vcspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.vcmic .vcring{animation:none!important}}
+.vcst{margin-top:12px;font-size:14px;color:var(--mu);text-align:center;min-height:20px;font-variant-numeric:tabular-nums}
+.vcout{width:100%;max-width:440px}
+.vclast{margin:12px 0 0;font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--tx);max-height:96px;overflow:auto;text-align:left}
+.vcedit{margin-top:6px;font-size:13px;color:var(--ac)}
+.vcpend{margin-top:8px;font-size:13px;color:var(--mu)}.vcpend button{color:var(--ac);margin-left:6px}
 .reflpill{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:999px;border:1px solid rgba(232,116,59,.55);color:var(--tx);font-family:var(--serif);font-size:17px;flex:none}
 .reflpill svg{width:16px;height:16px;color:var(--ac)}.reflpill:active{transform:scale(.96)}
 #hList{margin-top:12px!important}
@@ -960,6 +977,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 <!-- History -->
 <section class="scr" id="sHistory" data-mode="dark" hidden>
   <div class="trow"><h2 class="ttl">Progress</h2><button class="reflpill" id="hReflect" hidden>Reflect</button></div>
+  <div id="vcBox" class="vcbox" hidden></div>
   <div id="hList" style="margin-top:24px"></div>
 </section>
 
@@ -998,8 +1016,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
   <div class="card"><div class="it" style="display:block"><label class="lbl" for="stAnchor" style="display:block;margin-bottom:6px">Anchor · asked every week</label><input class="field" id="stAnchor" style="background:var(--card2)"></div>
   <div class="it" style="display:block"><label class="lbl" for="stQs" style="display:block;margin-bottom:6px">Question library</label><textarea class="long dk" id="stQs" rows="8" style="min-height:220px" placeholder="One per line. Start a line with # for a group name."></textarea></div></div>
   <p class="mu" style="font-size:14px;margin:10px 4px">When you plan a week you pick two from the library; the anchor is always included. One question per line; lines starting with # are group names.</p>
-  <div class="lbl group" hidden>Notifications</div>
-  <div class="card" hidden><div class="it"><label class="grow" for="stPush">Notifications on this phone<small id="stPushNote">Reminders from your week, even when the app is closed.</small></label><input type="checkbox" switch id="stPush" class="tgl"></div>
+  <div class="lbl group">Notifications</div>
+  <div class="card"><div class="it"><label class="grow" for="stPush">Notifications on this phone<small id="stPushNote">Reminders from your week, even when the app is closed.</small></label><input type="checkbox" switch id="stPush" class="tgl"></div>
   <div id="stPushKinds">
   <div class="it"><label class="grow" for="pkBy">Before a start-by time<small>15 minutes before, if it isn’t started</small></label><input type="checkbox" switch id="pkBy" class="tgl" data-pk="startBy"></div>
   <div class="it"><label class="grow" for="pkTm">Timer finished<small>When a focus timer ends with the app closed</small></label><input type="checkbox" switch id="pkTm" class="tgl" data-pk="timer"></div>
@@ -1129,6 +1147,8 @@ const IC={
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
  pen:'<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/>',
+ mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
+ stop:'<rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/>',
  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
  eye:'<path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.5"/>',
  phone:'<rect x="7" y="3" width="10" height="18" rx="2"/><path d="M11 18h2"/>',
@@ -1193,7 +1213,8 @@ async function firestoreStore(){
       onChange:cb=>A.onAuthStateChanged(auth,cb),
       signIn:(e,p)=>A.signInWithEmailAndPassword(auth,e,p),
       reset:e=>A.sendPasswordResetEmail(auth,e),
-      signOut:()=>A.signOut(auth)
+      signOut:()=>A.signOut(auth),
+      token:()=>auth.currentUser?auth.currentUser.getIdToken():Promise.reject(new Error('Sign in again.'))
     },
     attach(u,emit){
       // users/{uid}/weeklyDirection/{settings|draft|data}; data/library, data/weeks, data/prayers, data/caffeine are collections
@@ -1242,7 +1263,7 @@ async function firestoreStore(){
 /* ---------- data layer: in-memory (only for automated preview tests) ---------- */
 function memoryStore(){
   let emit=()=>{};const m=window.__WD_MOCK;
-  return{auth:{onChange:cb=>setTimeout(()=>cb(m.user===false?null:{uid:'demo',email:'demo@example.com'})),signIn:async()=>{},reset:async()=>{},signOut:async()=>location.reload()},
+  return{auth:{onChange:cb=>setTimeout(()=>cb(m.user===false?null:{uid:'demo',email:'demo@example.com'})),signIn:async()=>{},reset:async()=>{},signOut:async()=>location.reload(),token:async()=>'mock'},
     attach(u,e){emit=e;D.syncNote='Preview data';D.library=SEED.map(([name,icon],i)=>({id:'c'+i,name,icon,order:i}));D.weeks=m.weeks||[];if(m.settings)Object.assign(D.settings,m.settings);
       D.draft=m.draft||null;D.prayers=m.prayers||[];D.caf=m.caf||{};setTimeout(()=>emit('ready'))},
     setSettings:v=>{Object.assign(D.settings,v);emit('settings')},
@@ -1742,6 +1763,54 @@ function habitHistory(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealed
   return`<p class="hhnote">Last ${ws.length} week${ws.length>1?'s':''}, oldest to newest. Tap a square for that week.</p>`+hs.map(h=>{const pct=Math.round(h.kept/h.tot*100),ot=h.on+h.late?Math.round(h.on/(h.on+h.late)*100):null;
     return`<div class="hhrow"><div class="hhtop"><span class="ic">${ico(h.c.icon||'check')}</span><span class="hhn">${esc(h.c.name)}<small>${h.kept} of ${h.tot} days${ot!=null?` · ${ot}% on time`:''}${h.gr?` · ${h.gr} in grace`:''}${h.rs?` · ${h.rs} rescheduled`:''}</small></span><b class="hhp">${pct}<small>%</small></b></div>
       <div class="hhcells">${h.cells.map(x=>x?`<button class="hhc" data-hh="${esc(x.f)}: ${x.k} of ${x.t} days" style="--r:${(x.k/x.t).toFixed(2)}" aria-label="${esc(x.f)}: ${x.k} of ${x.t} days"></button>`:'<span class="hhc none"></span>').join('')}</div><div class="hhtip"></div></div>`}).join('')}
+// ---- Voice reflections: tap the mic, talk, tap again; the words are added to this week's reflection ----
+// Audio goes to our own Cloud Function (it holds the OpenAI key); recordings wait on the phone if offline.
+const VOICE_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/transcribe',VMAX=10*60e3;
+let VC={st:'idle',msg:null,last:null},vcPend=0,vcFlushing=false;
+const vcMime=()=>{if(!window.MediaRecorder)return null;for(const t of['audio/mp4','audio/webm;codecs=opus','audio/webm'])if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(t))return t;return''};
+const vdb=()=>new Promise((ok,no)=>{const r=indexedDB.open('wd-voice',1);r.onupgradeneeded=()=>r.result.createObjectStore('q',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
+async function vq(mode,fn){const db=await vdb();return new Promise((ok,no)=>{const tx=db.transaction('q',mode),r=fn(tx.objectStore('q'));tx.oncomplete=()=>ok(r&&r.result);tx.onerror=()=>no(tx.error)})}
+const vqAll=()=>vq('readonly',s=>s.getAll()).catch(()=>[]),vqPut=x=>vq('readwrite',s=>s.put(x)),vqDel=id=>vq('readwrite',s=>s.delete(id)).catch(()=>{});
+function vcRender(){const box=$('vcBox');if(!box)return;const aw=D.weeks.find(w=>w.status==='active');box.hidden=!aw;if(!aw)return;
+  if(!box.firstChild){box.innerHTML=`<button class="vcmic" id="vcMic" aria-label="Speak a reflection"></button><div class="vcst" id="vcSt" aria-live="polite"></div><div class="vcout" id="vcOut"></div><div class="vcpend" id="vcPend"></div>`;
+    $('vcMic').onclick=()=>VC.st==='idle'?vcStart():VC.st==='rec'?vcStop():null}
+  vcPaint();vcPendPaint()}
+function vcPaint(){const b=$('vcMic');if(!b)return;
+  if(VC.st==='rec'&&Date.now()-VC.t0>=VMAX)return vcStop();
+  b.className='vcmic'+(VC.st==='rec'?' rec':VC.st==='busy'?' busy':'');b.disabled=VC.st==='busy';
+  const ic=VC.st==='rec'?'stop':'mic';if(b.dataset.ic!==ic){b.dataset.ic=ic;b.innerHTML=`<span class="vcring"></span>${ico(ic)}`}
+  b.setAttribute('aria-label',VC.st==='rec'?'Stop recording':'Speak a reflection');
+  $('vcSt').textContent=VC.st==='rec'?`${mmss(Math.floor((Date.now()-VC.t0)/1e3)*1e3)} · tap to stop`:VC.st==='busy'?'Transcribing…':VC.msg||'Tap to speak a reflection';
+  const o=$('vcOut');o.innerHTML=VC.st==='idle'&&VC.last?`<p class="vclast">${esc(VC.last)}</p><button class="vcedit" data-vce>Added to this week’s reflection · Edit</button>`:'';
+  const e=o.querySelector('[data-vce]');if(e)e.onclick=()=>{const aw=D.weeks.find(x=>x.status==='active');if(aw)openJournal(aw)}}
+async function vcPendPaint(){const el=$('vcPend');if(!el)return;const q=await vqAll();vcPend=q.length;
+  el.innerHTML=q.length&&VC.st!=='busy'?`${q.length} recording${q.length>1?'s':''} waiting to transcribe<button data-vcr>Retry</button>`:'';
+  const r=el.querySelector('[data-vcr]');if(r)r.onclick=()=>vcFlush()}
+async function vcStart(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||vcMime()===null){VC.msg='This browser can’t record audio.';return vcPaint()}
+  try{VC.stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){VC.msg='Microphone wasn’t allowed. Allow it in Settings → Safari → Microphone.';return vcPaint()}
+  const mt=vcMime();try{VC.rec=new MediaRecorder(VC.stream,mt?{mimeType:mt}:undefined)}catch(e){VC.rec=new MediaRecorder(VC.stream)}
+  VC.chunks=[];VC.rec.ondataavailable=e=>{if(e.data&&e.data.size)VC.chunks.push(e.data)};VC.rec.onstop=vcStopped;
+  VC.t0=Date.now();VC.st='rec';VC.msg=null;VC.last=null;VC.rec.start(1000);haptic();snd('start');clearInterval(VC.tick);VC.tick=setInterval(vcPaint,250);vcPaint()}
+function vcStop(){if(VC.st!=='rec')return;clearInterval(VC.tick);VC.st='busy';vcPaint();try{VC.rec.stop()}catch(e){vcStopped()}if(VC.stream)VC.stream.getTracks().forEach(t=>t.stop());haptic()}
+async function vcStopped(){const dur=Date.now()-VC.t0,type=(VC.rec&&VC.rec.mimeType)||vcMime()||'audio/mp4',blob=new Blob(VC.chunks||[],{type});VC.chunks=[];
+  if(dur<1500||!blob.size){VC.st='idle';VC.msg='That was too short. Tap and talk.';return vcPaint()}
+  const item={id:'v'+VC.t0,at:VC.t0,dur,type:type.split(';')[0],blob};try{await vqPut(item)}catch(e){}
+  if(await vcSend(item))vcFlush()}
+async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
+  try{const M=window.__WD_MOCK,tok=await store.auth.token();
+    const r=M&&M.transcribe?await M.transcribe(item):await fetch(VOICE_URL,{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':item.type,'X-Duration':String(Math.round(item.dur/1e3))},body:item.blob});
+    const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||`Error ${r.status}`),{status:r.status});
+    const text=String(j.text||'').trim();if(text)vcAppend(item.at,text);await vqDel(item.id);ok=true;
+    VC.msg=text?null:'Nothing was heard in that recording.';VC.last=text||null;snd('done')}
+  catch(e){VC.last=null;VC.msg=(!navigator.onLine||e instanceof TypeError)?'Saved on this phone. It’ll transcribe when you’re back online.':e.status===429?`${e.message} The recording is saved on this phone.`:`Couldn’t transcribe: ${e.message} The recording is saved on this phone.`}
+  VC.st='idle';vcPaint();vcPendPaint();return ok}
+// adds the words to this week's live reflection, under a day-and-time line
+function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const d=new Date(at),stamp=`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`;
+  const cur=(w.liveRefl||'').replace(/\s+$/,'');store.patchWeek(w,{liveRefl:(cur?cur+'\n\n':'')+stamp+'\n'+text})}
+async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return;vcFlushing=true;
+  try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
+addEventListener('online',()=>setTimeout(vcFlush,1500));
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
@@ -1760,7 +1829,7 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   $('hList').querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{if(hView===b.dataset.hv)return;hView=b.dataset.hv;haptic();renderHistory()});
   $('hList').querySelectorAll('[data-hh]').forEach(b=>b.onclick=()=>{const t=b.dataset.hh;b.closest('.hhrow').querySelector('.hhtip').textContent=t});
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
-  {const aw=weeks.find(w=>w.status==='active'),rb=$('hReflect');rb.hidden=!aw;if(aw){rb.innerHTML=`${ico('pen')}Reflect`;rb.onclick=()=>openJournal(aw)}}
+  vcRender();{const aw=weeks.find(w=>w.status==='active'),rb=$('hReflect');rb.hidden=!aw;if(aw){rb.innerHTML=`${ico('pen')}Reflect`;rb.onclick=()=>openJournal(aw)}}
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
 function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=92,L=30,R=24,T=22,B=24,n=weeks.length;
@@ -1993,7 +2062,7 @@ $('chByWeClr').onclick=()=>{$('chByWe').value=''};
 /* ---------- boot ---------- */
 function onData(kind){
   if(kind==='ready'||kind==='settings'){const t=document.documentElement.dataset.theme;applyTheme();if(kind==='settings'&&t===document.documentElement.dataset.theme){}}
-  if(kind==='ready'){if(ready)return;ready=true;$('boot').hidden=true;
+  if(kind==='ready'){if(ready)return;ready=true;setTimeout(vcFlush,3000);$('boot').hidden=true;
     if(!D.settings.cafFrom)store.setSettings({cafFrom:midnight(new Date()).getTime()});
     setTimeout(importLifeFromLink,300);
     if(D.draft&&D.draft.step==='plan'&&!D.draft.replan&&!active()){show('week');openPlan()}else show('week');return}

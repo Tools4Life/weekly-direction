@@ -25,7 +25,9 @@ const mock = now => ({ settings: { cafOn: false }, prayers: [{ id: 'p1', text: '
     const p = await b.newPage({ viewport: { width: 390, height: 844 } }); p.setDefaultTimeout(3000);
     p.on('pageerror', e => fail.push(`[${theme}] page error: ${e.message}`));
     p.on('dialog', d => d.accept());
-    const now = Date.now(), m = mock(now); m.settings.theme = theme;
+    // fixed Wednesday morning, so the sample week always covers "today" whatever day the test runs
+    const now = T('2026-11-11T10:00:00'), m = mock(now); m.settings.theme = theme;
+    await p.clock.install({ time: now });
     await p.addInitScript(m => { window.__WD_MOCK = m; }, m);
     await p.goto(url); await p.waitForTimeout(900);
     const step = async (name, fn) => { try { await fn(); await p.waitForTimeout(350); } catch (e) { fail.push(`[${theme}] ${name}: ${e.message.split('\n')[0]}`); } };
@@ -36,6 +38,7 @@ const mock = now => ({ settings: { cafOn: false }, prayers: [{ id: 'p1', text: '
     await step('vision page', async () => { await p.click('.trow .focus'); await p.waitForTimeout(400); await p.click('#visClose'); });
     await step('prayer tab + read', async () => { await p.click('[data-tab=prayer]'); await p.waitForTimeout(400); await p.click('[data-p="p1"]'); await p.waitForTimeout(400); await p.click('#pvDone'); });
     await step('progress tab', () => p.click('[data-tab=history]'));
+    await step('voice button', async () => { if (!(await p.isVisible('#vcMic'))) throw new Error('mic button missing on Progress'); });
     await step('week log', async () => { await p.click('[data-w=w1]'); await p.waitForTimeout(400); await p.click('#visClose'); });
     await step('reflect', async () => { await p.click('#hReflect'); await p.waitForTimeout(500); await p.click('#jrDone'); });
     await step('settings', async () => { await p.click('[data-tab=week]'); await p.waitForTimeout(300); await p.click('[data-gear]'); await p.waitForTimeout(300); await p.click('#stDone'); });
