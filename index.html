@@ -24,7 +24,8 @@
   --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);
   --ease:cubic-bezier(.2,.8,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
 }
-[data-mode="dark"],.dark{--bg:#0B0B0C;--card:#151517;--card2:#1C1C1F;--tx:#F2EFEA;--mu:#8E8A84;--mu2:#6E6A65;--rule:#222225;--line:#2C2C30;--ac:#E8743B;--acSoft:#2A160C;--onAc:#0B0B0C;--body:var(--sans)}
+/* dark: full white text; muted greys lifted for daylight readability */
+[data-mode="dark"],.dark{--bg:#0B0B0C;--card:#151517;--card2:#1C1C1F;--tx:#F7F4EF;--mu:#ABA69F;--mu2:#8A857F;--rule:#222225;--line:#2C2C30;--ac:#E8743B;--acSoft:#2A160C;--onAc:#0B0B0C;--body:var(--sans)}
 [data-mode="paper"],.paper{--bg:#F3EEE4;--card:#FBF8F1;--card2:#EFE8DB;--tx:#1F1B16;--mu:#6B6257;--mu2:#8C8273;--rule:#E6DED0;--line:#DCD3C4;--ac:#8A2E22;--acSoft:#F1E2DA;--onAc:#F3EEE4;--body:var(--serif)}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{touch-action:manipulation;-webkit-text-size-adjust:100%;background:var(--bg)}
@@ -768,12 +769,6 @@ html[data-theme=light] .vsec{border-top:1px solid #E6E3DD}
 
 /* late segment: solid outline at full color{box-sizing:border-box;border:1.5px solid var(--ac);box-shadow:none!important;overflow:hidden;background-clip:padding-box!important;
   background:repeating-linear-gradient(135deg,rgba(232,116,59,.5) 0 1.5px,transparent 1.5px 4px)!important}
-/* softer white in dark mode: main text and icons at ~82%; the done check stays full white so completion still pops */
-html:not([data-theme=light])[data-mode=dark],html:not([data-theme=light]) [data-mode=dark],html:not([data-theme=light]) .dark{--tx:rgba(242,239,234,.82)}
-html:not([data-theme=light]) .hcard .ic,html:not([data-theme=light]) .hcard.done .ic,html:not([data-theme=light]) .hcard.run .ic,html:not([data-theme=light]) .hcards.kept .hcard .ic{color:rgba(242,239,234,.82)!important}
-html:not([data-theme=light]) .hcard .hck i,html:not([data-theme=light]) .hcard .hck.run i,html:not([data-theme=light]) .hcard .hck.open i:not(:empty){color:rgba(242,239,234,.82)!important;border-color:rgba(242,239,234,.45)!important}
-html:not([data-theme=light]) .hcard.done .nm{color:rgba(242,239,234,.82)!important}
-html:not([data-theme=light]) .vhabits li .ic{color:rgba(242,239,234,.82)!important}
 html:not([data-theme=light]) .hcard.done .hck i{background:#F2EFEA!important;border-color:#F2EFEA!important;color:#1A0F09!important}
 /* focus timer: same background as the rest of the app so the strip under it (home-indicator area) matches */
 .fcs{background:var(--bg)!important;bottom:calc(-1 * var(--sb,0px));padding-bottom:var(--sb,0px)}
@@ -1978,7 +1973,7 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const aw=weeks.find(w=>w.status==='active')||weeks[0],ast=weekStats(aw),aot=onTime(aw),live=aw.status==='active',s0=new Date(aw.sealedAt);
   const hero=`<div class="pghero rise"><button class="pgl" data-w="${aw.id}"><span class="cond hdate">${live?'This week':fmtRange(s0,weekEnd(s0))} · <em>${esc(aw.focus)}</em></span>
       <b class="pgpct">${ast.pct}<small>%</small></b><span class="pgsub">${ast.kept} of ${ast.days.length} days${aot.pct!=null?` · ${aot.pct}% on time`:''}</span>${mini(aw,ast.days)}</button>
-    <div class="pgr"><span class="cond pgtl">Weekly trend${avg!=null&&ws.length>=2?` · avg ${avg}%`:''}</span><div class="tchart" id="tChart" data-compact="1"></div></div></div>`;
+    <div class="pgr"><span class="cond pgtl">Weekly trend</span>${avg!=null&&ws.length>=2?`<span class="pgsub">avg ${avg}%</span>`:''}<div class="tchart" id="tChart" data-compact="1"></div></div></div>`;
   const row=w=>{const st=weekStats(w),a=new Date(w.sealedAt);return`<button class="pgrow" data-w="${w.id}"><span class="pgn"><b>${esc(w.focus)}</b><span class="cond hdate">${fmtRange(a,weekEnd(a))}</span></span>${mini(w,st.days)}<span class="pgv">${st.pct}<small>%</small></span></button>`};
   const past=weeks.filter(w=>w!==aw).map(row).join('');
   $('hList').innerHTML=hero+`<div class="pwl pwhd"><span class="pwseg"><button data-hv="weeks" class="${hView!=='habits'?'on':''}">Weeks</button><button data-hv="habits" class="${hView==='habits'?'on':''}">Habits</button></span></div>
