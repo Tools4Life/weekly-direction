@@ -992,6 +992,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 .rfpw:first-of-type{border-top:0;padding-top:4px}
 .rfpw b{display:block;margin:2px 0 8px;font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.01em;color:var(--tx)}
 .rfpe{display:block;margin-top:10px}
+.vsumb{margin:6px 0 18px;padding:12px 14px;border-radius:14px;background:var(--card)}.vsumb p{margin:4px 0 0;font-family:var(--serif);font-size:17px;line-height:1.5;color:var(--tx)}
 .rfpq{display:block;font-family:var(--serif);font-style:italic;font-size:15px;color:var(--mu)}
 .rfpx{display:-webkit-box;margin-top:2px;font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--tx);-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 .rfpm{display:block;margin-top:8px;font-size:13px;color:var(--mu)}
@@ -1161,7 +1162,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 </section>
 
 <!-- Plan the week -->
-<section class="scr noBar" id="sPlan" data-mode="paper" hidden>
+<section class="scr noBar" id="sPlan" data-mode="dark" hidden>
   <div class="ptop"><button class="x" id="plLeave"><svg class="i" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Later</button><span class="saved" id="plSaved"></span></div>
   <div id="plProg"><div class="prog"><i class="on"></i><i class="on"></i><i class="on"></i></div><div class="progl"><span>REVIEW</span><span>REFLECT</span><span>PLAN</span></div></div>
   <p class="ptitle" id="plTitle">Plan the week</p>
@@ -1686,7 +1687,7 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
     const hab=w.commitments.map(c=>{const t=tally(c);return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${t||c.days?`<small>${[c.days?DAYS_L[c.days]:'',t].filter(Boolean).join(' · ')}</small>`:''}</span></li>`}).join('');
     $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${strip}<hr class="lrrule">
       <div class="lbl vlbl">Vision</div>${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written.</p>`}
-      <div class="vsec lref"><div class="lbl vlbl">${live?'Reflection so far':'Reflection'}${closed?` · ${closed}`:''}</div>${refl}</div>
+      <div class="vsec lref"><div class="lbl vlbl">${live?'Reflection so far':'Reflection'}${closed?` · ${closed}`:''}</div>${!live&&w.summary?`<div class="vsumb"><span class="rfet">AI summary</span><p>${esc(w.summary)}</p></div>`:''}${refl}</div>
       <div class="vsec lhab"><div class="lbl">Habits</div><ul>${hab}</ul></div>`;
     const lt=$('lrLive');if(lt){const grow=()=>{lt.style.height='auto';lt.style.height=Math.max(160,lt.scrollHeight+2)+'px'};requestAnimationFrame(grow);let tt=null;
       lt.oninput=()=>{grow();$('lrSaved').textContent='';clearTimeout(tt);tt=setTimeout(()=>{const cur=D.weeks.find(x=>x.id===w.id);if(cur){store.patchWeek(cur,{liveRefl:lt.value});$('lrSaved').textContent='Saved'}},700)}}
@@ -1751,7 +1752,7 @@ function renderWeek(animate){
       <h1>${resume?'Your plan is waiting.':first?'Plan your first week.':'Plan the next week.'}</h1>
       <p>${resume?'Pick up where you left off.':'One word and a few daily habits. Seal it, then just live it.'}</p>
       <div><button class="btn pri" id="wkPlan">${resume?'Resume planning':first?'Plan your first week':'Plan the week'}</button></div></div>${cafCard()}`;el.insertAdjacentHTML('afterbegin',`<div class="trow"><h1 class="ttl">This week</h1>${gearBtn}</div>`);
-    $('wkPlan').onclick=()=>openPlan();bindCaf(el);return}
+    $('wkPlan').onclick=()=>{const lw=D.weeks.filter(x=>x.status==='closed').sort((a,b)=>b.sealedAt-a.sealedAt)[0];openPlan(null,lw)};bindCaf(el);return}
   const now=new Date(),start=new Date(w.sealedAt),end=weekEnd(start),due=now>=end,marks=w.marks||{},todayK=ymd(now);
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
   const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:trackStart();
@@ -1957,6 +1958,17 @@ function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)re
 async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return;vcFlushing=true;
   try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
 addEventListener('online',()=>setTimeout(vcFlush,1500));
+// ---- AI week summaries: written once a week is closed, stored beside the reflection (never replacing it) ----
+const SUM_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/summarize';let sumBusy=false;
+async function sumWeek(w){const text=(w.reflection||'').trim();if(!w||w.summary||text.length<20)return false;
+  try{const M=window.__WD_MOCK,tok=await store.auth.token();
+    const r=M&&M.summarize?await M.summarize(w):await fetch(SUM_URL,{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':'application/json'},body:JSON.stringify({text,focus:w.focus})});
+    const j=await r.json().catch(()=>({}));if(!r.ok||!j.summary)return false;
+    const cur=D.weeks.find(x=>x.id===w.id);if(cur&&!cur.summary)store.patchWeek(cur,{summary:String(j.summary).trim(),summaryAt:Date.now()});return true}catch(e){return false}}
+// closed weeks that have a reflection but no summary yet (newest first, a few per launch)
+async function sumBackfill(){if(sumBusy||!navigator.onLine)return;sumBusy=true;
+  try{const ws=D.weeks.filter(w=>w.status==='closed'&&!w.summary&&(w.reflection||'').trim().length>=20).sort((a,b)=>b.sealedAt-a.sealedAt).slice(0,4);for(const w of ws){if(!await sumWeek(w))break}}finally{sumBusy=false}}
+addEventListener('online',()=>setTimeout(sumBackfill,3000));
 // this week's reflection on the Reflect page: newest entries showing, tap to write
 let rfView='j';
 function rfSetView(v){if(v==='p'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfP').hidden=v!=='p';
@@ -1976,7 +1988,7 @@ function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>
   if(!ws.length){el.innerHTML='';return}
   el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div>${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
     const ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
-    const bl=w.summary?[{l:'Summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
+    const bl=w.summary?[{l:'AI summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
     const more=bl.length-2;
     return`<button class="rfpw" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${bl.slice(0,2).map(e=>`<span class="rfpe">${e.l?`<span class="${e.q?'rfpq':'rfet'}">${esc(e.l)}</span>`:''}<span class="rfpx">${esc(e.x)}</span></span>`).join('')}${more>0?`<span class="rfpm">+${more} more</span>`:''}</button>`}).join('')}`;
   el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true))}
@@ -2108,7 +2120,7 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
     ${D.settings.cafOn?`<div class="lbl hwl">Caffeine next week</div><p class="hwp">${lim?`Starts at ${lim} mg · AM ${am} · PM ${pm}`:'Caffeine-free'}</p>`:''}
     ${closeQs.map((q,i)=>`<p class="rvq">${esc(q)}</p><textarea class="long dk rva" data-qa="${i}" rows="2" placeholder="Answer">${esc(closeAns[i]||'')}</textarea>`).join('')}
     <div class="lbl hwl">Reflection <em class="ed">optional</em></div><textarea class="long dk" id="clRef" rows="3" placeholder="Anything else from the week?">${esc(closeRef)}</textarea>
-    <div class="acts"><button class="btn pri" id="clGo">Close &amp; plan next week</button></div>`;
+    <div class="acts"><button class="btn pri" id="clGo">Close the week</button></div>`;
   $('clRef').oninput=ev=>closeRef=ev.target.value;
   const grow=t=>{t.style.height='auto';t.style.height=(t.scrollHeight+2)+'px'};
   $('clBody').querySelectorAll('[data-qa]').forEach(t=>{grow(t);t.oninput=ev=>{closeAns[+t.dataset.qa]=ev.target.value;grow(t)}});
@@ -2116,7 +2128,7 @@ function renderClose(id){const w=D.weeks.find(x=>x.id===id);if(!w)return;const s
   if(false)$('clBody').querySelectorAll('[data-ck]').forEach(b=>b.onclick=()=>{const k=b.dataset.ck,v=(w.marks||{})[k],nv=!v?'on':v==='on'?'drift':undefined;haptic();store.mark(w,k,nv);setTimeout(()=>renderClose(id),30)});
   $('clGo').onclick=()=>{const cur=D.weeks.find(x=>x.id===id),s2=weekStats(cur);
     store.patchWeek(cur,{status:'closed',closedAt:Date.now(),percentage:s2.pct,reflection:joinRef()});
-    closeSheet();setTimeout(()=>closeMoment(cur,s2,()=>openPlan(null,cur)),260)}}
+    closeSheet();setTimeout(()=>sumWeek(D.weeks.find(x=>x.id===id)),800);setTimeout(()=>closeMoment(cur,s2,()=>{selK=null;show('week')}),260)}}
 // the week's close: % counts up, days fill in one by one, then planning opens (tap to skip)
 function closeMoment(w,st,next){const o=$('wClose'),m=w.marks||{};let done=false;const go=()=>{if(done)return;done=true;o.classList.remove('on');setTimeout(()=>{o.hidden=true;next()},350)};
   if(RM.matches){next();return}
@@ -2299,10 +2311,10 @@ $('chByWeClr').onclick=()=>{$('chByWe').value=''};
 /* ---------- boot ---------- */
 function onData(kind){
   if(kind==='ready'||kind==='settings'){const t=document.documentElement.dataset.theme;applyTheme();if(kind==='settings'&&t===document.documentElement.dataset.theme){}}
-  if(kind==='ready'){if(ready)return;ready=true;setTimeout(vcFlush,3000);$('boot').hidden=true;
+  if(kind==='ready'){if(ready)return;ready=true;setTimeout(vcFlush,3000);setTimeout(sumBackfill,4500);$('boot').hidden=true;
     if(!D.settings.cafFrom)store.setSettings({cafFrom:midnight(new Date()).getTime()});
     setTimeout(importLifeFromLink,300);
-    if(D.draft&&D.draft.step==='plan'&&!D.draft.replan&&!active()){show('week');openPlan()}else show('week');return}
+    show('week');return}
   if(!ready)return;
   if(tab==='week'&&kind!=='library'&&kind!=='prayers')renderWeek(false);
   if(kind==='caffeine'&&openSheetEl===$('shCafLog'))renderCafLog();

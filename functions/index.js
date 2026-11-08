@@ -1,5 +1,6 @@
 // Weekly Direction server (Firebase Cloud Functions, 2nd gen).
 //  - transcribe: voice reflections -> text (see transcribe.js).
+//  - summarize: a closed week's reflection -> short faithful summary (see summarize.js).
 //  - vapidKey: returns the public Web Push key (generated once and kept in Firestore, server-only).
 //  - sendReminders: every minute, sends any reminders that came due since the last run.
 const { onSchedule } = require('firebase-functions/v2/scheduler');
@@ -48,3 +49,4 @@ exports.sendReminders = onSchedule({ schedule: 'every 1 minutes', region: 'us-ce
 });
 
 exports.transcribe = require('./transcribe').transcribe;
+exports.summarize = require('./summarize').summarize;
