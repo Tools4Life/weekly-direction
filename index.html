@@ -989,6 +989,13 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfbin>.rfday:first-child{margin-top:4px}
 .rfqa{display:block;padding:8px 0}
 .rfacts{margin-top:14px}
+/* this week stands apart: a card at the top, always open; earlier weeks below */
+.rfcur{margin:6px 0 8px;padding:20px 20px 18px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 22%,transparent)}
+.rfcur .rfwd.rfcl{color:var(--ac)}
+.rfcur .rfww{font-size:32px;margin:4px 0 8px}
+.rfcur .rfday:first-of-type{margin-top:14px}
+.rfph{margin:30px 0 2px;font-family:var(--cond);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu)}
+.rfph+.rfwk{border-top:0}
 .rfverse{margin:0 0 4px;font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.5;color:var(--mu)}
 .rfverse span{display:block;margin-top:3px;font-family:var(--cond);font-style:normal;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
 @media (prefers-reduced-motion:reduce){.rfbody,.rfbin,.rfchev{transition:none}}
@@ -2142,9 +2149,11 @@ function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);co
     +`<div class="rfacts">${active?`<button class="rflink" data-rfw>${ico('pen')}Write</button>`:`<button class="rflink" data-rfv="${w.id}">Open week</button>`}</div>`}
 // the journal: a list of weeks, newest first, each with its summary; tap one and its entries slide open
 function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');
-  if(aw&&Date.now()-rfJust<4000)rfOpen.add(aw.id);
-  const ws=(aw?[aw]:[]).concat(D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt));
-  const html=ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
+  const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
+  // this week: its own card at the top, always open
+  let cur='';if(aw){const a0=new Date(aw.sealedAt),n=rfEnts(aw.liveRefl).length;
+    cur=`<div class="rfcur"><span class="rfwd rfcl">This week · ${fmtRange(a0,weekEnd(a0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(aw.focus)}</span>${rfBody(aw,true)}</div>`}
+  const html=cur+(ws.length?`<div class="rfph">Earlier weeks</div>`:'')+ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
     const sum=w.summary?`<span class="rfsl">AI summary</span><span class="rfsx">${esc(w.summary)}</span>`
       :act?(lastE?`<span class="rfsx">${esc(lastE.x)}</span>`:`<span class="rfsx rfmu">Nothing yet this week.</span>`)
       :`<span class="rfsx">${esc((rfBlocks(w.reflection||w.liveRefl)[0]||{x:''}).x)}</span>`;
