@@ -36,11 +36,11 @@ const mock = now => ({ settings: { cafOn: false }, prayers: [{ id: 'p1', text: '
     await step('habit details', async () => { await p.click('[data-hd=a]'); await p.waitForTimeout(400); await p.click('#hbDone'); });
     await step('start timer', async () => { await p.click('[data-h=a]'); await p.waitForTimeout(500); await p.click('#fcClose'); });
     await step('vision page', async () => { await p.click('.trow .focus'); await p.waitForTimeout(400); await p.click('#visClose'); });
+    await step('reflect tab: mic + this week', async () => { await p.click('[data-tab=prayer]'); await p.waitForTimeout(400); if (!(await p.isVisible('#vcMic'))) throw new Error('mic button missing on Reflect'); if (!(await p.isVisible('#rfOpen'))) throw new Error('this week card missing'); });
     await step('prayer tab + read', async () => { await p.click('[data-tab=prayer]'); await p.waitForTimeout(400); await p.click('[data-p="p1"]'); await p.waitForTimeout(400); await p.click('#pvDone'); });
     await step('progress tab', () => p.click('[data-tab=history]'));
-    await step('voice button', async () => { if (!(await p.isVisible('#vcMic'))) throw new Error('mic button missing on Progress'); });
     await step('week log', async () => { await p.click('[data-w=w1]'); await p.waitForTimeout(400); await p.click('#visClose'); });
-    await step('reflect', async () => { await p.click('#hReflect'); await p.waitForTimeout(500); await p.click('#jrDone'); });
+    await step('reflect', async () => { await p.click('[data-tab=prayer]'); await p.waitForTimeout(300); await p.click('#rfOpen'); await p.waitForTimeout(500); await p.click('#jrDone'); });
     await step('settings', async () => { await p.click('[data-tab=week]'); await p.waitForTimeout(300); await p.click('[data-gear]'); await p.waitForTimeout(300); await p.click('#stDone'); });
     await step('re-plan screen', async () => { await p.click('[data-gear]'); await p.waitForTimeout(300); await p.click('#stReplan'); await p.waitForTimeout(500); });
     await p.close();
