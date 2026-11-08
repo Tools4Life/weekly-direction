@@ -851,6 +851,36 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* ---- Reflect page ---- */
 #sPrayer{padding-bottom:calc(var(--sb) + 250px)}
 .rfhd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 10px}
+/* ---- Week stats page ---- */
+.str{z-index:97}
+.visr{z-index:98}
+.str .lrin{padding-top:calc(var(--st) + 9vh)}
+.sthead{display:flex;align-items:baseline;gap:14px;margin-top:6px}
+.stpct{font-family:var(--cond);font-weight:600;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}.stpct small{font-size:24px;color:var(--mu);font-weight:500}
+.stdelta{font-family:var(--cond);font-size:14px;letter-spacing:.06em}.stdelta.up{color:var(--ac)}.stdelta.dn{color:var(--mu)}
+.sttiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:20px}
+.sttile{display:flex;flex-direction:column;gap:1px;padding:12px;border-radius:14px;background:var(--card)}
+.sttile b{font-family:var(--cond);font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}
+.sttile span{font-size:13px;color:var(--mu)}.sttile small{font-family:var(--cond);font-size:12px;color:var(--mu2);letter-spacing:.04em}
+.stgrid{display:grid;grid-template-columns:28px repeat(var(--n),1fr);gap:6px;align-items:center;margin-top:12px}
+.stdh{text-align:center;font-family:var(--cond);font-size:12px;letter-spacing:.1em;color:var(--mu)}
+.stdn{display:flex;color:var(--mu)}.stdn svg{width:18px;height:18px}
+.stc{display:grid;place-items:center;aspect-ratio:1;max-height:34px;border-radius:7px;font-style:normal;font-size:13px;color:var(--mu);border:1px solid var(--line)}
+.stc.on{background:var(--ac);border-color:var(--ac)}
+.stc.grace{background:color-mix(in srgb,var(--ac) 55%,transparent);border-color:var(--ac)}
+.stc.late{background:color-mix(in srgb,var(--ac) 25%,transparent);border-color:color-mix(in srgb,var(--ac) 60%,transparent)}
+.stc.fail{border-color:var(--mu2);color:var(--tx)}
+.stc.miss{border-style:dashed;border-color:var(--mu2)}
+.stc.open{border-color:var(--ac);border-style:dashed}
+.stc.fut{opacity:.35}.stc.na{border:0;background:none}
+.stleg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:12px;font-size:12px;color:var(--mu)}
+.stleg span{display:inline-flex;align-items:center;gap:6px}.stleg .stc{width:14px;height:14px;border-radius:4px;font-size:9px}
+.sthab{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--rule)}
+.sthab .ic{display:flex}.sthab .ic svg{width:19px;height:19px}
+.sthn{flex:1;min-width:0;font-size:16px}.sthn small{display:block;font-family:var(--cond);font-size:12.5px;letter-spacing:.05em;color:var(--mu2);margin-top:2px}
+.stbar{width:56px;height:5px;border-radius:3px;background:var(--line);overflow:hidden;flex:none}.stbar i{display:block;height:100%;background:var(--ac)}
+.sthab b{min-width:48px;text-align:right;font-family:var(--cond);font-weight:600;font-size:20px}.sthab b small{font-size:12px;color:var(--mu)}
+.stvis{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:15px;color:var(--ac)}.stvis svg.i{width:18px;height:18px}
 /* ---- Progress, compact ---- */
 .pghero{display:flex;gap:14px;margin:4px 0 0;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid rgba(232,116,59,.35)}
 .pgl{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
@@ -1182,6 +1212,9 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 <div class="lifer visr" id="visR" hidden role="dialog" aria-modal="true" aria-label="This week's vision">
   <button class="cx" id="visClose" aria-label="Close">&times;</button>
   <div class="lrin" id="visBody"></div></div>
+<div class="lifer str" id="stR" hidden role="dialog" aria-modal="true" aria-label="Week stats">
+  <button class="cx" id="stClose" aria-label="Close">&times;</button>
+  <div class="lrin" id="stBody"></div></div>
 <div class="lifer jrnr" id="jrnR" hidden role="dialog" aria-modal="true" aria-label="Reflect">
   <div class="jtop"><span class="jsaved" id="jrSaved"></span><button class="pvdone" id="jrDone">Done</button></div>
   <div class="lrin jin"><div class="vdate" id="jrDate"></div><div class="jword2" id="jrWord"></div>
@@ -1212,6 +1245,7 @@ const IC={
  sun:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
  moon:'<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
  pen:'<path d="M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z"/>',
+ book:'<path d="M12 7c-1.8-1.6-4.4-2.2-8.5-2.2v13.4c4.1 0 6.7.6 8.5 2.2 1.8-1.6 4.4-2.2 8.5-2.2V4.8c-4.1 0-6.7.6-8.5 2.2z"/><path d="M12 7v13.2"/>',
  mic:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/>',
  stop:'<rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/>',
  heart:'<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
@@ -1905,6 +1939,38 @@ function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>
   el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div>${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
     return`<button class="rfpw" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${w.summary?'<span class="rfsum lbl">Summary</span>':''}<span class="rfpt">${esc(t).replace(/\n\s*\n/g,'<br><br>').replace(/\n/g,'<br>')}</span></button>`}).join('')}`;
   el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true))}
+// ---- Week stats: the in-depth page behind a week on Progress ----
+// one habit on one day: on | grace | late | fail | miss | open | fut | na
+function cellOf(w,k,c){const d=new Date(k+'T12:00:00');if(!onDay(c,d))return'na';const today=ymd(new Date());if(k>today)return'fut';
+  const x=(w.done||{})[k]||{};if(x[c.id+'@fail'])return'fail';if(x[c.id])return x[c.id+'@late']?'late':x[c.id+'@grace']?'grace':'on';
+  if(k<today)return'miss';const st=hState(w,k,c);return st==='miss'?'miss':'open'}
+function openStats(w){if(!w)return;const s0=new Date(w.sealedAt),st=weekStats(w),days=st.days,keys=days.map(ymd),hs=w.commitments;
+  const per=hs.map(c=>{const t={c,on:0,grace:0,late:0,fail:0,miss:0,due:0};keys.forEach(k=>{const v=cellOf(w,k,c);if(['on','grace','late','fail','miss'].includes(v)){t[v]++;t.due++}});t.done=t.on+t.grace+t.late;return t});
+  const sum=per.reduce((a,t)=>{['on','grace','late','fail','miss','due','done'].forEach(k=>a[k]=(a[k]||0)+t[k]);return a},{});
+  const timed=per.filter(t=>t.c.by),tDone=timed.reduce((a,t)=>a+t.done,0),tOn=timed.reduce((a,t)=>a+t.on+t.grace,0);
+  const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===w.id),pv=ws[i-1],nx=ws[i+1],pvPct=pv?weekStats(pv).pct:null;
+  const delta=pvPct==null?'':`<span class="stdelta ${st.pct>=pvPct?'up':'dn'}">${st.pct>=pvPct?'▲':'▼'} ${Math.abs(st.pct-pvPct)} vs ${esc(pv.focus)}</span>`;
+  const tile=(v,l,sub='')=>`<div class="sttile"><b>${v}</b><span>${l}</span>${sub?`<small>${sub}</small>`:''}</div>`;
+  const tiles=[tile(`${st.kept}/${days.length}`,'days kept',`${st.pct}%`),tile(`${sum.done||0}/${sum.due||0}`,'habits done',sum.due?Math.round(sum.done/sum.due*100)+'%':''),
+    tDone?tile(Math.round(tOn/tDone*100)+'%','on time',`${tOn} of ${tDone}`):tile('—','on time','no timed habits'),tile(sum.grace||0,'in grace'),tile(sum.miss||0,'missed'),tile(sum.fail||0,'failed')].join('');
+  const SYM={on:'',grace:'',late:'',fail:'✕',miss:'',open:'',fut:'',na:''};
+  const grid=`<div class="stgrid" style="--n:${keys.length}"><span></span>${days.map(d=>`<span class="stdh">${DOW[d.getDay()]}</span>`).join('')}
+    ${hs.map(c=>`<span class="stdn" title="${esc(c.name)}">${ico(c.icon||'check')}</span>${keys.map(k=>{const v=cellOf(w,k,c);return`<i class="stc ${v}" title="${esc(c.name)} · ${DOWL[new Date(k+'T12:00:00').getDay()]}: ${v}">${SYM[v]}</i>`}).join('')}`).join('')}</div>
+    <div class="stleg"><span><i class="stc on"></i>on time</span><span><i class="stc grace"></i>grace</span><span><i class="stc late"></i>late</span><span><i class="stc miss"></i>missed</span><span><i class="stc fail">✕</i>failed</span></div>`;
+  const rows=per.map(t=>{const pct=t.due?Math.round(t.done/t.due*100):0,bits=[`${t.done}/${t.due}`,t.c.by&&t.done?`${Math.round((t.on+t.grace)/t.done*100)}% on time`:'',t.grace?`${t.grace} grace`:'',t.late?`${t.late} late`:'',t.fail?`${t.fail} failed`:''].filter(Boolean).join(' · ');
+    return`<div class="sthab"><span class="ic">${ico(t.c.icon||'check')}</span><span class="sthn">${esc(t.c.name)}<small>${bits}</small></span><span class="stbar"><i style="width:${pct}%"></i></span><b>${pct}<small>%</small></b></div>`}).join('');
+  $('stBody').innerHTML=`<div class="vdate">${fmtRange(s0,weekEnd(s0))}${w.status==='active'?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>
+    <div class="sthead"><b class="stpct">${st.pct}<small>%</small></b>${delta}</div>
+    <div class="sttiles">${tiles}</div>
+    <div class="vsec"><div class="lbl">Day by day</div>${grid}</div>
+    <div class="vsec"><div class="lbl">By habit</div>${rows}</div>
+    <button class="stvis" id="stVis">${ico('book')}Vision &amp; reflection for this week</button>
+    <div class="vnav">${pv?`<button data-sn="${pv.id}">‹ ${esc(pv.focus)}</button>`:'<span></span>'}<span class="vnhint">other weeks</span>${nx?`<button data-sn="${nx.id}">${esc(nx.focus)} ›</button>`:'<span></span>'}</div>`;
+  $('stVis').onclick=()=>openVision(w,true);
+  $('stBody').querySelectorAll('[data-sn]').forEach(b=>b.onclick=()=>{haptic();openStats(D.weeks.find(x=>x.id===b.dataset.sn))});
+  const o=$('stR');o.scrollTop=0;if(o.hidden){o.hidden=false;requestAnimationFrame(()=>o.classList.add('on'))}}
+function closeStats(){$('stR').classList.remove('on');setTimeout(()=>$('stR').hidden=true,300)}
+$('stClose').onclick=closeStats;
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
@@ -1912,14 +1978,14 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const aw=weeks.find(w=>w.status==='active')||weeks[0],ast=weekStats(aw),aot=onTime(aw),live=aw.status==='active',s0=new Date(aw.sealedAt);
   const hero=`<div class="pghero rise"><button class="pgl" data-w="${aw.id}"><span class="cond hdate">${live?'This week':fmtRange(s0,weekEnd(s0))} · <em>${esc(aw.focus)}</em></span>
       <b class="pgpct">${ast.pct}<small>%</small></b><span class="pgsub">${ast.kept} of ${ast.days.length} days${aot.pct!=null?` · ${aot.pct}% on time`:''}</span>${mini(aw,ast.days)}</button>
-    <div class="pgr"><span class="cond pgtl">Trend${avg!=null&&ws.length>=2?` · avg ${avg}%`:''}</span><div class="tchart" id="tChart" data-compact="1"></div></div></div>`;
+    <div class="pgr"><span class="cond pgtl">Weekly trend${avg!=null&&ws.length>=2?` · avg ${avg}%`:''}</span><div class="tchart" id="tChart" data-compact="1"></div></div></div>`;
   const row=w=>{const st=weekStats(w),a=new Date(w.sealedAt);return`<button class="pgrow" data-w="${w.id}"><span class="pgn"><b>${esc(w.focus)}</b><span class="cond hdate">${fmtRange(a,weekEnd(a))}</span></span>${mini(w,st.days)}<span class="pgv">${st.pct}<small>%</small></span></button>`};
   const past=weeks.filter(w=>w!==aw).map(row).join('');
   $('hList').innerHTML=hero+`<div class="pwl pwhd"><span class="pwseg"><button data-hv="weeks" class="${hView!=='habits'?'on':''}">Weeks</button><button data-hv="habits" class="${hView==='habits'?'on':''}">Habits</button></span></div>
       <div class="pwlist" id="pwList">${hView==='habits'?habitHistory():past||'<p class="tempty">Past weeks will show here.</p>'}</div>`;
   $('hList').querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{if(hView===b.dataset.hv)return;hView=b.dataset.hv;haptic();renderHistory()});
   $('hList').querySelectorAll('[data-hh]').forEach(b=>b.onclick=()=>{const t=b.dataset.hh;b.closest('.hhrow').querySelector('.hhtip').textContent=t});
-  $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
+  $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openStats(D.weeks.find(w=>w.id===b.dataset.w)));
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
 function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">${box.dataset.compact?`Starts after ${weeks.length?'one more review':'two reviews'}.`:`Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.`}</p>`;return}const cp=!!box.dataset.compact,W=box.clientWidth||(cp?150:340),H=cp?70:92,L=cp?8:30,R=cp?30:24,T=cp?18:22,B=cp?8:24,n=weeks.length;
