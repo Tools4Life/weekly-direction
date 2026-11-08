@@ -4,6 +4,8 @@ const { onRequest } = require('firebase-functions/v2/https');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
 const OPENAI_API_KEY = defineSecret('OPENAI_API_KEY');
+// keys pasted through notes/terminals can pick up spaces, line breaks or invisible characters
+const cleanKey = () => String(OPENAI_API_KEY.value() || '').replace(/[^A-Za-z0-9_\-]/g, '');
 const MODELS = ['gpt-transcribe', 'gpt-4o-transcribe']; // newest first; falls back if the first is refused
 const MAX_BYTES = 15 * 1024 * 1024, MAX_SEC = 12 * 60, DAY_SEC = 90 * 60, DAY_REQ = 60;
 // words it should expect, so they come out spelled right
@@ -13,6 +15,9 @@ const ext = t => /mp4|m4a|aac/.test(t) ? 'm4a' : /webm/.test(t) ? 'webm' : /ogg/
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 
 exports.transcribe = onRequest({ cors: true, region: 'us-central1', secrets: [OPENAI_API_KEY], timeoutSeconds: 120, memory: '512MiB', maxInstances: 3 }, async (req, res) => {
+  try { await handle(req, res); } catch (e) { console.error('transcribe crashed', e); if (!res.headersSent) res.status(500).json({ error: 'Server error.', detail: String(e && e.message || e).slice(0, 200) }); }
+});
+async function handle(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
   let uid;
   try { uid = (await admin.auth().verifyIdToken(String(req.get('Authorization') || '').replace(/^Bearer /, ''))).uid; }
@@ -34,10 +39,10 @@ exports.transcribe = onRequest({ cors: true, region: 'us-central1', secrets: [OP
     const fd = new FormData();
     fd.append('file', new Blob([body], { type }), `reflection.${ext(type)}`);
     fd.append('model', model); fd.append('prompt', HINTS); fd.append('response_format', 'json');
-    const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${OPENAI_API_KEY.value()}` }, body: fd });
+    const r = await fetch('https://api.openai.com/v1/audio/transcriptions', { method: 'POST', headers: { Authorization: `Bearer ${cleanKey()}` }, body: fd });
     if (r.ok) { const j = await r.json(); return res.json({ text: String(j.text || '').trim(), model }); }
     last = `${r.status} ${(await r.text()).slice(0, 300)}`; console.warn('transcribe', model, last);
     if (r.status === 401 || r.status === 429 || r.status >= 500) break; // key/billing/outage: another model won't help
   }
   res.status(502).json({ error: 'Transcription failed.', detail: last });
-});
+}
