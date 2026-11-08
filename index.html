@@ -892,7 +892,13 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .vcglow.on{opacity:1;animation:vcbreathe 2.4s ease-in-out infinite}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
-body:not([data-tab=prayer]) :is(.vcdock,.vcglow){display:none!important}
+body:not([data-screen=prayer]) :is(.vcdock,.vcglow),body[data-rv=p] :is(.vcdock,.vcglow){display:none!important}
+body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
+.rfseg button{min-height:34px;padding:0 15px}
+.rfpw{display:block;width:100%;text-align:left;padding:18px 0 20px;border-top:1px solid var(--rule)}
+.rfpw:first-of-type{border-top:0;padding-top:4px}
+.rfpw b{display:block;margin:2px 0 8px;font-family:var(--serif);font-weight:400;font-size:28px;letter-spacing:-.01em;color:var(--tx)}
+.rfpw .rfpt{-webkit-line-clamp:6;font-size:16px}
 .reflpill{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:999px;border:1px solid rgba(232,116,59,.55);color:var(--tx);font-family:var(--serif);font-size:17px;flex:none}
 .reflpill svg{width:16px;height:16px;color:var(--ac)}.reflpill:active{transform:scale(.96)}
 #hList{margin-top:12px!important}
@@ -999,11 +1005,10 @@ body:not([data-tab=prayer]) :is(.vcdock,.vcglow){display:none!important}
 
 <!-- Prayer -->
 <section class="scr" id="sPrayer" data-mode="dark" hidden>
-  <div class="trow"><h2 class="ttl">Reflect</h2></div>
-  <div id="rfWeek"></div>
-  <div id="rfPast"></div>
-  <div class="rfhd"><span class="lbl">Prayer</span><button class="rflink" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New</button></div>
-  <div id="prLife"></div><div id="prList"></div>
+  <div class="trow"><h2 class="ttl">Reflect</h2><span class="pwseg rfseg" role="tablist"><button data-rv="j" class="on" role="tab">Journal</button><button data-rv="p" role="tab">Prayer</button></span></div>
+  <div id="rfJ"><div id="rfWeek"></div><div id="rfPast"></div></div>
+  <div id="rfP" hidden><div class="rfhd rf1"><span class="lbl">Your prayers</span><button class="rflink" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New</button></div>
+  <div id="prLife"></div><div id="prList"></div></div>
 </section>
 
 <!-- History -->
@@ -1087,7 +1092,7 @@ body:not([data-tab=prayer]) :is(.vcdock,.vcglow){display:none!important}
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
 <nav class="bar" id="bar" hidden>
   <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="16.5" y="9.5" width="5" height="5" rx="1"/></svg></button>
-  <button data-tab="prayer" aria-label="Reflect"><svg class="i ph" viewBox="0 0 256 256"><path d="M235.32,180l-36.24-36.25L162.62,23.46A21.76,21.76,0,0,0,128,12.93,21.76,21.76,0,0,0,93.38,23.46L56.92,143.76,20.68,180a16,16,0,0,0,0,22.62l32.69,32.69a16,16,0,0,0,22.63,0L124.28,187a40.68,40.68,0,0,0,3.72-4.29,40.68,40.68,0,0,0,3.72,4.29L180,235.32a16,16,0,0,0,22.63,0l32.69-32.69A16,16,0,0,0,235.32,180ZM64.68,224,32,191.32l12.69-12.69,32.69,32.69ZM120,158.75a23.85,23.85,0,0,1-7,17L88.68,200,56,167.32l13.65-13.66a8,8,0,0,0,2-3.34l37-122.22A5.78,5.78,0,0,1,120,29.78Zm23,17a23.85,23.85,0,0,1-7-17v-129a5.78,5.78,0,0,1,11.31-1.68l37,122.22a8,8,0,0,0,2,3.34l14.49,14.49-33.4,32ZM191.32,224l-12.56-12.57,33.39-32L224,191.32Z"/></svg></button>
+  <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v14.5H7.5A2.5 2.5 0 0 0 5 20z"/><path d="M5 20a1.5 1.5 0 0 0 1.5 1.5H19v-4"/><path d="M10.5 3v7.5l2-1.6 2 1.6V3"/></svg></button>
   <button data-tab="history" aria-label="Progress"><svg class="i ph" viewBox="0 0 256 256"><path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0V156.69l50.34-50.35a8,8,0,0,1,11.32,0L128,132.69,180.69,80H160a8,8,0,0,1,0-16h40a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V91.31l-58.34,58.35a8,8,0,0,1-11.32,0L96,123.31l-56,56V200H224A8,8,0,0,1,232,208Z"/></svg></button>
 </nav>
 
@@ -1326,7 +1331,7 @@ const MQ=matchMedia('(prefers-color-scheme: light)');
 function applyTheme(){const t=D.settings.theme||'dark',on=t==='light'||(t==='auto'&&MQ.matches);document.documentElement.dataset.theme=on?'light':'dark';
   try{localStorage.setItem('wdTheme',t)}catch(e){}setMode(document.documentElement.dataset.mode||'dark');if(typeof tab!=='undefined'&&ready&&tab==='week')renderWeek(false)}
 MQ.addEventListener&&MQ.addEventListener('change',()=>{if(D.settings.theme==='auto')applyTheme()});
-function show(name){if(name!=='prayer'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();tab=name;document.body.dataset.tab=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hidden=k!==name);
+function show(name){if(name!=='prayer'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();tab=name;document.body.dataset.screen=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hidden=k!==name);
   setMode($(SCREENS[name]).dataset.mode);$('bar').hidden=name==='plan'||name==='settings';
   document.querySelectorAll('nav.bar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
   if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer')renderPrayer(true);if(name==='history')renderHistory();if(name==='settings')renderSettings();
@@ -1776,7 +1781,7 @@ async function importLifeFromLink(){const h=location.hash;if(!h.startsWith('#lif
     const txt=await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text(),d=JSON.parse(txt);
     const cur=D.prayers.find(p=>p.pinned);if(cur&&!confirm('Replace your current life prayer with this one?'))return;
     const lp={id:'life',pinned:true,text:d.t,body:d.b,created:cur?.created||Date.now(),since:d.s?new Date(d.s).getTime():Date.now()};
-    store.putPrayer(lp);show('prayer');setTimeout(()=>openLife(lp),400)}catch(e){console.warn(e);alert('That prayer link could not be read.')}}
+    store.putPrayer(lp);show('prayer');rfSetView('p');setTimeout(()=>openLife(lp),400)}catch(e){console.warn(e);alert('That prayer link could not be read.')}}
 
 /* ---------- History (placeholder until its build step) ---------- */
 function weekStats(w){const days=habitDays(w).filter(d=>dayItems(w,d).length),m=w.marks||{},now=ymd(new Date());const kept=days.filter(d=>m[ymd(d)]==='on').length,past=days.filter(d=>ymd(d)<=now).length;
@@ -1853,6 +1858,11 @@ async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return
   try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
 addEventListener('online',()=>setTimeout(vcFlush,1500));
 // this week's reflection on the Reflect page: newest entries showing, tap to write
+let rfView='j';
+function rfSetView(v){if(v==='p'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();rfView=v;document.body.dataset.rv=v;$('rfJ').hidden=v!=='j';$('rfP').hidden=v!=='p';
+  document.querySelectorAll('[data-rv]').forEach(b=>{b.classList.toggle('on',b.dataset.rv===v);b.setAttribute('aria-selected',b.dataset.rv===v)});$('sPrayer').scrollTop=0;window.scrollTo(0,0)}
+document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{if(rfView!==b.dataset.rv){haptic();rfSetView(b.dataset.rv)}});
+document.body.dataset.rv='j';
 function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');if(!aw){el.innerHTML='';rfPast();return}
   const STAMP=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
   const ents=(aw.liveRefl||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n');return STAMP.test(ls[0].trim())&&ls.length>1?{t:ls[0].trim(),x:ls.slice(1).join(' ')}:{t:'',x:ls.join(' ')}}).filter(e=>e.x.trim()).reverse();
@@ -1864,8 +1874,8 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
 // one card per past week; a summary shows here once that week has one (w.summary), else the start of the reflection
 function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!ws.length){el.innerHTML='';return}
-  el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div><div class="rfstrip">${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
-    return`<button class="rfpc" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${w.summary?'<span class="rfsum lbl">Summary</span>':''}<span class="rfpt">${esc(t).replace(/\n+/g,' · ')}</span></button>`}).join('')}</div>`;
+  el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div>${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
+    return`<button class="rfpw" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${w.summary?'<span class="rfsum lbl">Summary</span>':''}<span class="rfpt">${esc(t).replace(/\n\s*\n/g,'<br><br>').replace(/\n/g,'<br>')}</span></button>`}).join('')}`;
   el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true))}
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
