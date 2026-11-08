@@ -2043,7 +2043,7 @@ function openStats(w){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=week
   const delta=pvPct==null?'':`<span class="stdelta ${st.pct>=pvPct?'up':'dn'}">${st.pct>=pvPct?'▲':'▼'} ${Math.abs(st.pct-pvPct)} vs ${esc(pv.focus)}</span>`;
   const today=ymd(new Date()),daily=keys.map((k,i)=>{let dn=0,du=0;hs.forEach(c=>{const v=cellOf(w,k,c);if(['on','grace','late','fail','miss'].includes(v)){du++;if(v==='on'||v==='grace'||v==='late')dn++}});
     return{l:DOW[days[i].getDay()],v:k>today||!du?null:Math.round(dn/du*100),live:k===today,t:`${DOWL[days[i].getDay()]}: ${dn} of ${du}`}});
-  const chart=stChart(daily,'Daily trend','share of habits done each day');
+  const chart=stChart(daily,'Daily trend');
   const list=stList([['Days kept',`${st.kept}/${days.length}`],['Habits done',`${sum.done||0}/${sum.due||0}`],['On time',tDone?`${Math.round(tOn/tDone*100)}% · ${tOn}/${tDone}`:'—'],['In grace',sum.grace||0],['Missed',sum.miss||0],['Failed',sum.fail||0]]);
   const SYM={on:'',grace:'',late:'',fail:'✕',miss:'',open:'',fut:'',na:''};
   const grid=`<div class="stgrid" style="--n:${keys.length}"><span></span>${days.map(d=>`<span class="stdh">${DOW[d.getDay()]}</span>`).join('')}
