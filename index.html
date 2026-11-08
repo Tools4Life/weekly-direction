@@ -847,51 +847,52 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .trsum{white-space:normal!important;overflow:visible!important;text-overflow:clip!important;overflow-wrap:anywhere}
 .trcard,.trcard .tchart{overflow:visible!important}
 /* Progress, compact: more room for past weeks */
-.vcbox{position:fixed;left:0;right:0;bottom:calc(var(--sb) + 84px);z-index:25;display:flex;flex-direction:column;align-items:center;pointer-events:none}
-.vcbox>*{pointer-events:auto}
-.vcst{order:-2;margin-bottom:14px;padding:5px 12px;border-radius:999px;background:color-mix(in srgb,var(--bg) 80%,transparent);font-size:14px;color:var(--mu);text-align:center;font-variant-numeric:tabular-nums;max-width:86vw}
-.vcpend{order:-1;margin:-8px 0 12px;font-size:13px;color:var(--mu)}.vcpend:empty{display:none}.vcpend button{color:var(--ac);margin-left:6px}
+/* ---- Reflect page ---- */
+#sPrayer{padding-bottom:calc(var(--sb) + 250px)}
+.rfhd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 10px}
+.rfhd.rf1{margin-top:22px}
+.rflink{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ac)}.rflink svg.i{width:16px;height:16px}
+.rfents{border-radius:16px;background:var(--card);padding:4px 18px}
+.rfent{display:block;width:100%;text-align:left;padding:14px 0;border-top:1px solid var(--rule)}
+.rfent:first-child{border-top:0}
+.rfet{display:block;font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.rfex{display:-webkit-box;margin-top:3px;font-family:var(--serif);font-size:17px;line-height:1.5;color:var(--tx);-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+.rfmore{display:block;width:100%;padding:12px 0 10px;border-top:1px solid var(--rule);font-size:14px;color:var(--mu);text-align:left}
+.rfempty{display:block;width:100%;text-align:left;border-radius:16px;background:var(--card);padding:18px;font-family:var(--serif);font-style:italic;font-size:16px;color:var(--mu)}
+.rfstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -24px;padding:0 24px 2px;scrollbar-width:none}.rfstrip::-webkit-scrollbar{display:none}
+.rfpc{flex:0 0 74%;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px 16px;border-radius:16px;background:var(--card);text-align:left}
+.rfpc b{font-family:var(--serif);font-weight:400;font-size:21px}
+.rfsum{font-size:11px;color:var(--ac)}
+.rfpt{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+/* voice dock: its own solid strip above the tab bar, nothing scrolls under the button */
+.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 24px calc(var(--sb) + 76px);background:var(--bg);--lv:0}
+.vcdock::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:40px;background:linear-gradient(to top,var(--bg),transparent);pointer-events:none}
+.vcline{height:26px;max-width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--mu)}
+.vcst{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.vcpend{white-space:nowrap}.vcpend:empty{display:none}.vcpend button{color:var(--ac);margin-left:4px}
+.vcwave{display:none;align-items:center;gap:3px;height:26px}
+.vcwave i{display:block;width:3px;height:3px;border-radius:2px;background:var(--ac)}
+.vcdock.rec .vcwave{display:flex}.vcdock.rec .vcst{color:var(--tx)}
 .vcout{display:none}
-/* the mic: big, raised, sits where the thumb lands */
-.vcmic{position:relative;width:164px;height:164px;border-radius:50%;display:grid;place-items:center;color:var(--ac);
-  background:radial-gradient(circle at 34% 26%,#34343A 0%,#1C1C20 46%,#111113 100%);border:1px solid rgba(232,116,59,.38);
-  box-shadow:0 26px 48px -10px rgba(0,0,0,.75),0 10px 18px rgba(0,0,0,.45),inset 0 2px 2px rgba(255,255,255,.10),inset 0 -10px 22px rgba(0,0,0,.55);
-  transition:transform .28s var(--spring),box-shadow .28s var(--ease),background .4s var(--ease),color .3s}
-.vcmic::before{content:"";position:absolute;inset:9px;border-radius:50%;background:radial-gradient(circle at 50% 18%,rgba(255,255,255,.09),transparent 55%);pointer-events:none}
-.vcmic svg.i{width:58px;height:58px;stroke-width:1.4;position:relative}
-.vcmic:active{transform:translateY(3px) scale(.97);box-shadow:0 12px 24px -8px rgba(0,0,0,.7),0 4px 8px rgba(0,0,0,.4),inset 0 2px 2px rgba(255,255,255,.08),inset 0 -6px 16px rgba(0,0,0,.55)}
-.vcmic.rec{color:#1A0D06;border-color:#F08A50;background:radial-gradient(circle at 34% 26%,#FFB27F 0%,#EE7E44 42%,#C9561F 100%);
-  box-shadow:0 26px 52px -8px rgba(232,116,59,.55),0 10px 20px rgba(0,0,0,.4),inset 0 3px 3px rgba(255,255,255,.35),inset 0 -12px 24px rgba(120,40,8,.45)}
-.vcmic.busy{opacity:.75}
-.vcmic .vcring{position:absolute;inset:-6px;border-radius:50%;border:2px solid transparent}
-.vcmic.busy .vcring{border-top-color:var(--ac);animation:vcspin .9s linear infinite}
-html[data-theme=light] .vcmic{background:radial-gradient(circle at 34% 26%,#FFFFFF 0%,#F4F1EB 50%,#E2DDD4 100%);border-color:rgba(138,46,34,.25);
-  box-shadow:0 26px 44px -12px rgba(60,40,20,.35),0 8px 16px rgba(60,40,20,.15),inset 0 2px 2px #fff,inset 0 -10px 20px rgba(120,100,70,.18)}
-html[data-theme=light] .vcmic.rec{background:radial-gradient(circle at 34% 26%,#FFB27F 0%,#EE7E44 42%,#C9561F 100%);border-color:#F08A50}
+.vcmic{position:relative;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
+  box-shadow:0 0 0 7px color-mix(in srgb,var(--ac) 13%,transparent);transition:transform .2s var(--spring),box-shadow .12s linear,opacity .2s}
+.vcmic svg.i{width:32px;height:32px;stroke-width:1.9}
+.vcmic:active{transform:scale(.93)}
+.vcmic.rec{box-shadow:0 0 0 calc(7px + 16px*var(--lv)) color-mix(in srgb,var(--ac) 20%,transparent)}
+.vcmic.rec svg.i{width:26px;height:26px}
+.vcmic.busy{opacity:.5}
+.vcmic .vcring{position:absolute;inset:-7px;border-radius:50%;border:2px solid transparent;display:none}
+.vcmic.busy .vcring{display:block;border-top-color:var(--ac);animation:vcspin .9s linear infinite}
 @keyframes vcspin{to{transform:rotate(360deg)}}
 /* glow along the edges of the lower third while recording; --lv follows your voice */
-.vcglow{position:fixed;left:0;right:0;bottom:0;height:36vh;z-index:24;pointer-events:none;opacity:0;transition:opacity .5s var(--ease);
+.vcglow{position:fixed;left:0;right:0;bottom:0;height:36vh;z-index:26;pointer-events:none;opacity:0;transition:opacity .5s var(--ease);
   border-radius:0 0 46px 46px;--lv:0;
-  box-shadow:inset 0 0 calc(26px + 70px*var(--lv)) calc(3px + 16px*var(--lv)) rgba(240,128,64,calc(.45 + .5*var(--lv)));
+  box-shadow:inset 0 0 calc(24px + 64px*var(--lv)) calc(2px + 14px*var(--lv)) color-mix(in srgb,var(--ac) calc(45% + 50%*var(--lv)),transparent);
   -webkit-mask-image:linear-gradient(to top,#000 35%,transparent);mask-image:linear-gradient(to top,#000 35%,transparent)}
-.vcglow::after{content:"";position:absolute;inset:0;background:radial-gradient(ellipse 80% 55% at 50% 100%,rgba(232,116,59,calc(.10 + .22*var(--lv))),transparent 75%)}
 .vcglow.on{opacity:1;animation:vcbreathe 2.4s ease-in-out infinite}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
-#sPrayer{padding-bottom:calc(var(--sb) + 300px)}
-body:not([data-tab=prayer]) :is(.vcbox,.vcfade,.vcglow){display:none!important}
-.vcfade{position:fixed;left:0;right:0;bottom:0;height:calc(var(--sb) + 330px);z-index:19;pointer-events:none;background:linear-gradient(to top,var(--bg) 58%,transparent)}
-.rfcard{display:block;width:100%;margin:22px 0 0;padding:16px 18px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-align:left}
-.rftop{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.rfw{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ac)}.rfw svg.i{width:16px;height:16px}
-.rftx{display:block;margin-top:10px;font-family:var(--serif);font-size:16px;line-height:1.55;color:var(--tx);max-height:150px;overflow:hidden;-webkit-mask-image:linear-gradient(to bottom,transparent,#000 28px);mask-image:linear-gradient(to bottom,transparent,#000 28px)}
-.rfempty{display:block;margin-top:10px;font-family:var(--serif);font-style:italic;font-size:16px;color:var(--mu)}
-.rfstrip{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;margin:12px -24px 0;padding:0 24px 4px;scrollbar-width:none}.rfstrip::-webkit-scrollbar{display:none}
-.rfpc{flex:0 0 78%;scroll-snap-align:start;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px 16px;border-radius:16px;background:var(--card);border:1px solid var(--line);text-align:left}
-.rfpc b{font-family:var(--serif);font-weight:400;font-size:22px}
-.rfsum{font-size:11px;color:var(--ac)}
-.rfpt{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
-.rfhd{display:flex;align-items:center;justify-content:space-between;margin:30px 0 0}
+body:not([data-tab=prayer]) :is(.vcdock,.vcglow){display:none!important}
 .reflpill{display:inline-flex;align-items:center;gap:7px;height:38px;padding:0 15px;border-radius:999px;border:1px solid rgba(232,116,59,.55);color:var(--tx);font-family:var(--serif);font-size:17px;flex:none}
 .reflpill svg{width:16px;height:16px;color:var(--ac)}.reflpill:active{transform:scale(.96)}
 #hList{margin-top:12px!important}
@@ -1001,7 +1002,7 @@ body:not([data-tab=prayer]) :is(.vcbox,.vcfade,.vcglow){display:none!important}
   <div class="trow"><h2 class="ttl">Reflect</h2></div>
   <div id="rfWeek"></div>
   <div id="rfPast"></div>
-  <div class="rfhd"><span class="lbl">Prayer</span><button class="addp" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button></div>
+  <div class="rfhd"><span class="lbl">Prayer</span><button class="rflink" id="prNew" aria-label="New prayer"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>New</button></div>
   <div id="prLife"></div><div id="prList"></div>
 </section>
 
@@ -1083,7 +1084,7 @@ body:not([data-tab=prayer]) :is(.vcbox,.vcfade,.vcglow){display:none!important}
   </div>
 </section>
 
-<div class="vcfade" id="vcFade" hidden></div><div id="vcBox" class="vcbox" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
+<div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
 <nav class="bar" id="bar" hidden>
   <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="16.5" y="9.5" width="5" height="5" rx="1"/></svg></button>
   <button data-tab="prayer" aria-label="Reflect"><svg class="i ph" viewBox="0 0 256 256"><path d="M235.32,180l-36.24-36.25L162.62,23.46A21.76,21.76,0,0,0,128,12.93,21.76,21.76,0,0,0,93.38,23.46L56.92,143.76,20.68,180a16,16,0,0,0,0,22.62l32.69,32.69a16,16,0,0,0,22.63,0L124.28,187a40.68,40.68,0,0,0,3.72-4.29,40.68,40.68,0,0,0,3.72,4.29L180,235.32a16,16,0,0,0,22.63,0l32.69-32.69A16,16,0,0,0,235.32,180ZM64.68,224,32,191.32l12.69-12.69,32.69,32.69ZM120,158.75a23.85,23.85,0,0,1-7,17L88.68,200,56,167.32l13.65-13.66a8,8,0,0,0,2-3.34l37-122.22A5.78,5.78,0,0,1,120,29.78Zm23,17a23.85,23.85,0,0,1-7-17v-129a5.78,5.78,0,0,1,11.31-1.68l37,122.22a8,8,0,0,0,2,3.34l14.49,14.49-33.4,32ZM191.32,224l-12.56-12.57,33.39-32L224,191.32Z"/></svg></button>
@@ -1733,7 +1734,7 @@ function renderPrayer(anim){vcRender();rfRender();
   if($('lifeOpen'))$('lifeOpen').onclick=()=>openLife(life);
   if($('lifeAdd'))$('lifeAdd').onclick=()=>openPrayer(null,{pinned:true});
   $('prList').innerHTML=rest.length?rest.map((p,i)=>`<button class="prow${anim?' in':''}" data-p="${p.id}" style="animation-delay:${Math.min(i,8)*40}ms"><i class="pri${p.icon?'':' none'}">${ico(p.icon||'hands')}</i><span>${esc(p.text)}</span></button>`).join('')
-    :`<p class="prempty">What else are you praying for? Tap <b>+</b> to name it, then go as deep as you want.</p>`;
+    :`<p class="prempty">What else are you praying for? Tap <b>New</b> to name it, then go as deep as you want.</p>`;
   $('prList').querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>openPrayer(D.prayers.find(p=>p.id===b.dataset.p)))}
 let peIcon=null;
 function renderTags(){$('peTags').innerHTML=PR_ICONS.map(([k,l])=>`<button data-tag="${k}" class="${peIcon===k?'on':''}" aria-pressed="${peIcon===k}" aria-label="${l}">${ico(k)}<span>${l}</span></button>`).join('')}
@@ -1802,39 +1803,39 @@ const vcMime=()=>{if(!window.MediaRecorder)return null;for(const t of['audio/mp4
 const vdb=()=>new Promise((ok,no)=>{const r=indexedDB.open('wd-voice',1);r.onupgradeneeded=()=>r.result.createObjectStore('q',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});
 async function vq(mode,fn){const db=await vdb();return new Promise((ok,no)=>{const tx=db.transaction('q',mode),r=fn(tx.objectStore('q'));tx.oncomplete=()=>ok(r&&r.result);tx.onerror=()=>no(tx.error)})}
 const vqAll=()=>vq('readonly',s=>s.getAll()).catch(()=>[]),vqPut=x=>vq('readwrite',s=>s.put(x)),vqDel=id=>vq('readwrite',s=>s.delete(id)).catch(()=>{});
-function vcRender(){const box=$('vcBox');if(!box)return;const aw=D.weeks.find(w=>w.status==='active');box.hidden=!aw;$('vcFade').hidden=!aw;if(!aw)return;
-  if(!box.firstChild){box.innerHTML=`<button class="vcmic" id="vcMic" aria-label="Speak a reflection"></button><div class="vcst" id="vcSt" aria-live="polite"></div><div class="vcout" id="vcOut"></div><div class="vcpend" id="vcPend"></div>`;
+function vcRender(){const box=$('vcBox');if(!box)return;const aw=D.weeks.find(w=>w.status==='active');box.hidden=!aw;if(!aw)return;
+  if(!box.firstChild){box.innerHTML=`<div class="vcline"><span class="vcwave" id="vcWave" aria-hidden="true">${'<i></i>'.repeat(24)}</span><span class="vcst" id="vcSt" aria-live="polite"></span><span class="vcpend" id="vcPend"></span></div><button class="vcmic" id="vcMic" aria-label="Speak a reflection"></button><div class="vcout" id="vcOut"></div>`;
     $('vcMic').onclick=()=>VC.st==='idle'?vcStart():VC.st==='rec'?vcStop():null}
   vcPaint();vcPendPaint()}
 function vcPaint(){const b=$('vcMic');if(!b)return;
   if(VC.st==='rec'&&Date.now()-VC.t0>=VMAX)return vcStop();
-  b.className='vcmic'+(VC.st==='rec'?' rec':VC.st==='busy'?' busy':'');b.disabled=VC.st==='busy';
+  b.className='vcmic'+(VC.st==='rec'?' rec':VC.st==='busy'?' busy':'');$('vcBox').classList.toggle('rec',VC.st==='rec');b.disabled=VC.st==='busy';
   const ic=VC.st==='rec'?'stop':'mic';if(b.dataset.ic!==ic){b.dataset.ic=ic;b.innerHTML=`<span class="vcring"></span>${ico(ic)}`}
   b.setAttribute('aria-label',VC.st==='rec'?'Stop recording':'Speak a reflection');
-  $('vcSt').textContent=VC.st==='rec'?`${mmss(Math.floor((Date.now()-VC.t0)/1e3)*1e3)} · tap to stop`:VC.st==='busy'?'Transcribing…':VC.msg||'Tap to speak a reflection';
+  $('vcSt').textContent=VC.st==='rec'?mmss(Math.floor((Date.now()-VC.t0)/1e3)*1e3):VC.st==='busy'?'Transcribing…':VC.msg||'Tap and talk';
   const o=$('vcOut');o.innerHTML=VC.st==='idle'&&VC.last?`<p class="vclast">${esc(VC.last)}</p><button class="vcedit" data-vce>Added to this week’s reflection · Edit</button>`:'';
   const e=o.querySelector('[data-vce]');if(e)e.onclick=()=>{const aw=D.weeks.find(x=>x.status==='active');if(aw)openJournal(aw)}}
 async function vcPendPaint(){const el=$('vcPend');if(!el)return;const q=await vqAll();vcPend=q.length;
-  el.innerHTML=q.length&&VC.st!=='busy'?`${q.length} recording${q.length>1?'s':''} waiting to transcribe<button data-vcr>Retry</button>`:'';
+  el.innerHTML=q.length&&VC.st==='idle'?`· ${q.length} waiting<button data-vcr>Retry</button>`:'';
   const r=el.querySelector('[data-vcr]');if(r)r.onclick=()=>vcFlush()}
 // reads the mic level so the edge glow breathes with your voice
 function vcMeter(stream){const g=$('vcGlow');if(!g)return;g.classList.add('on');
   try{const AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),an=ac.createAnalyser();an.fftSize=512;ac.createMediaStreamSource(stream).connect(an);
-    const buf=new Uint8Array(an.fftSize);let lv=0;VC.ac=ac;
+    const buf=new Uint8Array(an.fftSize),dock=$('vcBox'),bars=[...document.querySelectorAll('#vcWave i')],hist=bars.map(()=>0);let lv=0,fr=0;VC.ac=ac;
     const loop=()=>{an.getByteTimeDomainData(buf);let sq=0;for(const v of buf){const x=(v-128)/128;sq+=x*x}
-      const rms=Math.sqrt(sq/buf.length),t=Math.min(1,rms*5.5);lv+=(t-lv)*(t>lv?.35:.08);g.style.setProperty('--lv',lv.toFixed(3));VC.raf=requestAnimationFrame(loop)};loop()}
+      const rms=Math.sqrt(sq/buf.length),t=Math.min(1,rms*5.5);lv+=(t-lv)*(t>lv?.35:.08);g.style.setProperty('--lv',lv.toFixed(3));dock.style.setProperty('--lv',lv.toFixed(3));if(++fr%3===0){hist.shift();hist.push(lv);bars.forEach((b,i)=>b.style.height=(3+23*hist[i]).toFixed(1)+'px')}VC.raf=requestAnimationFrame(loop)};loop()}
   catch(e){g.style.setProperty('--lv','.4')}}
-function vcMeterOff(){cancelAnimationFrame(VC.raf);const g=$('vcGlow');if(g){g.classList.remove('on');g.style.setProperty('--lv','0')}if(VC.ac){VC.ac.close().catch(()=>{});VC.ac=null}}
+function vcMeterOff(){cancelAnimationFrame(VC.raf);const g=$('vcGlow');if(g){g.classList.remove('on');g.style.setProperty('--lv','0')}const dk=$('vcBox');if(dk)dk.style.setProperty('--lv','0');if(VC.ac){VC.ac.close().catch(()=>{});VC.ac=null}}
 async function vcStart(){
-  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||vcMime()===null){VC.msg='This browser can’t record audio.';return vcPaint()}
-  try{VC.stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){VC.msg='Microphone wasn’t allowed. Allow it in Settings → Safari → Microphone.';return vcPaint()}
+  if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia||vcMime()===null){VC.msg='This browser can’t record audio';return vcPaint()}
+  try{VC.stream=await navigator.mediaDevices.getUserMedia({audio:true})}catch(e){VC.msg='Mic blocked: allow it in iPhone Settings';return vcPaint()}
   const mt=vcMime();try{VC.rec=new MediaRecorder(VC.stream,mt?{mimeType:mt}:undefined)}catch(e){VC.rec=new MediaRecorder(VC.stream)}
   VC.chunks=[];VC.rec.ondataavailable=e=>{if(e.data&&e.data.size)VC.chunks.push(e.data)};VC.rec.onstop=vcStopped;
   vcMeter(VC.stream);
   VC.t0=Date.now();VC.st='rec';VC.msg=null;rfRender();VC.last=null;VC.rec.start(1000);haptic();snd('start');clearInterval(VC.tick);VC.tick=setInterval(vcPaint,250);vcPaint()}
 function vcStop(){if(VC.st!=='rec')return;clearInterval(VC.tick);vcMeterOff();VC.st='busy';vcPaint();try{VC.rec.stop()}catch(e){vcStopped()}if(VC.stream)VC.stream.getTracks().forEach(t=>t.stop());haptic()}
 async function vcStopped(){const dur=Date.now()-VC.t0,type=(VC.rec&&VC.rec.mimeType)||vcMime()||'audio/mp4',blob=new Blob(VC.chunks||[],{type});VC.chunks=[];
-  if(dur<1500||!blob.size){VC.st='idle';VC.msg='That was too short. Tap and talk.';return vcPaint()}
+  if(dur<1500||!blob.size){VC.st='idle';VC.msg='Too short';return vcPaint()}
   const item={id:'v'+VC.t0,at:VC.t0,dur,type:type.split(';')[0],blob};try{await vqPut(item)}catch(e){}
   if(await vcSend(item))vcFlush()}
 async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
@@ -1842,8 +1843,8 @@ async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
     const r=M&&M.transcribe?await M.transcribe(item):await fetch(VOICE_URL,{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':item.type,'X-Duration':String(Math.round(item.dur/1e3))},body:item.blob});
     const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||`Error ${r.status}`),{status:r.status});
     const text=String(j.text||'').trim();if(text)vcAppend(item.at,text);await vqDel(item.id);ok=true;
-    VC.msg=text?'Added to this week’s reflection.':'Nothing was heard in that recording.';VC.last=text||null;snd('done')}
-  catch(e){VC.last=null;VC.msg=(!navigator.onLine||e instanceof TypeError)?'Saved on this phone. It’ll transcribe when you’re back online.':e.status===429?`${e.message} The recording is saved on this phone.`:`Couldn’t transcribe: ${e.message} The recording is saved on this phone.`}
+    VC.msg=text?'Added to this week':'Nothing heard';VC.last=text||null;snd('done')}
+  catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':'Couldn’t transcribe · saved';console.warn('voice',e)}
   VC.st='idle';vcPaint();vcPendPaint();return ok}
 // adds the words to this week's live reflection, under a day-and-time line
 function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const d=new Date(at),stamp=`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`;
@@ -1852,15 +1853,18 @@ async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return
   try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
 addEventListener('online',()=>setTimeout(vcFlush,1500));
 // this week's reflection on the Reflect page: newest entries showing, tap to write
-function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');if(!aw){el.innerHTML='';return}
-  const t=(aw.liveRefl||'').trim();
-  el.innerHTML=`<button class="rfcard" id="rfOpen"><span class="rftop"><span class="lbl">This week · ${esc(aw.focus)}</span><span class="rfw">${ico('pen')}Write</span></span>
-    ${t?`<span class="rftx">${esc(t).replace(/\n/g,'<br>')}</span>`:`<span class="rfempty">Nothing yet. Tap the mic and talk, or tap here to write.</span>`}</button>`;
-  const x=el.querySelector('.rftx');if(x)x.scrollTop=x.scrollHeight;$('rfOpen').onclick=()=>openJournal(aw);rfPast()}
+function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');if(!aw){el.innerHTML='';rfPast();return}
+  const STAMP=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), \d{1,2}:\d{2} [ap]m$/;
+  const ents=(aw.liveRefl||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n');return STAMP.test(ls[0].trim())&&ls.length>1?{t:ls[0].trim(),x:ls.slice(1).join(' ')}:{t:'',x:ls.join(' ')}}).filter(e=>e.x.trim()).reverse();
+  const shown=ents.slice(0,3);
+  el.innerHTML=`<div class="rfhd rf1"><span class="lbl">This week · ${esc(aw.focus)}</span><button class="rflink" id="rfOpen">${ico('pen')}Write</button></div>`
+    +(ents.length?`<div class="rfents">${shown.map(e=>`<button class="rfent" data-rfo>${e.t?`<span class="rfet">${esc(e.t)}</span>`:''}<span class="rfex">${esc(e.x)}</span></button>`).join('')}${ents.length>3?`<button class="rfmore" data-rfo>All ${ents.length} entries</button>`:''}</div>`
+      :`<button class="rfempty" data-rfo>Nothing yet this week. Tap the mic and talk, or tap Write.</button>`);
+  const op=()=>openJournal(aw);$('rfOpen').onclick=op;el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);rfPast()}
 // one card per past week; a summary shows here once that week has one (w.summary), else the start of the reflection
 function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!ws.length){el.innerHTML='';return}
-  el.innerHTML=`<div class="rfhd"><span class="lbl">Past reflections</span></div><div class="rfstrip">${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
+  el.innerHTML=`<div class="rfhd"><span class="lbl">Past weeks</span></div><div class="rfstrip">${ws.map(w=>{const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
     return`<button class="rfpc" data-rw="${w.id}"><span class="cond hdate">${fmtRange(s0,weekEnd(s0))}</span><b>${esc(w.focus)}</b>${w.summary?'<span class="rfsum lbl">Summary</span>':''}<span class="rfpt">${esc(t).replace(/\n+/g,' · ')}</span></button>`}).join('')}</div>`;
   el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true))}
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
