@@ -1042,7 +1042,8 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .vcglow.on{opacity:1;animation:vcbreathe 2.4s ease-in-out infinite}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcmic::after{animation:none}.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
-/* recording space */
+/* recording space; the glow runs around the whole screen edge, strongest at the bottom, fading softly upward */
+body.vcfon .vcglow{top:0;height:auto;border-radius:54px;-webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%);mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%)}
 .vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);opacity:0;transition:opacity .3s var(--ease);--lv:0}
 .vcf.on{opacity:1}
 .vcftop{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--st) + 12px) 24px 0}
@@ -2061,7 +2062,7 @@ async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return
 addEventListener('online',()=>setTimeout(vcFlush,1500));
 // ---- the recording space: tap the mic, a quiet full screen with the voice orb and the words as you say them ----
 const LIVE_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/liveToken';let LV=null;
-function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);
+function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);document.body.classList.toggle('vcfon',!!on);
   if(on){$('vcfTx').textContent='';$('vcfPh').hidden=false;f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'))}
   else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},320)}}
 // live words: an OpenAI realtime transcription session over WebRTC, fed the same mic as the recording.
