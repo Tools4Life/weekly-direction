@@ -850,6 +850,33 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* ---- Reflect page ---- */
 #sPrayer{padding-bottom:calc(var(--sb) + 250px)}
 .rfhd{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:34px 0 10px}
+/* ---- Progress, compact ---- */
+.pghero{display:flex;gap:14px;margin:4px 0 0;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid rgba(232,116,59,.35)}
+.pgl{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
+.pgl .hdate{max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgpct{font-family:var(--cond);font-weight:600;font-size:44px;line-height:1;font-variant-numeric:tabular-nums;margin-top:4px}.pgpct small{font-size:20px;color:var(--mu);font-weight:500}
+.pgsub{font-size:13px;color:var(--mu)}
+.pgl .mini{margin-top:6px}
+.pgr{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--rule);padding-left:14px}
+.pgtl{font-size:12px;letter-spacing:.14em;color:var(--mu)}
+.pgr .tchart{border:0!important;padding:0!important;flex:1;display:flex;align-items:center}
+.pgr .tempty{margin:6px 0 0;font-size:14px}
+#sHistory .pwl{margin:16px 0 4px!important;display:flex;justify-content:flex-start}
+.pgrow{display:flex;align-items:center;gap:12px;width:100%;padding:11px 2px;border-bottom:1px solid var(--rule);text-align:left}
+.pgn{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.pgn b{font-family:var(--serif);font-weight:400;font-size:20px;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pgn .hdate{font-size:11px}
+.pgrow .mini{margin:0;flex:none}.pgrow .mini i{width:10px;height:10px;border-radius:3px}
+.pgv{flex:none;min-width:58px;text-align:right;font-family:var(--cond);font-weight:600;font-size:24px;font-variant-numeric:tabular-nums}.pgv small{font-size:13px;color:var(--mu);font-weight:500}
+#sHistory .hhrow{padding:10px 0}
+#sHistory .hhtop{gap:10px}
+#sHistory .hhn{font-size:15.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#sHistory .hhn small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+#sHistory .hhcells{margin:0;gap:3px;flex:none}
+#sHistory .hhc{width:13px;height:13px;border-radius:4px}
+#sHistory .hhp{min-width:52px;text-align:right;font-size:22px}
+#sHistory .hhtip{font-size:13px;color:var(--mu);padding-left:29px}#sHistory .hhtip:not(:empty){margin-top:6px}
+.hhnote{margin:8px 0 2px!important}
 .rfhd.rf1{margin-top:22px}
 .rflink{display:inline-flex;align-items:center;gap:6px;font-size:14px;color:var(--ac)}.rflink svg.i{width:16px;height:16px}
 .rfents{border-radius:16px;background:var(--card);padding:4px 18px}
@@ -1789,7 +1816,7 @@ function weekStats(w){const days=habitDays(w).filter(d=>dayItems(w,d).length),m=
 const mini=(w,days)=>`<span class="mini">${days.map(d=>{const v=(w.marks||{})[ymd(d)];return`<i class="${v||''}"></i>`}).join('')}</span>`;
 // ---- per-habit history: each habit's kept rate across recent weeks (same habit = same library habit, else same name) ----
 let hView='weeks';
-function habitHistory(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt).slice(-8),todayK=ymd(new Date()),H=new Map();
+function habitHistory(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt).slice(-6),todayK=ymd(new Date()),H=new Map();
   ws.forEach((w,wi)=>{const dn=w.done||{};w.commitments.forEach(c=>{const key=c.chipId||c.name.trim().toLowerCase();
     if(!H.has(key))H.set(key,{c,cells:Array(ws.length).fill(null),kept:0,tot:0,on:0,late:0,rs:0,gr:0,timed:false,last:0});const h=H.get(key);h.c=c;h.last=wi;if(c.by)h.timed=true;
     let k=0,t=0;habitDays(w).filter(d=>onDay(c,d)).forEach(d=>{const dk=ymd(d),x=dn[dk]||{};if(dk>todayK)return;if(dk===todayK&&!x[c.id]&&!x[c.id+'@fail'])return;
@@ -1797,9 +1824,9 @@ function habitHistory(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealed
     h.cells[wi]=t?{k,t,f:w.focus}:null;h.kept+=k;h.tot+=t})});
   const hs=[...H.values()].filter(h=>h.tot).sort((a,b)=>b.last-a.last||a.c.name.localeCompare(b.c.name));
   if(!hs.length)return'<p class="tempty">Habit history starts once a day has been recorded.</p>';
-  return`<p class="hhnote">Last ${ws.length} week${ws.length>1?'s':''}, oldest to newest. Tap a square for that week.</p>`+hs.map(h=>{const pct=Math.round(h.kept/h.tot*100),ot=h.on+h.late?Math.round(h.on/(h.on+h.late)*100):null;
-    return`<div class="hhrow"><div class="hhtop"><span class="ic">${ico(h.c.icon||'check')}</span><span class="hhn">${esc(h.c.name)}<small>${h.kept} of ${h.tot} days${ot!=null?` · ${ot}% on time`:''}${h.gr?` · ${h.gr} in grace`:''}${h.rs?` · ${h.rs} rescheduled`:''}</small></span><b class="hhp">${pct}<small>%</small></b></div>
-      <div class="hhcells">${h.cells.map(x=>x?`<button class="hhc" data-hh="${esc(x.f)}: ${x.k} of ${x.t} days" style="--r:${(x.k/x.t).toFixed(2)}" aria-label="${esc(x.f)}: ${x.k} of ${x.t} days"></button>`:'<span class="hhc none"></span>').join('')}</div><div class="hhtip"></div></div>`}).join('')}
+  return`<p class="hhnote">Last ${ws.length} week${ws.length>1?'s':''}, oldest → newest · tap a square</p>`+hs.map(h=>{const pct=Math.round(h.kept/h.tot*100),ot=h.on+h.late?Math.round(h.on/(h.on+h.late)*100):null;
+    return`<div class="hhrow"><div class="hhtop"><span class="ic">${ico(h.c.icon||'check')}</span><span class="hhn">${esc(h.c.name)}<small>${h.kept}/${h.tot} days${ot!=null?` · ${ot}% on time`:''}${h.gr?` · ${h.gr} grace`:''}${h.rs?` · ${h.rs} resched.`:''}</small></span>
+      <span class="hhcells">${h.cells.map(x=>x?`<button class="hhc" data-hh="${esc(x.f)}: ${x.k} of ${x.t} days" style="--r:${(x.k/x.t).toFixed(2)}" aria-label="${esc(x.f)}: ${x.k} of ${x.t} days"></button>`:'<span class="hhc none"></span>').join('')}</span><b class="hhp">${pct}<small>%</small></b></div><div class="hhtip"></div></div>`}).join('')}
 // ---- Voice reflections: tap the mic, talk, tap again; the words are added to this week's reflection ----
 // Audio goes to our own Cloud Function (it holds the OpenAI key); recordings wait on the phone if offline.
 const VOICE_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/transcribe',VMAX=10*60e3;
@@ -1880,30 +1907,27 @@ function rfPast(){const el=$('rfPast');if(!el)return;const ws=D.weeks.filter(w=>
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
-  const rows=weeks.map((w,i)=>{const st=weekStats(w),s0=new Date(w.sealedAt),e=weekEnd(s0),live=w.status==='active';
-      if(live)return`<div class="hcur rise" style="animation-delay:${120+i*45}ms"><button class="hrow" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
-        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`+`</div>`;
-      return`<button class="hrow rise" style="animation-delay:${120+i*45}ms" data-w="${w.id}"><span class="hl"><span class="cond hdate">${fmtRange(s0,e)}${live?' · <em>in progress</em>':''}</span><b>${esc(w.focus)}</b>${mini(w,st.days)}${(()=>{const ot=onTime(w);return ot.pct==null?'':`<span class="hot">${ot.pct}% on time · ${ot.lt} late</span>`})()}</span>
-        <span class="hp"><b>${st.pct}<small>%</small></b>${live?`<small>${st.kept} of ${st.days.length}</small>`:''}</span></button>`});
-  // this week (with Reflect) on top, then the trend, then past weeks: only the past weeks scroll
-  const ci=weeks.findIndex(w=>w.status==='active'),cur=ci>=0?rows[ci]:'',past=rows.filter((_,i)=>i!==ci);
-  const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null,bi=ws.length?ws.lastIndexOf(Math.max(...ws)):-1;
-  const sum=ws.length>=2?`${ws.length} weeks · avg ${avg}% · best ${esc(trend[bi].focus)} ${ws[bi]}%`:'';
-  $('hList').innerHTML=cur+`<div class="trcard"><div class="trhd"><span class="trt">Trend</span>${sum?`<span class="trsum">${sum}</span>`:''}</div><div class="tchart" id="tChart"></div></div>`
-    +(past.length||weeks.length?`<div class="pwl pwhd"><span class="lbl">${hView==='habits'?'Habits':'Past weeks'}</span><span class="pwseg"><button data-hv="weeks" class="${hView!=='habits'?'on':''}">Weeks</button><button data-hv="habits" class="${hView==='habits'?'on':''}">Habits</button></span></div>
-      <div class="pwlist" id="pwList">${hView==='habits'?habitHistory():past.join('')||'<p class="tempty">Past weeks will show here.</p>'}</div>`:'');
+  const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null;
+  const aw=weeks.find(w=>w.status==='active')||weeks[0],ast=weekStats(aw),aot=onTime(aw),live=aw.status==='active',s0=new Date(aw.sealedAt);
+  const hero=`<div class="pghero rise"><button class="pgl" data-w="${aw.id}"><span class="cond hdate">${live?'This week':fmtRange(s0,weekEnd(s0))} · <em>${esc(aw.focus)}</em></span>
+      <b class="pgpct">${ast.pct}<small>%</small></b><span class="pgsub">${ast.kept} of ${ast.days.length} days${aot.pct!=null?` · ${aot.pct}% on time`:''}</span>${mini(aw,ast.days)}</button>
+    <div class="pgr"><span class="cond pgtl">Trend${avg!=null&&ws.length>=2?` · avg ${avg}%`:''}</span><div class="tchart" id="tChart" data-compact="1"></div></div></div>`;
+  const row=w=>{const st=weekStats(w),a=new Date(w.sealedAt);return`<button class="pgrow" data-w="${w.id}"><span class="pgn"><b>${esc(w.focus)}</b><span class="cond hdate">${fmtRange(a,weekEnd(a))}</span></span>${mini(w,st.days)}<span class="pgv">${st.pct}<small>%</small></span></button>`};
+  const past=weeks.filter(w=>w!==aw).map(row).join('');
+  $('hList').innerHTML=hero+`<div class="pwl pwhd"><span class="pwseg"><button data-hv="weeks" class="${hView!=='habits'?'on':''}">Weeks</button><button data-hv="habits" class="${hView==='habits'?'on':''}">Habits</button></span></div>
+      <div class="pwlist" id="pwList">${hView==='habits'?habitHistory():past||'<p class="tempty">Past weeks will show here.</p>'}</div>`;
   $('hList').querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{if(hView===b.dataset.hv)return;hView=b.dataset.hv;haptic();renderHistory()});
   $('hList').querySelectorAll('[data-hh]').forEach(b=>b.onclick=()=>{const t=b.dataset.hh;b.closest('.hhrow').querySelector('.hhtip').textContent=t});
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.w),true));
-    drawTrend(trend)}
+  drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
-function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.</p>`;return}const W=box.clientWidth||340,H=92,L=30,R=24,T=22,B=24,n=weeks.length;
+function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">${box.dataset.compact?`Starts after ${weeks.length?'one more review':'two reviews'}.`:`Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.`}</p>`;return}const cp=!!box.dataset.compact,W=box.clientWidth||(cp?150:340),H=cp?70:92,L=cp?8:30,R=cp?30:24,T=cp?18:22,B=cp?8:24,n=weeks.length;
   const anc=x=>x>W-R-14?'end':x<L+14?'start':'middle',ax=x=>x>W-R-14?x+6:x<L+14?x-6:x; // keep edge labels inside the box
   const pts=weeks.map((w,i)=>{const st=weekStats(w);return{w,pct:st.pct,live:w.status==='active',x:n===1?L+(W-L-R)/2:L+i*(W-L-R)/(n-1),y:T+(1-st.pct/100)*(H-T-B)}});
   const closed=pts.filter(p=>!p.live),live=pts.find(p=>p.live),pathOf=a=>a.map((p,i)=>`${i?'L':'M'}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
-  const grid=[0,50,100].map(v=>{const y=T+(1-v/100)*(H-T-B);return`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="tg"/><text x="${L-8}" y="${y+4}" class="tl" text-anchor="end">${v}</text>`}).join('');
+  const grid=(cp?[0,100]:[0,50,100]).map(v=>{const y=T+(1-v/100)*(H-T-B);return`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" class="tg"/>${cp?'':`<text x="${L-8}" y="${y+4}" class="tl" text-anchor="end">${v}</text>`}`}).join('');
   const last=closed[closed.length-1];
-  const labels=pts.map(p=>`<text x="${ax(p.x)}" y="${H-6}" class="tx" text-anchor="${anc(p.x)}">${new Date(p.w.sealedAt+864e5).toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</text>`).filter((_,i)=>n<=7||i%2===(n-1)%2).join('');
+  const labels=pts.map(p=>`<text x="${ax(p.x)}" y="${H-6}" class="tx" text-anchor="${anc(p.x)}">${new Date(p.w.sealedAt+864e5).toLocaleDateString('en-US',{month:'numeric',day:'numeric'})}</text>`).filter((_,i)=>!cp&&(n<=7||i%2===(n-1)%2)).join('');
   box.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Weekly percentage trend: ${pts.map(p=>p.pct+'%').join(', ')}">
     ${grid}${closed.length>1?`<path d="${pathOf(closed)}" class="tline" pathLength="1"/>`:''}
     ${live&&last?`<path d="M${last.x} ${last.y} L${live.x} ${live.y}" class="tline live"/>`:''}
