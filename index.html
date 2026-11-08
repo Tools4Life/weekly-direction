@@ -981,8 +981,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* voice dock: its own solid strip above the tab bar, nothing scrolls under the button */
 .vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px 24px calc(var(--sb) + 76px);background:var(--bg);--lv:0}
 .vcdock::before{content:"";position:absolute;left:0;right:0;bottom:100%;height:40px;background:linear-gradient(to top,var(--bg),transparent);pointer-events:none}
-.vcline{height:26px;max-width:100%;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--mu)}
-.vcst{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.vcline{min-height:26px;max-width:100%;flex-wrap:wrap;text-align:center;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;color:var(--mu)}
+.vcst{font-variant-numeric:tabular-nums}
 .vcpend{white-space:nowrap}.vcpend:empty{display:none}.vcpend button{color:var(--ac);margin-left:4px}
 .vcwave{display:none;align-items:center;gap:3px;height:26px}
 .vcwave i{display:block;width:3px;height:3px;border-radius:2px;background:var(--ac)}
@@ -1982,7 +1982,7 @@ async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
     const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||`Error ${r.status}`),{status:r.status,detail:String(j.detail||'')});
     const text=String(j.text||'').trim();if(text)vcAppend(item.at,text);await vqDel(item.id);ok=true;
     VC.msg=text?'Added to this week':'Nothing heard';VC.last=text||null;snd('done')}
-  catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':/insufficient_quota|billing/i.test(e.detail||'')?'OpenAI has no credit · saved':/invalid_api_key|Incorrect API key|\b401\b/i.test(e.detail||'')?'OpenAI key rejected · saved':/model/i.test(e.detail||'')?'OpenAI model error · saved':/\b429\b/.test(e.detail||'')?'OpenAI rate limit · saved':'Couldn’t transcribe · saved';console.warn('voice',e)}
+  catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':/insufficient_quota|billing/i.test(e.detail||'')?'OpenAI has no credit · saved':/invalid_api_key|Incorrect API key|\b401\b/i.test(e.detail||'')?'OpenAI key rejected · saved':/model/i.test(e.detail||'')?'OpenAI model error · saved':/\b429\b/.test(e.detail||'')?'OpenAI rate limit · saved':`Failed ${e.status||'?'}: ${String((e.detail||e.message||'').replace(/^\d+\s*/,'').replace(/[{}"]/g,' ').replace(/\s+/g,' ').trim()).slice(0,60)}`;console.warn('voice',e)}
   VC.st='idle';vcPaint();vcPendPaint();return ok}
 // adds the words to this week's live reflection, under a day-and-time line
 function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const d=new Date(at),stamp=`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`;
