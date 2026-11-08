@@ -44,6 +44,7 @@ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.6;stro
 nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:20;display:flex;justify-content:center;gap:56px;padding:6px 0 calc(var(--sb) + 8px);background:linear-gradient(to top,var(--bg) 70%,transparent)}
 nav.bar button{width:48px;height:48px;display:flex;align-items:center;justify-content:center;color:var(--mu2)}
 nav.bar button.on{color:var(--tx)}
+nav.bar button.on .sh{fill:currentColor;fill-opacity:.16}
 nav.bar svg.i{width:24px;height:24px}
 
 /* gate */
@@ -1118,9 +1119,9 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
 <nav class="bar" id="bar" hidden>
-  <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="2.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="9.5" y="9.5" width="5" height="5" rx="1" fill="currentColor"/><rect x="16.5" y="9.5" width="5" height="5" rx="1"/></svg></button>
-  <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><path d="M5 5.5A2.5 2.5 0 0 1 7.5 3H19v14.5H7.5A2.5 2.5 0 0 0 5 20z"/><path d="M5 20a1.5 1.5 0 0 0 1.5 1.5H19v-4"/><path d="M10.5 3v7.5l2-1.6 2 1.6V3"/></svg></button>
-  <button data-tab="history" aria-label="Progress"><svg class="i ph" viewBox="0 0 256 256"><path d="M232,208a8,8,0,0,1-8,8H32a8,8,0,0,1-8-8V48a8,8,0,0,1,16,0V156.69l50.34-50.35a8,8,0,0,1,11.32,0L128,132.69,180.69,80H160a8,8,0,0,1,0-16h40a8,8,0,0,1,8,8v40a8,8,0,0,1-16,0V91.31l-58.34,58.35a8,8,0,0,1-11.32,0L96,123.31l-56,56V200H224A8,8,0,0,1,232,208Z"/></svg></button>
+  <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" class="sh"/><path d="M3.5 9.8h17M8.2 3v4M15.8 3v4"/><path d="m9.2 14.6 2 2 3.8-3.8"/></svg></button>
+  <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><path d="M12 7c-1.8-1.6-4.4-2.2-8.5-2.2v13.4c4.1 0 6.7.6 8.5 2.2 1.8-1.6 4.4-2.2 8.5-2.2V4.8c-4.1 0-6.7.6-8.5 2.2z" class="sh"/><path d="M12 7v13.2"/></svg></button>
+  <button data-tab="history" aria-label="Progress"><svg class="i" viewBox="0 0 24 24"><path d="M4 4v15a1.5 1.5 0 0 0 1.5 1.5H20"/><path d="m7.5 14.5 3.5-3.6 3 3 5-5.4"/></svg></button>
 </nav>
 
 <div class="scrim" id="scrim"></div>
