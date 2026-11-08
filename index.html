@@ -971,16 +971,27 @@ body[data-screen=prayer][data-rv=j]{overflow:hidden}
 body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 36px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent)}
 .rfscroll::-webkit-scrollbar{display:none}
-.rfwk{display:block;width:100%;text-align:left;padding:26px 0 24px;border-top:1px solid var(--rule)}
+.rfwk{border-top:1px solid var(--rule)}
 .rfwk:first-child{border-top:0}
-.rfwhr{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rfwh{display:block;width:100%;text-align:left;padding:20px 0 20px}
 .rfwd{display:block;font-family:var(--cond);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu2)}
-.rfww{display:block;margin:4px 0 2px;font-family:var(--serif);font-size:28px;line-height:1.2;letter-spacing:-.01em;color:var(--tx)}
-.rfold .rfww{color:var(--mu)}
-.rfold .rfpe{display:block;margin-top:10px}
-.rfet2{display:block;font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
-.rfverse{margin:6px 0 0;font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.5;color:var(--mu)}
+.rfww{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0 6px;font-family:var(--serif);font-size:28px;line-height:1.2;letter-spacing:-.01em;color:var(--tx)}
+.rfchev{flex:none;width:20px;height:20px;color:var(--mu2);transition:transform .35s var(--ease)}
+.rfwk.open .rfchev{transform:rotate(180deg)}
+.rfsl{display:block;margin-bottom:2px;font-family:var(--cond);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.rfsx{display:-webkit-box;font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--mu);-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;white-space:pre-line}
+.rfmu{font-style:italic;color:var(--mu2)}
+.rfwk.open .rfwh .rfsx,.rfwk.open .rfwh .rfsl{display:none}
+.rfbody{display:grid;grid-template-rows:0fr;transition:grid-template-rows .4s var(--ease)}
+.rfwk.open .rfbody{grid-template-rows:1fr}
+.rfbin{overflow:hidden;min-height:0;opacity:0;transform:translateY(-8px);transition:opacity .3s var(--ease),transform .4s var(--ease)}
+.rfwk.open .rfbin{opacity:1;transform:none;padding-bottom:22px}
+.rfbin>.rfday:first-child{margin-top:4px}
+.rfqa{display:block;padding:8px 0}
+.rfacts{margin-top:14px}
+.rfverse{margin:0 0 4px;font-family:var(--serif);font-style:italic;font-size:15px;line-height:1.5;color:var(--mu)}
 .rfverse span{display:block;margin-top:3px;font-family:var(--cond);font-style:normal;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+@media (prefers-reduced-motion:reduce){.rfbody,.rfbin,.rfchev{transition:none}}
 .rfday{display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 4px}
 .rfday>span:first-child{font-family:var(--serif);font-size:22px;color:var(--tx)}
 .rfdd{font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
@@ -2096,31 +2107,44 @@ document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{if(rfView!==b.d
 document.body.dataset.rv='j';
 function rfFit(){const sc=$('rfScroll'),dk=$('vcBox');if(!sc||tab!=='prayer'||rfView!=='j')return;window.scrollTo(0,0);const top=sc.getBoundingClientRect().top,bot=dk&&!dk.hidden?dk.getBoundingClientRect().top:innerHeight-90;sc.style.height=Math.max(120,bot-top)+'px'}
 addEventListener('resize',()=>rfFit());
-function rfToEnd(){if(tab!=='prayer'||rfView!=='j')return;requestAnimationFrame(()=>{rfFit();const sc=$('rfScroll');if(sc)sc.scrollTop=sc.scrollHeight})}
+function rfToEnd(){if(tab!=='prayer'||rfView!=='j')return;requestAnimationFrame(()=>{rfFit();const sc=$('rfScroll');if(sc)sc.scrollTop=0})}
 const RF_ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{1,2}:\d{2} [ap]m)$/;
-const rfEnts=t=>(t||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),m=ls[0].trim().match(RF_ST);return m&&ls.length>1?{d:m[1],t:m[2],x:ls.slice(1).join('\n')}:{d:'',t:'',x:ls.join('\n')}}).filter(e=>e.x.trim());
-// a past week: dates, its word, then the AI summary (or the start of what was said); tap to open it
-function rfPastWeek(w){const s0=new Date(w.sealedAt),t=(w.summary||w.reflection||w.liveRefl||'').trim();
-  const bl=w.summary?[{l:'AI summary',x:w.summary}]:t.split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim();return ls.length>1&&(RF_ST.test(h)||/\?\s*$/.test(h))?{l:h,x:ls.slice(1).join(' '),q:!RF_ST.test(h)}:{l:'',x:ls.join(' ')}}).filter(e=>e.x.trim());
-  const more=bl.length-2;
-  return`<button class="rfwk rfold" data-rw="${w.id}"><span class="rfwd">${fmtRange(s0,weekEnd(s0))}</span><span class="rfww">${esc(w.focus)}</span>${bl.slice(0,2).map(e=>`<span class="rfpe">${e.l?`<span class="${e.q?'rfpq':'rfet2'}">${esc(e.l)}</span>`:''}<span class="rfpx">${esc(e.x)}</span></span>`).join('')}${more>0?`<span class="rfpm">+${more} more</span>`:''}</button>`}
-// the journal: past weeks above, this week at the bottom by the mic; only this list scrolls
+// a week's text as blocks: stamped entries {d,t,x}, Saturday answers {q,x}, or plain {x}
+const rfBlocks=t=>(t||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim(),m=h.match(RF_ST);
+  return m&&ls.length>1?{d:m[1],t:m[2],x:ls.slice(1).join('\n')}:ls.length>1&&/\?\s*$/.test(h)?{q:h,x:ls.slice(1).join('\n')}:{x:ls.join('\n')}}).filter(e=>e.x.trim());
+const rfEnts=t=>rfBlocks(t).filter(e=>!e.q);
+const rfOpen=new Set();
+// one week's opened content: days newest first, entries newest first, then the Saturday answers
+function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
+  const all=rfBlocks(active?w.liveRefl:(w.reflection||w.liveRefl)),ents=all.filter(e=>!e.q),qa=all.filter(e=>e.q);
+  const todayN=active?DOWL[new Date().getDay()]:null,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'',fresh=active&&Date.now()-rfJust<4000;
+  const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
+  groups.reverse().forEach(g=>g.e.reverse());
+  const head=d=>`<div class="rfday"><span>${d&&d===todayN?'Today':esc(d||'Notes')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
+  let first=true;
+  return(w.verse||w.verseRef?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
+    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}"${active?' data-rfo':''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
+    +(qa.length?`<div class="rfday"><span>Saturday review</span></div>${qa.map(e=>`<div class="rfqa"><span class="rfpq">${esc(e.q)}</span><span class="rfex">${esc(e.x)}</span></div>`).join('')}`:'')
+    +(!ents.length&&!qa.length?`<p class="rfnone">${active?'Nothing yet this week.':'Nothing written this week.'}</p>`:'')
+    +`<div class="rfacts">${active?`<button class="rflink" data-rfw>${ico('pen')}Write</button>`:`<button class="rflink" data-rfv="${w.id}">Open week</button>`}</div>`}
+// the journal: a list of weeks, newest first, each with its summary; tap one and its entries slide open
 function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');
-  const past=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>a.sealedAt-b.sealedAt);
-  let html=past.map(rfPastWeek).join('');
-  if(aw){const ents=rfEnts(aw.liveRefl),s0=new Date(aw.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
-    const todayN=DOWL[new Date().getDay()],fresh=Date.now()-rfJust<4000,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
-    const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
-    const head=d=>`<div class="rfday"><span>${d===todayN?'Today':esc(d||'Earlier')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
-    let n=0;const last=ents.length-1,a0=new Date(aw.sealedAt);
-    html+=`<div class="rfwk rfnow"><div class="rfwhr"><span class="rfwd">This week · ${fmtRange(a0,weekEnd(a0))}</span><button class="rflink" id="rfWrite">${ico('pen')}Write</button></div><span class="rfww">${esc(aw.focus)}</span>${aw.verse||aw.verseRef?`<p class="rfverse">${aw.verse?esc(aw.verse):''}${aw.verseRef?`<span>${esc(aw.verseRef)}</span>`:''}</p>`:''}`
-      +groups.map(g=>head(g.d)+g.e.map(e=>{const i=n++;return`<button class="rfent${fresh&&i===last?' rfnew':''}" data-rfo><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
-      +(ents.length?'':`<p class="rfnone">Nothing yet this week.</p>`)+'</div>'}
+  if(aw&&Date.now()-rfJust<4000)rfOpen.add(aw.id);
+  const ws=(aw?[aw]:[]).concat(D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt));
+  const html=ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
+    const sum=w.summary?`<span class="rfsl">AI summary</span><span class="rfsx">${esc(w.summary)}</span>`
+      :act?(lastE?`<span class="rfsx">${esc(lastE.x)}</span>`:`<span class="rfsx rfmu">Nothing yet this week.</span>`)
+      :`<span class="rfsx">${esc((rfBlocks(w.reflection||w.liveRefl)[0]||{x:''}).x)}</span>`;
+    const n=ents.length;
+    return`<div class="rfwk${rfOpen.has(w.id)?' open':''}${act?' rfnow':''}" data-wk="${w.id}"><button class="rfwh" data-tg="${w.id}" aria-expanded="${rfOpen.has(w.id)}">`
+      +`<span class="rfwd">${act?'This week · ':''}${fmtRange(s0,weekEnd(s0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(w.focus)}<svg class="i rfchev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>${sum}</button>`
+      +`<div class="rfbody"><div class="rfbin">${rfBody(w,act)}</div></div></div>`}).join('');
   el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
-  el.querySelectorAll('[data-rw]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rw),true));
-  if(aw){const op=()=>openJournal(aw);el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);$('rfWrite').onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}}}
+  el.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{const id=b.dataset.tg,wk=b.parentElement,on=!rfOpen.has(id);on?rfOpen.add(id):rfOpen.delete(id);wk.classList.toggle('open',on);b.setAttribute('aria-expanded',on);haptic()});
+  el.querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rfv),true));
+  if(aw){const op=()=>openJournal(aw);el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
-function rfPast(){} // past weeks live in the same journal list now
+function rfPast(){} // past weeks live in the same journal list
 // ---- Week stats: the in-depth page behind a week on Progress ----
 // one habit on one day: on | grace | late | fail | miss | open | fut | na
 function cellOf(w,k,c){const d=new Date(k+'T12:00:00');if(!onDay(c,d))return'na';const today=ymd(new Date());if(k>today)return'fut';
