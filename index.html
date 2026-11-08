@@ -849,6 +849,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* ---- Week stats page ---- */
 .str{z-index:97}
 .stseg{margin-bottom:22px}
+.pghero{width:100%;text-align:left}.pghero:active{transform:scale(.99)}
 .pgr{text-align:left;align-items:stretch}
 .pgall{font-size:13px;color:var(--ac);margin-top:2px}
 .stbars{display:flex;align-items:flex-end;gap:6px;height:130px;margin-top:14px;overflow-x:auto;scrollbar-width:none}.stbars::-webkit-scrollbar{display:none}
@@ -860,7 +861,21 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .stb em{font-style:normal;font-family:var(--cond);font-size:12px;color:var(--mu)}
 .stnote{margin:10px 0 0;font-size:13px;color:var(--mu2)}
 .visr{z-index:98}
-.str .lrin{padding-top:calc(var(--st) + 9vh)}
+.str .lrin{padding-top:calc(var(--st) + 14px)}
+.str>.cx{top:calc(var(--st) + 10px)}
+.str .stseg{margin:0 0 22px;height:40px;align-items:center}
+.str .vdate{margin-bottom:4px;font-size:13px}
+.str .vword{font-size:40px!important;line-height:1.1}
+.str .sthead{margin-top:2px}
+.str .stpct{font-size:44px}.str .stpct small{font-size:20px}
+.str .sttiles{margin-top:14px}
+.str .sttile{padding:10px 12px}.str .sttile b{font-size:22px}
+.str .vsec{margin-top:24px;padding-top:18px}
+.str .stgrid{grid-template-columns:28px repeat(var(--n),32px);justify-content:space-between;gap:7px 0}
+.str .stc{width:32px;height:32px;aspect-ratio:auto;max-height:none;border-radius:8px}
+.str .stleg .stc{width:14px;height:14px}
+.str .sthab{padding:10px 0}
+.str .stvis{margin-top:20px}.str .vnav{margin-top:28px}
 .sthead{display:flex;align-items:baseline;gap:14px;margin-top:6px}
 .stpct{font-family:var(--cond);font-weight:600;font-size:56px;line-height:1;font-variant-numeric:tabular-nums}.stpct small{font-size:24px;color:var(--mu);font-weight:500}
 .stdelta{font-family:var(--cond);font-size:14px;letter-spacing:.06em}.stdelta.up{color:var(--ac)}.stdelta.dn{color:var(--mu)}
@@ -2015,9 +2030,9 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
   const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null;
   const aw=weeks.find(w=>w.status==='active')||weeks[0],ast=weekStats(aw),aot=onTime(aw),live=aw.status==='active',s0=new Date(aw.sealedAt);
-  const hero=`<div class="pghero rise"><button class="pgl" data-w="${aw.id}"><span class="cond hdate">${live?'This week':fmtRange(s0,weekEnd(s0))} · <em>${esc(aw.focus)}</em></span>
-      <b class="pgpct">${ast.pct}<small>%</small></b><span class="pgsub">${ast.kept} of ${ast.days.length} days${aot.pct!=null?` · ${aot.pct}% on time`:''}</span>${mini(aw,ast.days)}</button>
-    <button class="pgr" id="pgAll"><span class="cond pgtl">Weekly trend</span>${avg!=null&&ws.length>=2?`<span class="pgsub">avg ${avg}%</span>`:''}<div class="tchart" id="tChart" data-compact="1"></div><span class="pgall">All-time stats ›</span></button></div>`;
+  const hero=`<button class="pghero rise" id="pgHero" aria-label="Open stats"><span class="pgl"><span class="cond hdate">${live?'This week':fmtRange(s0,weekEnd(s0))} · <em>${esc(aw.focus)}</em></span>
+      <b class="pgpct">${ast.pct}<small>%</small></b><span class="pgsub">${ast.kept} of ${ast.days.length} days${aot.pct!=null?` · ${aot.pct}% on time`:''}</span>${mini(aw,ast.days)}</span>
+    <span class="pgr"><span class="cond pgtl">Weekly trend</span>${avg!=null&&ws.length>=2?`<span class="pgsub">avg ${avg}%</span>`:''}<span class="tchart" id="tChart" data-compact="1"></span></span></button>`;
   const row=w=>{const st=weekStats(w),a=new Date(w.sealedAt);return`<button class="pgrow" data-w="${w.id}"><span class="pgn"><b>${esc(w.focus)}</b><span class="cond hdate">${fmtRange(a,weekEnd(a))}</span></span>${mini(w,st.days)}<span class="pgv">${st.pct}<small>%</small></span></button>`};
   const past=weeks.filter(w=>w!==aw).map(row).join('');
   $('hList').innerHTML=hero+`<div class="pwl pwhd"><span class="pwseg"><button data-hv="weeks" class="${hView!=='habits'?'on':''}">Weeks</button><button data-hv="habits" class="${hView==='habits'?'on':''}">Habits</button></span></div>
@@ -2025,7 +2040,7 @@ function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.se
   $('hList').querySelectorAll('[data-hv]').forEach(b=>b.onclick=()=>{if(hView===b.dataset.hv)return;hView=b.dataset.hv;haptic();renderHistory()});
   $('hList').querySelectorAll('[data-hh]').forEach(b=>b.onclick=()=>{const t=b.dataset.hh;b.closest('.hhrow').querySelector('.hhtip').textContent=t});
   $('hList').querySelectorAll('[data-w]').forEach(b=>b.onclick=()=>openStats(D.weeks.find(w=>w.id===b.dataset.w)));
-  $('pgAll').onclick=e=>{if(e.target.closest('.tpt'))return;openAllStats()};
+  $('pgHero').onclick=()=>openStats(aw);
   drawTrend(trend)}
 // line chart of weekly % (single series: no legend; current week drawn dashed + hollow); tap a point for its label
 function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2){box.innerHTML=`<p class="tempty">${box.dataset.compact?`Starts after ${weeks.length?'one more review':'two reviews'}.`:`Your trend line starts after ${weeks.length?'one more':'two'} Saturday review${weeks.length?'':'s'}.`}</p>`;return}const cp=!!box.dataset.compact,W=box.clientWidth||(cp?150:340),H=cp?70:92,L=cp?8:30,R=cp?30:24,T=cp?18:22,B=cp?8:24,n=weeks.length;
@@ -2041,7 +2056,7 @@ function drawTrend(weeks){const box=$('tChart');if(!box)return;if(weeks.length<2
     ${pts.map((p,i)=>`<g class="tpt${p.live?' live':''}" data-i="${i}" style="animation-delay:${300+i*60}ms"><circle cx="${p.x}" cy="${p.y}" r="16" class="hit"/><circle cx="${p.x}" cy="${p.y}" r="4.5" class="dot"/></g>`).join('')}
     ${last?`<text x="${ax(last.x)}" y="${last.y-11}" class="tv" text-anchor="${anc(last.x)}">${last.pct}%</text>`:''}
     ${labels}<g id="tTip"></g></svg>`;
-  box.querySelectorAll('.tpt').forEach(g=>g.onclick=()=>{const p=pts[+g.dataset.i],ty=Math.max(14,p.y-34),tip=$('tTip');
+  if(!cp)box.querySelectorAll('.tpt').forEach(g=>g.onclick=()=>{const p=pts[+g.dataset.i],ty=Math.max(14,p.y-34),tip=$('tTip');
     // full focus word, never cut: measure the text, then size and place the bubble inside the chart
     tip.innerHTML=`<rect y="${ty-14}" height="24" rx="7" class="tipbg"/><text y="${ty+2}" class="tipt" text-anchor="middle">${esc(p.w.focus)} · ${p.pct}%</text>`;
     const tt=tip.querySelector('text'),tw=Math.min(W-8,(tt.getComputedTextLength?tt.getComputedTextLength():90)+20),tx=Math.min(Math.max(p.x,4+tw/2),W-4-tw/2);
