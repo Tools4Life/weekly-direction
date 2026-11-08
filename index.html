@@ -915,7 +915,11 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 .sthn{flex:1;min-width:0;font-size:16px}.sthn small{display:block;font-family:var(--cond);font-size:12.5px;letter-spacing:.05em;color:var(--mu2);margin-top:2px}
 .stbar{width:56px;height:5px;border-radius:3px;background:var(--line);overflow:hidden;flex:none}.stbar i{display:block;height:100%;background:var(--ac)}
 .sthab b{min-width:48px;text-align:right;font-family:var(--cond);font-weight:600;font-size:20px}.sthab b small{font-size:12px;color:var(--mu)}
-.stvis{display:inline-flex;align-items:center;gap:8px;margin-top:28px;font-size:15px;color:var(--ac)}.stvis svg.i{width:18px;height:18px}
+.stvis{display:inline-flex;align-items:center;gap:7px;flex:none;height:36px;padding:0 14px;border-radius:999px;border:1px solid color-mix(in srgb,var(--ac) 55%,transparent);font-size:14px;color:var(--tx)}.stvis svg.i{width:17px;height:17px;color:var(--ac)}
+.stnav{display:flex;align-items:center;gap:6px;margin:0 0 2px -10px}
+.stnav .vdate{margin:0;min-width:0}
+.stnb{width:36px;height:36px;display:grid;place-items:center;font-size:26px;line-height:1;color:var(--tx);border-radius:50%}.stnb:disabled{opacity:.22}.stnb:active{background:var(--card)}
+.sttitle{display:flex;align-items:center;justify-content:space-between;gap:12px}
 /* ---- Progress, compact ---- */
 .pghero{display:flex;gap:14px;margin:4px 0 0;padding:14px 16px;border-radius:18px;background:var(--card);border:1px solid rgba(232,116,59,.35)}
 .pgl{flex:1 1 50%;min-width:0;display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left}
@@ -1188,9 +1192,9 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
 <nav class="bar" id="bar" hidden>
-  <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15.5" rx="3" class="sh"/><path d="M3.5 9.8h17M8.2 3v4M15.8 3v4"/><path d="m9.2 14.6 2 2 3.8-3.8"/></svg></button>
-  <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="3" class="sh"/><path d="M8.5 8h7M8.5 12h7M8.5 16h4"/></svg></button>
-  <button data-tab="history" aria-label="Progress"><svg class="i" viewBox="0 0 24 24"><path d="M4 4v15a1.5 1.5 0 0 0 1.5 1.5H20"/><path d="m7.5 14.5 3.5-3.6 3 3 5-5.4"/></svg></button>
+  <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" class="sh"/><path d="M3.5 8.8h17"/><path d="M8.5 2.5v2.6M15.5 2.5v2.6"/><path d="m9.2 14.4 2 2 3.8-3.8"/></svg></button>
+  <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" class="sh"/><path d="M7.5 8.6h6M7.5 12h4"/><path d="m11.8 16.8.5-2.4 4.6-4.6a1.3 1.3 0 0 1 1.9 1.9l-4.6 4.6z"/></svg></button>
+  <button data-tab="history" aria-label="Progress"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" class="sh"/><path d="m7.2 15 3.1-3.3 2.6 2.4 3.9-4.6"/></svg></button>
 </nav>
 
 <div class="scrim" id="scrim"></div>
@@ -2035,7 +2039,7 @@ function openAllStats(){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealed
     ${chart}${list}
     <div class="vsec"><div class="lbl">By habit</div>${hs}</div>`;
   stShow()}
-function openStats(w){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=weekStats(w),days=st.days,keys=days.map(ymd),hs=w.commitments;
+function openStats(w,dir){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=weekStats(w),days=st.days,keys=days.map(ymd),hs=w.commitments;
   const per=hs.map(c=>{const t={c,on:0,grace:0,late:0,fail:0,miss:0,due:0};keys.forEach(k=>{const v=cellOf(w,k,c);if(['on','grace','late','fail','miss'].includes(v)){t[v]++;t.due++}});t.done=t.on+t.grace+t.late;return t});
   const sum=per.reduce((a,t)=>{['on','grace','late','fail','miss','due','done'].forEach(k=>a[k]=(a[k]||0)+t[k]);return a},{});
   const timed=per.filter(t=>t.c.by),tDone=timed.reduce((a,t)=>a+t.done,0),tOn=timed.reduce((a,t)=>a+t.on+t.grace,0);
@@ -2051,16 +2055,21 @@ function openStats(w){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=week
     <div class="stleg"><span><i class="stc on"></i>on time</span><span><i class="stc grace"></i>grace</span><span><i class="stc late"></i>late</span><span><i class="stc miss"></i>missed</span><span><i class="stc fail">✕</i>failed</span></div>`;
   const rows=per.map(t=>{const pct=t.due?Math.round(t.done/t.due*100):0,bits=[`${t.done}/${t.due}`,t.c.by&&t.done?`${Math.round((t.on+t.grace)/t.done*100)}% on time`:'',t.grace?`${t.grace} grace`:'',t.late?`${t.late} late`:'',t.fail?`${t.fail} failed`:''].filter(Boolean).join(' · ');
     return`<div class="sthab"><span class="ic">${ico(t.c.icon||'check')}</span><span class="sthn">${esc(t.c.name)}<small>${bits}</small></span><span class="stbar"><i style="width:${pct}%"></i></span><b>${pct}<small>%</small></b></div>`}).join('');
-  $('stBody').innerHTML=`${stSeg('week')}<div class="vdate">${fmtRange(s0,weekEnd(s0))}${w.status==='active'?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>
+  $('stBody').innerHTML=`${stSeg('week')}<div class="stnav"><button class="stnb" data-sn="${pv?pv.id:''}" ${pv?'':'disabled'} aria-label="Previous week">‹</button><span class="vdate">${fmtRange(s0,weekEnd(s0))}${w.status==='active'?' · now':''}</span><button class="stnb" data-sn="${nx?nx.id:''}" ${nx?'':'disabled'} aria-label="Next week">›</button></div>
+    <div class="sttitle"><h1 class="lrt vword">${esc(w.focus)}</h1><button class="stvis" id="stVis">${ico('book')}Vision &amp; reflection</button></div>
     <div class="sthead"><b class="stpct">${st.pct}<small>%</small></b>${delta}</div>
     ${chart}${list}
     <div class="vsec"><div class="lbl">Day by day</div>${grid}</div>
     <div class="vsec"><div class="lbl">By habit</div>${rows}</div>
-    <button class="stvis" id="stVis">${ico('book')}Vision &amp; reflection for this week</button>
-    <div class="vnav">${pv?`<button data-sn="${pv.id}">‹ ${esc(pv.focus)}</button>`:'<span></span>'}<span class="vnhint">other weeks</span>${nx?`<button data-sn="${nx.id}">${esc(nx.focus)} ›</button>`:'<span></span>'}</div>`;
+`;
   $('stVis').onclick=()=>openVision(w,true);
-  $('stBody').querySelectorAll('[data-sn]').forEach(b=>b.onclick=()=>{haptic();openStats(D.weeks.find(x=>x.id===b.dataset.sn))});
+  if(dir){const sb=$('stBody');sb.classList.remove('vin-l','vin-r');void sb.offsetWidth;sb.classList.add(dir>0?'vin-r':'vin-l')}
+  $('stBody').querySelectorAll('[data-sn]').forEach(b=>b.onclick=()=>{if(!b.dataset.sn)return;haptic();openStats(D.weeks.find(x=>x.id===b.dataset.sn),b.textContent==='›'?1:-1)});
   stShow()}
+{let x0=null,y0=0;const el=$('stR');
+  el.addEventListener('touchstart',e=>{if(!SV||!$('stBody').querySelector('.stnav'))return x0=null;x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  el.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;
+    if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;const b=$('stBody').querySelectorAll('.stnb')[dx<0?1:0];if(b&&!b.disabled)b.click()},{passive:true})}
 function closeStats(){$('stR').classList.remove('on');setTimeout(()=>$('stR').hidden=true,300)}
 $('stClose').onclick=closeStats;
 function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
