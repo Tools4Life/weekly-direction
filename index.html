@@ -145,6 +145,12 @@ select.field{appearance:none;-webkit-appearance:none;min-height:40px;padding:6px
 .fword{display:block;width:100%;margin-top:6px;padding:4px 0 8px;border:0;border-bottom:1px solid var(--line);background:none;outline:none;font-family:var(--serif);font-weight:400;font-size:48px;line-height:1.1;letter-spacing:-.02em;color:var(--tx);border-radius:0}
 .fword::placeholder{color:#C9BFAF}
 .fword:focus{border-bottom-color:var(--tx)}
+.plvref{margin-top:6px}.plvtx{margin-top:8px;resize:none;font-family:var(--serif);font-size:17px;line-height:1.45}
+.wkverse{display:block;width:100%;margin:10px 0 2px;text-align:left}
+.wkverse .wvt{display:-webkit-box;font-family:var(--serif);font-style:italic;font-size:16px;line-height:1.45;color:var(--tx);opacity:.85;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.wkverse .wvr{display:block;margin-top:3px;font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
+.vverse{margin:10px 0 4px}.vverse p{margin:0;font-family:var(--serif);font-style:italic;font-size:19px;line-height:1.5;color:var(--tx)}
+.vverse span{display:block;margin-top:6px;font-family:var(--cond);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu)}
 .started{margin-top:18px;display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:12px 14px;border-radius:12px;background:var(--card);border:1px solid var(--line)}
 .started label{white-space:nowrap}
 .started input{text-align:left;padding:0;border:0;background:none;font-family:var(--cond);font-size:17px;letter-spacing:.02em;color:var(--tx);outline:none;min-width:0}
@@ -1188,6 +1194,9 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
   <p class="ptitle" id="plTitle">Plan the week</p>
   <label class="lbl" for="plFocus" style="display:block;margin-top:18px">Focus word</label>
   <input class="fword" id="plFocus" maxlength="40" autocomplete="off" autocapitalize="words" spellcheck="false" placeholder="One word">
+  <label class="lbl" for="plVerseRef" style="display:block;margin-top:20px">Focus verse <em class="ed">optional</em></label>
+  <input class="field plvref" id="plVerseRef" maxlength="40" autocomplete="off" placeholder="Reference, e.g. Daniel 1:8">
+  <textarea class="field plvtx" id="plVerse" rows="2" maxlength="400" placeholder="The verse"></textarea>
   <div class="started" id="plStartBox" hidden><label class="lbl" for="plStart">Week started</label><input type="datetime-local" id="plStart"></div>
 
   <div class="sechd"><span class="lbl">Daily habits · <span id="plSpan">Sun – Fri</span></span><span class="n" id="plCount">0</span></div>
@@ -1600,7 +1609,9 @@ const byOf=(w,k,c)=>c.by?((w&&((w.done||{})[k]||{})[c.id+'@rs'])||baseBy(k,c)):n
 const GRACE_FROM='2026-11-08',GRACE_MS=2*36e5,graceDay=k=>k>=GRACE_FROM;
 const wasGr=(w,k,id)=>!!(((w.done||{})[k]||{})[id+'@grace']);
 const wasRs=(w,k,id)=>!!(((w.done||{})[k]||{})[id+'@rs']);
-const deadline=(k,c,w)=>{const b=byOf(w,k,c);return b?new Date(`${k}T${b}:00`).getTime():null};
+// on the day a week is sealed, a start-by (plus grace) that had already passed before sealing doesn't apply that day
+const deadline=(k,c,w)=>{const b=byOf(w,k,c);if(!b)return null;const t=new Date(`${k}T${b}:00`).getTime();
+  if(w&&w.sealedAt&&k===ymd(new Date(w.sealedAt))&&t+(graceDay(k)?GRACE_MS:0)<w.sealedAt)return null;return t};
 function hState(w,k,c,now=Date.now()){const dx=(w.done||{})[k]||{};if(dx[c.id+'@fail'])return'fail';if(dx[c.id])return'done';const r=runOf(w,k,c.id);
   if(r&&c.min)return now>=r+c.min*6e4?'fin':'run';const dl=deadline(k,c,w);if(!dl||now<=dl)return'open';return!graceDay(k)?'late':now>dl+GRACE_MS?'miss':'grace'}
 const wasLate=(w,k,id)=>!!((w.done||{})[k]||{})[id+'@late'];
@@ -1705,14 +1716,14 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
     const strip=`<div class="lstrip"><span><b>${st.pct}%</b> kept</span><span><b>${st.kept}/${st.days.length}</b> days</span>${ot.pct!=null?`<span><b>${ot.pct}%</b> on time</span>`:''}</div>
       <div class="lmini">${st.days.map(d=>{const v=m[ymd(d)];return`<i class="${v||''}" title="${DOWL[d.getDay()]}"></i>`}).join('')}</div>`;
     const hab=w.commitments.map(c=>{const t=tally(c);return`<li><span class="ic">${ico(c.icon||'check')}</span><span><b>${esc(c.name)}</b>${t||c.days?`<small>${[c.days?DAYS_L[c.days]:'',t].filter(Boolean).join(' · ')}</small>`:''}</span></li>`}).join('');
-    $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${strip}<hr class="lrrule">
+    $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}${live?' · in progress':''}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${w.verse||w.verseRef?`<div class="vverse">${w.verse?`<p>${esc(w.verse)}</p>`:''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</div>`:''}${strip}<hr class="lrrule">
       <div class="lbl vlbl">Vision</div>${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written.</p>`}
       <div class="vsec lref"><div class="lbl vlbl">${live?'Reflection so far':'Reflection'}${closed?` · ${closed}`:''}</div>${!live&&w.summary?`<div class="vsumb"><span class="rfet">AI summary</span><p>${esc(w.summary)}</p></div>`:''}${refl}</div>
       <div class="vsec lhab"><div class="lbl">Habits</div><ul>${hab}</ul></div>`;
     const lt=$('lrLive');if(lt){const grow=()=>{lt.style.height='auto';lt.style.height=Math.max(160,lt.scrollHeight+2)+'px'};requestAnimationFrame(grow);let tt=null;
       lt.oninput=()=>{grow();$('lrSaved').textContent='';clearTimeout(tt);tt=setTimeout(()=>{const cur=D.weeks.find(x=>x.id===w.id);if(cur){store.patchWeek(cur,{liveRefl:lt.value});$('lrSaved').textContent='Saved'}},700)}}
   }else{
-  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1><hr class="lrrule">
+  $('visBody').innerHTML=`<div class="vdate">${fmtRange(s0,e)}</div><h1 class="lrt vword">${esc(w.focus)}</h1>${w.verse||w.verseRef?`<div class="vverse">${w.verse?`<p>${esc(w.verse)}</p>`:''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</div>`:''}<hr class="lrrule">
     ${paras.length?`<div class="vtext">${paras.map(x=>`<p>${esc(x).replace(/\n/g,'<br>')}</p>`).join('')}</div>`:`<p class="vempty">No vision written for this week. Add one from Settings → Re-plan this week.</p>`}
     <div class="vhabits">${grp.map(([t,cs])=>`<div class="lbl">${t}</div><ul>${cs.map(item).join('')}</ul>`).join('')}</div>`}
   if(log){const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===w.id),pv=ws[i-1],nx=ws[i+1];
@@ -1798,11 +1809,12 @@ function renderWeek(animate){
       return`<div class="hcard${on?' done':''}${st==='miss'||st==='fail'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st==='fail'?'miss':st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
   const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
   const closeBtn=due||revDay?`<button class="closewk${due?'':' soon'}" id="wkClose"><span><b>${due?'Close the week':'Weekly review'}</b><small>${weekStats(w).pct}% ${due?'':'so far '}· close &amp; plan</small></span>${ico('chev')}</button>`:'';
-  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${w.verse||w.verseRef?`<button class="wkverse" id="wkVerse">${w.verse?`<span class="wvt">${esc(w.verse)}</span>`:''}${w.verseRef?`<span class="wvr">${esc(w.verseRef)}</span>`:''}</button>`:''}${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if(landWord){landWord=false;const f=el.querySelector('.trow .focus');if(f&&!RM.matches){f.classList.add('land');setTimeout(()=>f.classList.remove('land'),1400)}}
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{haptic();tmSwap(tFrom)};
   el.querySelector('.trow .focus')?.addEventListener('click',()=>openVision(w));
+  $('wkVerse')?.addEventListener('click',()=>openVision(w));
   if($('wkThoughts'))$('wkThoughts').onclick=()=>openVision(w);
   el.querySelectorAll('.dsq:not(.fut)').forEach(b=>b.onclick=()=>{selK=b.dataset.k===todayK?null:b.dataset.k;renderWeek(false)});
   el.querySelectorAll('[data-today]').forEach(b=>b.onclick=()=>{selK=null;renderWeek(false)});
@@ -2241,18 +2253,18 @@ $('qsDone').onclick=()=>closeSheet();
 $('qsList').onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;const q=b.dataset.q,a=D.settings.anchorQ,picked=P.qs.filter(x=>x!==a);
   if(picked.includes(q))P.qs=[a,...picked.filter(x=>x!==q)];else if(picked.length<2)P.qs=[a,...picked,q];else{b.classList.remove('nudge');void b.offsetWidth;b.classList.add('nudge');return}
   haptic();renderQsSheet();renderPlanQs();saveDraft()};
-const draftOf=()=>({step:'plan',focus:P.focus,tray:P.tray,thoughts:P.thoughts,qs:P.qs,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()});
+const draftOf=()=>({step:'plan',focus:P.focus,verse:P.verse,verseRef:P.verseRef,tray:P.tray,thoughts:P.thoughts,qs:P.qs,start:P.start,replan:P.replan||null,marks:P.marks||null,updatedAt:Date.now()});
 function openPlan(rw,carry){
   let d=D.draft&&D.draft.step==='plan'?D.draft:null;
   if(!rw&&d?.replan&&!D.weeks.some(w=>w.id===d.replan&&w.status==='active'))d=null;
-  if(rw&&!(d&&d.replan===rw.id))d={focus:rw.focus,tray:rw.commitments,thoughts:rw.planThoughts||'',start:rw.sealedAt,replan:rw.id,marks:rw.marks||{},fresh:true};
+  if(rw&&!(d&&d.replan===rw.id))d={focus:rw.focus,verse:rw.verse||'',verseRef:rw.verseRef||'',tray:rw.commitments,thoughts:rw.planThoughts||'',start:rw.sealedAt,replan:rw.id,marks:rw.marks||{},fresh:true};
   if(!d&&carry)d={focus:'',tray:carry.commitments.map(c=>({...c,id:uid()})),thoughts:'',fresh:true};
   const replan=d?.replan||null,first=!replan&&!D.weeks.length;
-  P={step:'plan',focus:d?.focus||'',tray:(d?.tray||[]).map(c=>({id:c.id||uid(),chipId:c.chipId||null,name:c.name,icon:c.icon||'check',...tmg(c)})),thoughts:d?.thoughts||'',
+  P={step:'plan',focus:d?.focus||'',verse:d?.verse||'',verseRef:d?.verseRef||'',tray:(d?.tray||[]).map(c=>({id:c.id||uid(),chipId:c.chipId||null,name:c.name,icon:c.icon||'check',...tmg(c)})),thoughts:d?.thoughts||'',
     start:d?.start||(first?lastClose().getTime():null),first,replan,marks:d?.marks||null,
     qs:normQs(d?.qs||(rw&&rw.qs)||(()=>{const lw=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt)[0];return qsOf(lw)})())};
   renderPlanQs();
-  $('plFocus').value=P.focus;$('plThoughts').value=P.thoughts;
+  $('plFocus').value=P.focus;$('plVerseRef').value=P.verseRef;$('plVerse').value=P.verse;$('plThoughts').value=P.thoughts;
   $('plStartBox').hidden=!(first||replan);if(first||replan)$('plStart').value=localInput(new Date(P.start));
   $('plProg').hidden=first||!!replan;$('plTitle').textContent=replan?'Re-plan this week':first?'Plan your first week':'Plan the next week';
   const cd=D.settings.closeDay;$('plSpan').textContent=`${DOWL[(cd+1)%7].slice(0,3)} – ${DOWL[cd].slice(0,3)}`;
@@ -2260,6 +2272,8 @@ function openPlan(rw,carry){
   renderTray();renderChips();updateSeal();crossTo('plan');
 }
 function saveDraft(){clearTimeout(saveT);saveT=setTimeout(()=>{if(!P)return;store.putDraft(draftOf());$('plSaved').textContent='DRAFT SAVED'},500)}
+$('plVerseRef').addEventListener('input',e=>{if(!P)return;P.verseRef=e.target.value;saveDraft()});
+$('plVerse').addEventListener('input',e=>{if(!P)return;P.verse=e.target.value;saveDraft()});
 $('plFocus').addEventListener('input',e=>{const v=e.target.value.replace(/\s+/g,'');if(v!==e.target.value)e.target.value=v;P.focus=v;saveDraft();updateSeal()});
 $('plThoughts').addEventListener('input',e=>{P.thoughts=e.target.value;saveDraft()});
 $('plStart').addEventListener('change',e=>{const t=new Date(e.target.value).getTime();if(!isNaN(t)){P.start=t;saveDraft()}});
@@ -2298,7 +2312,7 @@ $('plSeal').onclick=async()=>{
   if(!P||!P.focus||!P.tray.length)return;
   const sealedAt=P.first||P.replan?P.start:Date.now(),old=P.replan&&D.weeks.find(w=>w.id===P.replan);
   let id=P.replan||ymd(new Date(sealedAt));if(!P.replan&&D.weeks.some(w=>w.id===id))id+='-'+uid().slice(-4);
-  const week={id,status:'active',focus:P.focus,sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon,...tmg(c)})),percentage:null,reflection:'',
+  const week={id,status:'active',focus:P.focus,verse:(P.verse||'').trim(),verseRef:(P.verseRef||'').trim(),sealedAt,closedAt:null,commitments:P.tray.map(c=>({id:c.id,chipId:c.chipId,name:c.name,icon:c.icon,...tmg(c)})),percentage:null,reflection:'',
     planThoughts:P.thoughts.trim(),qs:normQs(P.qs),editedAt:null,createdAt:old?.createdAt||Date.now(),marks:P.marks||{},replannedAt:old?Date.now():null};
   clearTimeout(saveT);if(old){const {id:_i,...f}=week;store.patchWeek(old,f)}else store.putWeek(week);store.delDraft();P=null;landWord=true;
   await crossTo('week');
