@@ -4,18 +4,21 @@ import UIKit
 // The web app's palette (dark first, light from html[data-theme=light]) and type: Fraunces for titles, focus word and
 // entries; Barlow for UI text; Barlow Condensed, letter-spaced and uppercase, for labels and dates.
 enum Theme {
-    static let bg = dyn(0x0B0B0C, 0xF6F5F2)
-    static let card = dyn(0x151517, 0xFFFFFF)
-    static let card2 = dyn(0x1C1C1F, 0xF0EEE9)
-    static let tx = dyn(0xF7F4EF, 0x1B1917)
-    static let mu = dyn(0xABA69F, 0x6F6A63)
-    static let mu2 = dyn(0x8A857F, 0x8D877F)
-    static let rule = dyn(0x222225, 0xE4E1DB)
-    static let line = dyn(0x2C2C30, 0xD9D5CE)
-    static let ac = dyn(0xE8743B, 0xD2602A)
-    static let acSoft = dyn(0x4A2C22, 0xFBE7DC)
-    static let acDim = dyn(0x86452A, 0xE9A07C)
-    static let onAc = dyn(0x0B0B0C, 0xFFFFFF)
+    /// "Not now" palette preview (-MockPalette focus, sample-data mode only): a design finding, not an approved theme.
+    /// bg, tx and ac are sampled from the /focus page screenshot; the other tones are derived from them.
+    private static let focus = Mock.enabled && UserDefaults.standard.string(forKey: "MockPalette") == "focus"
+    static let bg = dyn(focus ? 0x0F1115 : 0x0B0B0C, 0xF6F5F2)
+    static let card = dyn(focus ? 0x171A20 : 0x151517, 0xFFFFFF)
+    static let card2 = dyn(focus ? 0x1D2028 : 0x1C1C1F, 0xF0EEE9)
+    static let tx = dyn(focus ? 0xF2EFE9 : 0xF7F4EF, 0x1B1917)
+    static let mu = dyn(focus ? 0xA9A8A4 : 0xABA69F, 0x6F6A63)
+    static let mu2 = dyn(focus ? 0x83858B : 0x8A857F, 0x8D877F)
+    static let rule = dyn(focus ? 0x242831 : 0x222225, 0xE4E1DB)
+    static let line = dyn(focus ? 0x30343E : 0x2C2C30, 0xD9D5CE)
+    static let ac = dyn(focus ? 0xD9B56C : 0xE8743B, 0xD2602A)
+    static let acSoft = dyn(focus ? 0x3B3424 : 0x4A2C22, 0xFBE7DC)
+    static let acDim = dyn(focus ? 0x8C7748 : 0x86452A, 0xE9A07C)
+    static let onAc = dyn(focus ? 0x0F1115 : 0x0B0B0C, 0xFFFFFF)
     static let danger = Color(hex: 0xE5484D)
 
     static func serif(_ size: CGFloat) -> Font { .custom("Fraunces-Regular", size: size) }
