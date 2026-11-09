@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Not now.</title>
+<meta name="robots" content="noindex">
+<style>
+  :root { --bg:#0f1115; --fg:#f2efe9; --muted:#8a8f98; --accent:#d9b56c; }
+  @media (prefers-color-scheme: light) {
+    :root { --bg:#f7f5f0; --fg:#1b1d22; --muted:#6b7079; --accent:#a67c2e; }
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; }
+  body {
+    background:var(--bg); color:var(--fg);
+    font-family: Georgia, "Iowan Old Style", "Times New Roman", serif;
+    display:flex; align-items:center; justify-content:center;
+    padding:2rem; text-align:center;
+  }
+  main { max-width:34rem; }
+  .rule { width:3rem; height:2px; background:var(--accent); margin:0 auto 2rem; }
+  h1 { font-size:clamp(2.2rem,7vw,3.6rem); font-weight:400; letter-spacing:-0.01em; line-height:1.1; }
+  p.lead { margin-top:1.25rem; font-size:clamp(1.1rem,3.2vw,1.35rem); line-height:1.55; }
+  p.q { margin-top:2.5rem; font-family: -apple-system, system-ui, sans-serif; font-size:.95rem; color:var(--muted); letter-spacing:.02em; }
+  #site { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <div class="rule"></div>
+  <h1>Not now.</h1>
+  <p class="lead">This isn't where your time is going today.<br>Close the tab and go back to the thing that actually counts.</p>
+  <p class="q" id="note">What were you supposed to be doing?</p>
+</main>
+<script>
+  // Optional: ?site=example.com shows which site was blocked
+  try {
+    var s = new URLSearchParams(location.search).get('site');
+    if (s) {
+      var n = document.getElementById('note');
+      n.textContent = '';
+      var span = document.createElement('span');
+      span.id = 'site'; span.textContent = s;
+      n.append(span, ' can wait. What were you supposed to be doing?');
+    }
+  } catch (e) {}
+</script>
+</body>
+</html>
