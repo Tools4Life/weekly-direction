@@ -1105,7 +1105,10 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .vcglow.on{opacity:1;animation:vcbreathe 2.4s ease-in-out infinite}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcmic::after{animation:none}.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
-/* recording space; the glow runs around the whole screen edge, strongest at the bottom, fading softly upward */
+/* recording space: a live waveform above the orb shows your voice; no edge glow, no rings */
+body.vcfon .vcglow{display:none!important}
+.vcf .vcfr{display:none}
+.vcfwave{display:block;width:calc(100% - 48px);height:64px;margin:0 24px 6px}
 body.vcfon .vcglow{top:0;height:auto;border-radius:54px;-webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%);mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%)}
 .vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);opacity:0;transition:opacity .3s var(--ease);--lv:0}
 .vcf.on{opacity:1}
@@ -1346,7 +1349,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 <div class="lifer rfr rfl" id="rfL" hidden role="dialog" aria-modal="true" aria-label="Earlier weeks"><div class="jtop"><button class="rfback" id="rfLBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin"><h2 class="rfrw">Earlier weeks</h2><div id="rfLb"></div></div></div>
 <div class="lifer rfr" id="rfR" hidden role="dialog" aria-modal="true" aria-label="Week"><div class="jtop"><button class="rfback" id="rfBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin" id="rfRb"></div></div>
 <div class="rfmenu" id="rfMenu" hidden><div class="rfmc"><div class="rfmh"><span class="rfwd" id="rfmT"></span><p class="rfmx" id="rfmX"></p></div><button id="rfmE">Edit</button><button id="rfmD" class="rfmdel">Delete</button></div><button class="rfmcan" id="rfmC">Cancel</button></div>
-<div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
+<div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><canvas class="vcfwave" id="vcfWave" aria-hidden="true"></canvas><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
 <nav class="bar" id="bar" hidden>
   <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" class="sh"/><path d="M3.5 8.8h17"/><path d="M8.5 2.5v2.6M15.5 2.5v2.6"/><path d="m9.2 14.4 2 2 3.8-3.8"/></svg></button>
   <button data-tab="prayer" aria-label="Reflect"><svg class="i" viewBox="0 0 24 24"><path d="M12 3.5H7.5a4 4 0 0 0-4 4v9a4 4 0 0 0 4 4h9a4 4 0 0 0 4-4V12" class="sh"/><path d="M18.2 3.3a1.9 1.9 0 0 1 2.7 2.7L13.4 13.5l-3.5.8.8-3.5z"/></svg></button>
@@ -2098,7 +2101,7 @@ function vcMeter(stream){const g=$('vcGlow');if(!g)return;g.classList.add('on');
   try{const AC=window.AudioContext||window.webkitAudioContext,ac=new AC(),an=ac.createAnalyser();an.fftSize=512;ac.createMediaStreamSource(stream).connect(an);
     const buf=new Uint8Array(an.fftSize),dock=$('vcBox'),bars=[...document.querySelectorAll('#vcWave i')],hist=bars.map(()=>0);let lv=0,fr=0;VC.ac=ac;
     const loop=()=>{an.getByteTimeDomainData(buf);let sq=0;for(const v of buf){const x=(v-128)/128;sq+=x*x}
-      const rms=Math.sqrt(sq/buf.length),t=Math.min(1,rms*5.5);lv+=(t-lv)*(t>lv?.35:.08);g.style.setProperty('--lv',lv.toFixed(3));dock.style.setProperty('--lv',lv.toFixed(3));{const f=$('vcF');if(f)f.style.setProperty('--lv',lv.toFixed(3))}if(++fr%3===0){hist.shift();hist.push(lv);bars.forEach((b,i)=>b.style.height=(3+23*hist[i]).toFixed(1)+'px')}VC.raf=requestAnimationFrame(loop)};loop()}
+      const rms=Math.sqrt(sq/buf.length),t=Math.min(1,rms*5.5);lv+=(t-lv)*(t>lv?.35:.08);g.style.setProperty('--lv',lv.toFixed(3));dock.style.setProperty('--lv',lv.toFixed(3));{const f=$('vcF');if(f)f.style.setProperty('--lv',lv.toFixed(3))}vcWave(lv);if(++fr%3===0){hist.shift();hist.push(lv);bars.forEach((b,i)=>b.style.height=(3+23*hist[i]).toFixed(1)+'px')}VC.raf=requestAnimationFrame(loop)};loop()}
   catch(e){g.style.setProperty('--lv','.4')}}
 function vcMeterOff(){cancelAnimationFrame(VC.raf);const g=$('vcGlow');if(g){g.classList.remove('on');g.style.setProperty('--lv','0')}const dk=$('vcBox');if(dk)dk.style.setProperty('--lv','0');if(VC.ac){VC.ac.close().catch(()=>{});VC.ac=null}}
 async function vcStart(){
@@ -2132,7 +2135,14 @@ async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return
 addEventListener('online',()=>setTimeout(vcFlush,1500));
 // ---- the recording space: tap the mic, a quiet full screen with the voice orb and the words as you say them ----
 const LIVE_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/liveToken';let LV=null;
-function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);document.body.classList.toggle('vcfon',!!on);
+// waveform: the last ~2s of voice level as rounded bars, newest on the right, older ones fading
+const VCW={h:new Array(56).fill(0),f:0};
+function vcWave(lv){const c=$('vcfWave'),f=$('vcF');if(!c||!f||f.hidden)return;if(++VCW.f%2)return;VCW.h.shift();VCW.h.push(lv);
+  const dpr=devicePixelRatio||1,w=c.clientWidth,h=c.clientHeight;if(!w)return;if(c.width!==Math.round(w*dpr)){c.width=Math.round(w*dpr);c.height=Math.round(h*dpr)}
+  const x=c.getContext('2d');x.setTransform(dpr,0,0,dpr,0,0);x.clearRect(0,0,w,h);x.fillStyle=getComputedStyle(f).getPropertyValue('--ac').trim()||'#E8743B';
+  const n=VCW.h.length,bw=w/n,gap=Math.max(1.5,bw*.38);for(let i=0;i<n;i++){const v=VCW.h[i],bh=Math.max(3,Math.min(h,v*h*1.15));x.globalAlpha=.25+.75*Math.pow(i/(n-1),1.4);const bx=i*bw+gap/2,by=(h-bh)/2,bwi=bw-gap,rr=Math.min(bwi/2,bh/2);
+    x.beginPath();if(x.roundRect)x.roundRect(bx,by,bwi,bh,rr);else x.rect(bx,by,bwi,bh);x.fill()}}
+function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);if(on){VCW.h.fill(0);VCW.f=0}document.body.classList.toggle('vcfon',!!on);
   if(on){$('vcfTx').textContent='';$('vcfPh').hidden=false;f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'))}
   else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},320)}}
 // live words: an OpenAI realtime transcription session over WebRTC, fed the same mic as the recording.
@@ -2165,7 +2175,7 @@ function liveText(){const el=$('vcfTx');if(!el||!LV)return;const t=LV.order.map(
 const VC_DEMO='This is a preview of live words. As you talk, what you say shows up here a few words at a time, so you can see your thoughts take shape. When you finish, the full recording is turned into your entry for the week.';
 function vcDemo(){if(VC.st!=='idle'||VC.demo)return;VC.demo={t0:Date.now(),i:0};haptic();vcFocus(true);$('vcF').classList.remove('busy');$('vcfS').textContent='Preview · tap to finish';
   const g=$('vcGlow'),f=$('vcF'),w=VC_DEMO.split(' ');g.classList.add('on');let ph=0;
-  const tick=()=>{if(!VC.demo)return;ph+=.09;const lv=Math.max(0,.35+.3*Math.sin(ph)+.25*Math.sin(ph*2.7)+.1*(Math.random()-.5));g.style.setProperty('--lv',lv.toFixed(3));f.style.setProperty('--lv',lv.toFixed(3));
+  const tick=()=>{if(!VC.demo)return;ph+=.09;const lv=Math.max(0,.35+.3*Math.sin(ph)+.25*Math.sin(ph*2.7)+.1*(Math.random()-.5));g.style.setProperty('--lv',lv.toFixed(3));f.style.setProperty('--lv',lv.toFixed(3));vcWave(lv);
     $('vcfT').textContent=mmss(Math.floor((Date.now()-VC.demo.t0)/1e3)*1e3);VC.demo.raf=requestAnimationFrame(tick)};tick();
   VC.demo.iv=setInterval(()=>{if(!VC.demo)return;if(VC.demo.i>=w.length){clearInterval(VC.demo.iv);return}VC.demo.i+=1+(Math.random()<.4?1:0);
     $('vcfTx').textContent=w.slice(0,VC.demo.i).join(' ');$('vcfPh').hidden=true;const b=$('vcfLive');b.scrollTop=b.scrollHeight},260)}
