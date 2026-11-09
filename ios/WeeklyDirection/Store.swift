@@ -5,6 +5,8 @@ import FirebaseFirestore
 /// Live copy of the same Firestore data the web app uses, and the same writes the web app's store makes
 /// (index.html: firestoreStore). Every week write is field-level (`setData(merge: true)`); `putWeek` is only for a
 /// brand-new week. Nothing here writes a field the web app doesn't write.
+final class DeleteMarker {}
+
 @MainActor
 final class Store: ObservableObject {
     @Published var user: User?
@@ -28,7 +30,7 @@ final class Store: ObservableObject {
     private var base: CollectionReference?
 
     /// marks a field for deletion in a merge write (the web's F.deleteField())
-    static let del = NSNull()
+    static let del: Any = DeleteMarker()
 
     init(mock: Bool = false) {
         isMock = mock
@@ -130,7 +132,7 @@ final class Store: ObservableObject {
     /// swaps the deletion marker for Firestore's deleteField, at any depth
     private func wire(_ v: [String: Any]) -> [String: Any] {
         v.mapValues { x in
-            if x is NSNull { return FieldValue.delete() }
+            if x is DeleteMarker { return FieldValue.delete() }
             if let m = x as? [String: Any] { return wire(m) }
             return x
         }
@@ -209,7 +211,7 @@ final class Store: ObservableObject {
     private func deepMerge(_ a: [String: Any], _ b: [String: Any]) -> [String: Any] {
         var out = a
         for (k, v) in b {
-            if v is NSNull { out[k] = nil }
+            if v is DeleteMarker { out[k] = nil }
             else if let m = v as? [String: Any], let cur = out[k] as? [String: Any] { out[k] = deepMerge(cur, m) }
             else if let m = v as? [String: Any] { out[k] = deepMerge([:], m) }
             else { out[k] = v }
