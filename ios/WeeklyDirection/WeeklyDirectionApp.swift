@@ -5,6 +5,8 @@ import FirebaseCore
 struct WeeklyDirectionApp: App {
     @StateObject private var store: Store
     @StateObject private var router = Router.shared
+    @StateObject private var recorder = Recorder()
+    @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     init() {
         let mock = Mock.enabled
@@ -19,6 +21,8 @@ struct WeeklyDirectionApp: App {
             RootView()
                 .environmentObject(store)
                 .environmentObject(router)
+                .environmentObject(recorder)
+                .onAppear { recorder.attach(store) }
         }
     }
 }
@@ -26,7 +30,7 @@ struct WeeklyDirectionApp: App {
 struct RootView: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
-    @Environment(\.colorScheme) private var system
+    @EnvironmentObject var recorder: Recorder
 
     /// appearance: dark (default), light, or follow the phone
     private var scheme: ColorScheme? {
@@ -50,18 +54,24 @@ struct RootView: View {
         }
         .preferredColorScheme(scheme)
         .onChange(of: store.ready) { _, ready in if ready { arrive() } }
+        .onChange(of: router.pendingRecord) { _, p in if p, store.ready { arrive() } }
         .onAppear { if store.ready { arrive() } }
     }
 
     private func arrive() {
         if store.isMock, let s = UserDefaults.standard.string(forKey: "OpenScreen") { router.open(screen: s, store: store) }
-        if router.pendingRecord, store.activeWeek != nil { router.pendingRecord = false; router.startRecording() }
+        if router.pendingRecord {
+            router.pendingRecord = false
+            if store.activeWeek != nil { router.startRecording() }
+        }
+        if !store.isMock { Task { try? await Task.sleep(nanoseconds: 3_000_000_000); await recorder.flush() } }
     }
 }
 
 struct MainTabs: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
+    @EnvironmentObject var recorder: Recorder
 
     var body: some View {
         VStack(spacing: 0) {
@@ -78,8 +88,9 @@ struct MainTabs: View {
         }
         .background(Theme.bg.ignoresSafeArea())
         .ignoresSafeArea(.keyboard)
+        .modifier(EntryMenu(onEdit: { i in router.cover = .edit(i) }))
         .fullScreenCover(item: $router.cover) { c in
-            cover(c).environmentObject(store).environmentObject(router)
+            cover(c).environmentObject(store).environmentObject(router).environmentObject(recorder)
                 .preferredColorScheme(store.settings.theme == "light" ? .light : store.settings.theme == "auto" ? nil : .dark)
         }
         .sheet(item: $router.sheet) { s in
@@ -98,14 +109,19 @@ struct MainTabs: View {
         case .vision(let id): VisionView(weekId: id, log: false)
         case .stats: Text("Stats")
         case .focus(let wid, let hid, let k): FocusView(weekId: wid, habitId: hid, day: k)
-        case .weekPage, .write, .edit, .recording, .closed: Text("Soon")
+        case .weekPage(let id): WeekPage(weekId: id)
+        case .write: EntryEditor(entry: nil)
+        case .edit(let i): EntryEditor(entry: i)
+        case .recording: RecordingView()
+        case .closed: Text("Soon")
         }
     }
 
     @ViewBuilder private func sheet(_ s: Router.Sheet) -> some View {
         switch s {
         case .habit(let wid, let hid, let k): HabitSheet(weekId: wid, habitId: hid, day: k)
-        case .close, .prayer: Text("Soon")
+        case .prayer(let id, let pinned): PrayerSheet(prayerId: id, pinned: pinned)
+        case .close: Text("Soon")
         }
     }
 }
@@ -146,4 +162,3 @@ struct TabBar: View {
 }
 
 struct ProgressScreen: View { var body: some View { Text("Progress").foregroundStyle(Theme.mu) } }
-struct ReflectView: View { var body: some View { JournalView() } }

@@ -34,6 +34,17 @@
 		<string>BarlowCondensed-Medium.ttf</string>
 		<string>BarlowCondensed-SemiBold.ttf</string>
 	</array>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>mic</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Reflect</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>reflect</string>
+		</dict>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

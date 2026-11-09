@@ -1,0 +1,249 @@
+import Foundation
+import AVFoundation
+import Speech
+import Network
+import SwiftUI
+
+/// Voice reflections (web: vcStart / vcStop / vcSend / vcFlush). The saved entry always comes from the full recording,
+/// sent to the `transcribe` Cloud Function; live words on screen are display only (on-device speech recognition).
+/// Recordings wait on the phone when the upload fails and are retried when the network returns.
+@MainActor
+final class Recorder: NSObject, ObservableObject {
+    enum State { case idle, rec, busy }
+    static let voiceURL = URL(string: "https://us-central1-ops-hub-9bebc.cloudfunctions.net/transcribe")!
+    static let maxSeconds: TimeInterval = 10 * 60
+
+    @Published var state: State = .idle
+    @Published var message: String?
+    @Published var pending = 0
+    @Published var elapsed: TimeInterval = 0
+    /// last ~2 s of voice level, newest last
+    @Published var levels = [Double](repeating: 0, count: 56)
+    @Published var liveText = ""
+
+    weak var store: Store?
+    private var recorder: AVAudioRecorder?
+    private var startedAt = Date()
+    private var meter: Timer?
+    private var cancelled = false
+    private var flushing = false
+    private var messageToken = 0
+    private let monitor = NWPathMonitor()
+    private var online = true
+
+    // live words
+    private let engine = AVAudioEngine()
+    private var request: SFSpeechAudioBufferRecognitionRequest?
+    private var task: SFSpeechRecognitionTask?
+    private var tapped = false
+
+    private var dir: URL {
+        let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("voice", isDirectory: true)
+        try? FileManager.default.createDirectory(at: d, withIntermediateDirectories: true)
+        return d
+    }
+
+    func attach(_ store: Store) {
+        self.store = store
+        guard !store.isMock else { return }
+        refreshPending()
+        monitor.pathUpdateHandler = { [weak self] p in
+            Task { @MainActor in
+                guard let self else { return }
+                let was = self.online
+                self.online = p.status == .satisfied
+                if self.online && !was { try? await Task.sleep(nanoseconds: 1_500_000_000); await self.flush() }
+            }
+        }
+        monitor.start(queue: DispatchQueue(label: "wd.net"))
+    }
+
+    private func say(_ m: String?) {
+        message = m
+        messageToken += 1
+        guard let m else { return }
+        let token = messageToken, quick = ["Added to this week", "Too short", "Nothing heard"].contains(m)
+        DispatchQueue.main.asyncAfter(deadline: .now() + (quick ? 1.8 : 3.5)) { [weak self] in
+            if self?.messageToken == token { self?.message = nil }
+        }
+    }
+
+    // MARK: record
+
+    /// returns false when the mic is blocked or recording can't start
+    func start() async -> Bool {
+        guard state == .idle else { return false }
+        say(nil)
+        guard await AVAudioApplication.requestRecordPermission() else { say("Mic blocked: allow it in iPhone Settings"); return false }
+        do {
+            let s = AVAudioSession.sharedInstance()
+            try s.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+            try s.setActive(true)
+            let t0 = Date()
+            let url = dir.appendingPathComponent("rec-\(Int(t0.timeIntervalSince1970 * 1000)).m4a")
+            let r = try AVAudioRecorder(url: url, settings: [
+                AVFormatIDKey: kAudioFormatMPEG4AAC, AVSampleRateKey: 16000, AVNumberOfChannelsKey: 1,
+                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+            ])
+            r.isMeteringEnabled = true
+            guard r.record() else { say("This phone can’t record audio right now"); return false }
+            recorder = r
+            startedAt = t0
+        } catch {
+            say("This phone can’t record audio right now")
+            return false
+        }
+        cancelled = false
+        elapsed = 0
+        liveText = ""
+        levels = [Double](repeating: 0, count: levels.count)
+        state = .rec
+        Haptic.tick()
+        meter = Timer.scheduledTimer(withTimeInterval: 0.035, repeats: true) { [weak self] _ in Task { @MainActor in self?.tick() } }
+        startLive()
+        return true
+    }
+
+    private func tick() {
+        guard state == .rec, let r = recorder else { return }
+        r.updateMeters()
+        // dB (-60…0) → 0…1, close to the web's rms × 5.5
+        let lv = max(0, min(1, (Double(r.averagePower(forChannel: 0)) + 50) / 42))
+        levels.removeFirst()
+        levels.append(lv)
+        elapsed = Date().timeIntervalSince(startedAt)
+        if elapsed >= Self.maxSeconds { stop() }
+    }
+
+    func cancel() {
+        cancelled = true
+        stop()
+    }
+
+    func stop() {
+        guard state == .rec, let r = recorder else { return }
+        meter?.invalidate(); meter = nil
+        stopLive()
+        let dur = Date().timeIntervalSince(startedAt), url = r.url
+        r.stop()
+        recorder = nil
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        Haptic.tick()
+        let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
+        if cancelled { try? FileManager.default.removeItem(at: url); state = .idle; say(nil); return }
+        if dur < 1.5 || size == 0 { try? FileManager.default.removeItem(at: url); state = .idle; say("Too short"); return }
+        // queue it under its start time and length, then send; it stays on the phone until the server has it
+        let at = Int(startedAt.timeIntervalSince1970 * 1000)
+        let queued = dir.appendingPathComponent("v\(at)_\(Int(dur.rounded())).m4a")
+        try? FileManager.default.moveItem(at: url, to: queued)
+        state = .busy
+        Task {
+            let ok = await send(queued)
+            if ok { await flush() }
+        }
+    }
+
+    // MARK: send and queue
+
+    private func queue() -> [URL] {
+        ((try? FileManager.default.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil)) ?? [])
+            .filter { $0.lastPathComponent.hasPrefix("v") && $0.pathExtension == "m4a" }
+            .sorted { $0.lastPathComponent < $1.lastPathComponent }
+    }
+    func refreshPending() { pending = queue().count }
+
+    private func send(_ file: URL) async -> Bool {
+        state = .busy
+        var ok = false
+        let name = file.deletingPathExtension().lastPathComponent.dropFirst().split(separator: "_")
+        let at = Double(name.first ?? "") ?? Date().timeIntervalSince1970 * 1000
+        do {
+            guard let store else { throw URLError(.cancelled) }
+            let token = try await store.token()
+            var req = URLRequest(url: Self.voiceURL)
+            req.httpMethod = "POST"
+            req.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+            req.setValue("audio/mp4", forHTTPHeaderField: "Content-Type")
+            req.setValue(String(name.count > 1 ? name[1] : "0"), forHTTPHeaderField: "X-Duration")
+            let (data, resp) = try await URLSession.shared.upload(for: req, fromFile: file)
+            let j = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any] ?? [:]
+            let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
+            guard (200..<300).contains(code) else { throw VoiceError(status: code, detail: "\(j["detail"] ?? j["error"] ?? "")") }
+            let text = (j["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty, let w = store.activeWeek,
+               let t = Journal.appended(w.liveRefl, at: Date(timeIntervalSince1970: at / 1000), text: text) {
+                store.patchWeek(w, ["liveRefl": t])
+            }
+            try? FileManager.default.removeItem(at: file)
+            ok = true
+            say(text.isEmpty ? "Nothing heard" : "Added to this week")
+            if !text.isEmpty { Haptic.success() }
+        } catch let e as VoiceError {
+            let d = e.detail
+            say(e.status == 404 ? "Voice server not reachable · saved" : e.status == 429 ? "Daily limit reached · saved"
+                : e.status == 401 ? "Sign in again · saved"
+                : d.range(of: "insufficient_quota|billing", options: [.regularExpression, .caseInsensitive]) != nil ? "OpenAI has no credit · saved"
+                : "Failed \(e.status): \(String(d.prefix(60)))")
+        } catch {
+            say(online ? "Voice server not reachable · saved" : "Offline · saved for later")
+        }
+        state = .idle
+        refreshPending()
+        return ok
+    }
+
+    /// send everything still waiting, oldest first; stops at the first failure
+    func flush() async {
+        guard !flushing, state == .idle, online, store?.isMock == false else { return }
+        flushing = true
+        defer { flushing = false }
+        for f in queue() {
+            if state != .idle { break }
+            if !(await send(f)) { break }
+        }
+    }
+
+    private struct VoiceError: Error { let status: Int; let detail: String }
+
+    // MARK: live words (display only)
+
+    private func startLive() {
+        SFSpeechRecognizer.requestAuthorization { [weak self] status in
+            Task { @MainActor in
+                guard let self, status == .authorized, self.state == .rec else { return }
+                self.beginRecognition()
+            }
+        }
+    }
+
+    private func beginRecognition() {
+        guard let rec = SFSpeechRecognizer(), rec.isAvailable else { return }
+        let req = SFSpeechAudioBufferRecognitionRequest()
+        req.shouldReportPartialResults = true
+        if rec.supportsOnDeviceRecognition { req.requiresOnDeviceRecognition = true }
+        let input = engine.inputNode, format = input.outputFormat(forBus: 0)
+        guard format.sampleRate > 0 else { return }
+        Self.tap(input, format, req)
+        tapped = true
+        engine.prepare()
+        do { try engine.start() } catch { stopLive(); return }
+        request = req
+        task = rec.recognitionTask(with: req) { [weak self] result, _ in
+            guard let text = result?.bestTranscription.formattedString else { return }
+            Task { @MainActor in if self?.state == .rec { self?.liveText = text } }
+        }
+    }
+
+    /// the tap runs on the audio thread, so it is installed from outside the main actor
+    nonisolated private static func tap(_ input: AVAudioInputNode, _ format: AVAudioFormat, _ req: SFSpeechAudioBufferRecognitionRequest) {
+        input.installTap(onBus: 0, bufferSize: 2048, format: format) { buf, _ in req.append(buf) }
+    }
+
+    private func stopLive() {
+        if engine.isRunning { engine.stop() }
+        if tapped { engine.inputNode.removeTap(onBus: 0); tapped = false }
+        request?.endAudio()
+        task?.cancel()
+        request = nil; task = nil
+    }
+}
