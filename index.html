@@ -1003,6 +1003,14 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfqa{display:block;padding:8px 0}
 .rfr{background:var(--bg);z-index:95}
 .rfl{z-index:94}
+.rfsel{font-size:16px;color:var(--ac);padding:6px 0 6px 12px}
+.rfr.selmode .rfent{position:relative;padding-left:36px}
+.rfr.selmode .rfent::before{content:"";position:absolute;left:2px;top:13px;width:20px;height:20px;border-radius:50%;box-shadow:inset 0 0 0 1.5px var(--mu2)}
+.rfr.selmode .rfent.sel::before{background:var(--ac) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230B0B0C' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 12 4 4 8-8'/%3E%3C/svg%3E") center/14px no-repeat;box-shadow:none}
+.rfr.selmode .rfacts{display:none}
+.rfselbar{position:sticky;bottom:0;padding:12px 24px calc(var(--sb) + 14px);background:linear-gradient(transparent,var(--bg) 30%)}
+.rfseldel{display:block;width:100%;padding:15px;border-radius:14px;background:#E5484D;color:#fff;font-size:17px;font-weight:600}
+.rfseldel:disabled{opacity:.35}
 .rfearl{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:6px;padding:18px 4px;border-bottom:1px solid var(--rule);font-size:16px;color:var(--tx)}
 .rfen{display:inline-flex;align-items:center;gap:4px;color:var(--mu2);font-variant-numeric:tabular-nums}.rfen svg.i{width:18px;height:18px}
 .rfr .jtop{position:sticky;top:0;z-index:2;padding-top:calc(var(--st) + 28px);background:linear-gradient(var(--bg) 75%,transparent)}
@@ -1357,7 +1365,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
 <div class="lifer rfr rfl" id="rfL" hidden role="dialog" aria-modal="true" aria-label="Earlier weeks"><div class="jtop"><button class="rfback" id="rfLBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin"><h2 class="rfrw">Earlier weeks</h2><div id="rfLb"></div></div></div>
-<div class="lifer rfr" id="rfR" hidden role="dialog" aria-modal="true" aria-label="Week"><div class="jtop"><button class="rfback" id="rfBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin" id="rfRb"></div></div>
+<div class="lifer rfr" id="rfR" hidden role="dialog" aria-modal="true" aria-label="Week"><div class="jtop"><button class="rfback" id="rfBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><button class="rfsel" id="rfSel" hidden>Select</button></div><div class="rfrin" id="rfRb"></div><div class="rfselbar" id="rfSelBar" hidden><button class="rfseldel" id="rfSelDel" disabled>Delete</button></div></div>
 <div class="rfmenu" id="rfMenu" hidden><div class="rfmc"><div class="rfmh"><span class="rfwd" id="rfmT"></span><p class="rfmx" id="rfmX"></p></div><button id="rfmE">Edit</button><button id="rfmD" class="rfmdel">Delete</button></div><button class="rfmcan" id="rfmC">Cancel</button></div>
 <div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><canvas class="vcfwave" id="vcfWave" aria-hidden="true"></canvas><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
 <nav class="bar" id="bar" hidden>
@@ -2226,16 +2234,16 @@ let rfAll=false,rfIdx=0,rfDir=0,rfRise=false;
 const rfEnts=t=>rfBlocks(t).filter(e=>!e.q);
 const rfOpen=new Set();
 // one week's opened content: days newest first, entries newest first, then the Saturday answers
-function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
+function rfBody(w,active,full){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);const dayDate={};for(let i=0;i<7;i++){const d=new Date(s0.getTime()+i*864e5);dayDate[DOWL[d.getDay()]]=d}
   const all=rfBlocks(active?w.liveRefl:(w.reflection||w.liveRefl)),ents=all.filter(e=>!e.q),qa=all.filter(e=>e.q);
   const todayN=active?DOWL[new Date().getDay()]:null,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'',fresh=active&&Date.now()-rfJust<4000;
   const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
   groups.reverse().forEach(g=>g.e.reverse());
-  if(active&&!rfAll&&ents.length>1){groups.length=1;groups[0].e.length=1}
+  if(active&&!full&&!rfAll&&ents.length>1){groups.length=1;groups[0].e.length=1}
   const head=d=>`<div class="rfday"><span>${d&&d===todayN?'Today':esc(d||'Notes')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
   let first=true;
   return(w.verse||w.verseRef?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
-    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}${active&&!rfAll?' rfclamp':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
+    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}${active&&!full&&!rfAll?' rfclamp':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
     +(qa.length?`<div class="rfday"><span>Saturday review</span></div>${qa.map(e=>`<div class="rfqa"><span class="rfpq">${esc(e.q)}</span><span class="rfex">${esc(e.x)}</span></div>`).join('')}`:'')
     +(!ents.length&&!qa.length?`<p class="rfnone">${active?'Nothing yet this week.':'Nothing written this week.'}</p>`:'')
     +`<div class="rfacts">${active?`${ents.length>1?`<button class="rfmore2" data-rfall>${rfAll?'Show less':`All ${ents.length} entries`}</button>`:''}<button class="rflink" data-rfw>${ico('pen')}Write</button>`:`<button class="rflink" data-rfv="${w.id}">Open week</button>`}</div>`}
@@ -2276,12 +2284,24 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   if(aw){el.querySelectorAll('[data-ri]').forEach(b=>{rfHold(b,()=>rfMenu(aw,+b.dataset.ri));b.addEventListener('click',()=>{if(b.dataset.held){delete b.dataset.held;return}haptic();rfOpenWeek(aw)})});el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
 // an earlier week on its own page: word, verse, AI summary, then everything said that week
-function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');$('rfBack').lastChild.textContent=$('rfL').hidden?'Journal':'Earlier weeks';
+function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR'),act=w.status==='active';$('rfBack').lastChild.textContent=$('rfL').hidden?'Journal':'Earlier weeks';
+  rfSelEnd();$('rfSel').hidden=!act||!rfEnts(w.liveRefl).length;o.dataset.wk=w.id;
   $('rfRb').innerHTML=`<span class="rfwd">${fmtRange(s0,weekEnd(s0))}</span><h2 class="rfrw">${esc(w.focus)}</h2>`
-    +(w.summary?`<div class="rfrs"><span class="rfsl">AI summary</span><p>${esc(w.summary)}</p></div>`:'')+rfBody(w,false);
+    +(w.summary?`<div class="rfrs"><span class="rfsl">AI summary</span><p>${esc(w.summary)}</p></div>`:'')+rfBody(w,act,true);
   $('rfRb').querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(w,true));
-  o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))}
-function rfCloseWeek(){const o=$('rfR');o.classList.remove('on');setTimeout(()=>o.hidden=true,300)}
+  $('rfRb').querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{rfCloseWeek();openJournal(w,true)});
+  if(act)$('rfRb').querySelectorAll('[data-ri]').forEach(b=>{rfHold(b,()=>{if(!o.classList.contains('selmode'))rfMenu(w,+b.dataset.ri)});
+    b.addEventListener('click',()=>{if(b.dataset.held){delete b.dataset.held;return}if(!o.classList.contains('selmode'))return;b.classList.toggle('sel');haptic();rfSelCount()})});
+  if(o.hidden){o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))}}
+// select several entries of this week and delete them together
+function rfSelEnd(){const o=$('rfR');o.classList.remove('selmode');$('rfSel').textContent='Select';$('rfSelBar').hidden=true;o.querySelectorAll('.rfent.sel').forEach(b=>b.classList.remove('sel'))}
+function rfSelCount(){const n=$('rfR').querySelectorAll('.rfent.sel').length,b=$('rfSelDel');b.textContent=n?`Delete ${n} ${n===1?'entry':'entries'}`:'Delete';b.disabled=!n}
+$('rfSel').onclick=()=>{const o=$('rfR');if(o.classList.contains('selmode'))return rfSelEnd();o.classList.add('selmode');$('rfSel').textContent='Cancel';$('rfSelBar').hidden=false;rfSelCount();haptic()};
+$('rfSelDel').onclick=()=>{const o=$('rfR'),w=D.weeks.find(x=>x.id===o.dataset.wk),ids=[...o.querySelectorAll('.rfent.sel')].map(b=>+b.dataset.ri);if(!w||!ids.length)return;
+  if(!confirm(`Delete ${ids.length} ${ids.length===1?'entry':'entries'}? This can’t be undone.`))return;
+  const raw=(w.liveRefl||'').split(/\n\s*\n/);ids.sort((a,b)=>b-a).forEach(i=>{if(i>=0&&i<raw.length)raw.splice(i,1)});
+  store.patchWeek(w,{liveRefl:raw.map(b=>b.trim()).filter(Boolean).join('\n\n')});rfSelEnd();setTimeout(()=>{const nw=D.weeks.find(x=>x.id===o.dataset.wk);if(nw)rfOpenWeek(nw)},250)};
+function rfCloseWeek(){const o=$('rfR');rfSelEnd();o.classList.remove('on');setTimeout(()=>o.hidden=true,300)}
 // press and hold an entry from this week: Edit or Delete
 function rfHold(el,fn){let t,x0,y0;const off=()=>clearTimeout(t);
   el.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;off();t=setTimeout(()=>{el.classList.remove('rfheld');el.dataset.held='1';fn()},500);el.classList.add('rfheld');setTimeout(()=>el.classList.remove('rfheld'),520)});
