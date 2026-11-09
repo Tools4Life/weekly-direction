@@ -969,7 +969,8 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* the journal list: past weeks above, this week by the mic; only it scrolls, page height stays the viewport */
 body[data-screen=prayer][data-rv=j]{overflow:hidden}
 body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
-.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 36px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent)}
+.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 36px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent)}
+.rfscroll.sc{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent)}
 .rfscroll::-webkit-scrollbar{display:none}
 .rfwk{border-top:1px solid var(--rule)}
 .rfwk:first-child{border-top:0}
@@ -992,7 +993,7 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfl{z-index:94}
 .rfearl{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:6px;padding:18px 4px;border-bottom:1px solid var(--rule);font-size:16px;color:var(--tx)}
 .rfen{display:inline-flex;align-items:center;gap:4px;color:var(--mu2);font-variant-numeric:tabular-nums}.rfen svg.i{width:18px;height:18px}
-.rfr .jtop{position:sticky;top:0;z-index:2;background:linear-gradient(var(--bg) 70%,transparent)}
+.rfr .jtop{position:sticky;top:0;z-index:2;padding-top:calc(var(--st) + 28px);background:linear-gradient(var(--bg) 75%,transparent)}
 .rfback{display:inline-flex;align-items:center;gap:2px;margin-left:-8px;font-size:16px;color:var(--ac)}.rfback svg.i{width:22px;height:22px}
 .rfrin{max-width:34em;margin:0 auto;padding:8px 24px calc(var(--sb) + 60px)}
 .rfrw{margin:4px 0 14px;font-family:var(--serif);font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-.01em;color:var(--tx)}
@@ -2196,6 +2197,7 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   // Journal is about this week; earlier weeks live one tap away
   const html=cur+(ws.length?`<button class="rfearl" id="rfEarl"><span>Earlier weeks</span><span class="rfen">${ws.length}<svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></button>`:'');
   el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
+  {const sc=$('rfScroll');sc.onscroll=()=>sc.classList.toggle('sc',sc.scrollTop>4)}
   $('rfLb').innerHTML=rows||'<p class="rfnone">No earlier weeks yet.</p>';
   $('rfLb').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{haptic();rfOpenWeek(D.weeks.find(w=>w.id===b.dataset.tg))});
   if($('rfEarl'))$('rfEarl').onclick=()=>{haptic();const o=$('rfL');o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))};
