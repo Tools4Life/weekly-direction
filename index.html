@@ -1110,11 +1110,14 @@ body.vcfon .vcglow{display:none!important}
 .vcf .vcfr{display:none}
 .vcfwave{display:block;width:calc(100% - 48px);height:64px;margin:0 24px 6px}
 body.vcfon .vcglow{top:0;height:auto;border-radius:54px;-webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%);mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%)}
-.vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);--lv:0;clip-path:circle(var(--cr,40px) at var(--cx,50%) var(--cy,85%));transition:clip-path .46s cubic-bezier(.65,0,.35,1)}
-.vcf.on{clip-path:circle(150vmax at var(--cx,50%) var(--cy,85%))}
-.vcf>*{opacity:0;transition:opacity .2s}
-.vcf.on>*{opacity:1;transition:opacity .3s .16s}
-@media (prefers-reduced-motion:reduce){.vcf{transition:none}}
+/* opacity + transform only: the iPhone keeps these on the GPU, so the open and close stay smooth */
+.vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);--lv:0;opacity:0;transition:opacity .26s ease-out;will-change:opacity}
+.vcf.on{opacity:1}
+.vcf .vcftop,.vcf .vcflive{opacity:0;transform:translateY(-10px);transition:opacity .22s ease-out,transform .32s var(--ease)}
+.vcf .vcforb{transform:translateY(46px) scale(.86);transition:transform .42s cubic-bezier(.2,.9,.25,1.05);will-change:transform}
+.vcf.on .vcftop,.vcf.on .vcflive{opacity:1;transform:none;transition-delay:.08s}
+.vcf.on .vcforb{transform:none}
+@media (prefers-reduced-motion:reduce){.vcf,.vcf *{transition:none!important}}
 .vcftop{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--st) + 12px) 24px 0}
 .vcfx{color:var(--mu);font-size:16px;padding:8px 8px 8px 0}
 .vcft{font-family:var(--cond);font-size:15px;letter-spacing:.12em;color:var(--mu);font-variant-numeric:tabular-nums}
@@ -2148,7 +2151,7 @@ function vcWave(lv){const c=$('vcfWave'),f=$('vcF');if(!c||!f||f.hidden)return;i
 function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);if(on){VCW.h.fill(0);VCW.f=0}document.body.classList.toggle('vcfon',!!on);
   const m=$('vcMic');if(m){const r=m.getBoundingClientRect();f.style.setProperty('--cx',(r.left+r.width/2)+'px');f.style.setProperty('--cy',(r.top+r.height/2)+'px');f.style.setProperty('--cr',(r.width/2)+'px')}
   if(on){$('vcfTx').textContent='';$('vcfPh').hidden=false;f.hidden=false;void f.offsetWidth;requestAnimationFrame(()=>f.classList.add('on'))}
-  else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},480)}}
+  else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},280)}}
 // live words: an OpenAI realtime transcription session over WebRTC, fed the same mic as the recording.
 // It is only for seeing the words; the saved entry still comes from the full recording, so a dropped connection loses nothing.
 async function liveStart(stream){const my={items:{},order:[],pc:null,dc:null,off:false},M=window.__WD_MOCK;LV=my;
