@@ -1110,8 +1110,11 @@ body.vcfon .vcglow{display:none!important}
 .vcf .vcfr{display:none}
 .vcfwave{display:block;width:calc(100% - 48px);height:64px;margin:0 24px 6px}
 body.vcfon .vcglow{top:0;height:auto;border-radius:54px;-webkit-mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%);mask-image:linear-gradient(to top,#000 0%,rgba(0,0,0,.8) 30%,rgba(0,0,0,.5) 60%,rgba(0,0,0,.32) 100%)}
-.vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);opacity:0;transition:opacity .3s var(--ease);--lv:0}
-.vcf.on{opacity:1}
+.vcf{position:fixed;inset:0;z-index:40;display:flex;flex-direction:column;background:var(--bg);--lv:0;clip-path:circle(var(--cr,40px) at var(--cx,50%) var(--cy,85%));transition:clip-path .46s cubic-bezier(.65,0,.35,1)}
+.vcf.on{clip-path:circle(150vmax at var(--cx,50%) var(--cy,85%))}
+.vcf>*{opacity:0;transition:opacity .2s}
+.vcf.on>*{opacity:1;transition:opacity .3s .16s}
+@media (prefers-reduced-motion:reduce){.vcf{transition:none}}
 .vcftop{display:flex;align-items:center;justify-content:space-between;padding:calc(var(--st) + 12px) 24px 0}
 .vcfx{color:var(--mu);font-size:16px;padding:8px 8px 8px 0}
 .vcft{font-family:var(--cond);font-size:15px;letter-spacing:.12em;color:var(--mu);font-variant-numeric:tabular-nums}
@@ -1266,7 +1269,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <!-- History -->
 <section class="scr" id="sHistory" data-mode="dark" hidden>
-  <div class="trow"><h2 class="ttl">Progress</h2><div class="pgtm" id="pgTm" hidden><span class="lbl">Showing up</span><span class="pgtv" id="pgTv"></span></div></div>
+  <div class="trow"><h2 class="ttl">Progress</h2></div>
   <div id="hList" style="margin-top:24px"></div>
 </section>
 
@@ -1598,7 +1601,7 @@ MQ.addEventListener&&MQ.addEventListener('change',()=>{if(D.settings.theme==='au
 function show(name){if(name!=='prayer'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop();tab=name;document.body.dataset.screen=name;Object.entries(SCREENS).forEach(([k,id])=>$(id).hidden=k!==name);
   setMode($(SCREENS[name]).dataset.mode);$('bar').hidden=name==='plan'||name==='settings';
   document.querySelectorAll('nav.bar button').forEach(b=>b.classList.toggle('on',b.dataset.tab===name));
-  if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer'){renderPrayer(true);setTimeout(rfToEnd,30)}if(name==='history')renderHistory();if(name==='settings')renderSettings();
+  if(name==='week'){selK=null;renderWeek(true)}if(name==='prayer'){rfRise=true;renderPrayer(true);setTimeout(rfToEnd,30);const dk=$('vcBox');if(dk){dk.classList.remove('rise');void dk.offsetWidth;dk.classList.add('rise')}}if(name==='history')renderHistory();if(name==='settings')renderSettings();
   const sc=$(SCREENS[name]);sc.classList.remove('enter');void sc.offsetWidth;sc.classList.add('enter');
   scrollTo(0,0)}
 document.querySelectorAll('nav.bar button').forEach(b=>b.onclick=()=>show(b.dataset.tab));
@@ -2143,8 +2146,9 @@ function vcWave(lv){const c=$('vcfWave'),f=$('vcF');if(!c||!f||f.hidden)return;i
   const n=VCW.h.length,bw=w/n,gap=Math.max(1.5,bw*.38);for(let i=0;i<n;i++){const v=VCW.h[i],bh=Math.max(3,Math.min(h,v*h*1.15));x.globalAlpha=.25+.75*Math.pow(i/(n-1),1.4);const bx=i*bw+gap/2,by=(h-bh)/2,bwi=bw-gap,rr=Math.min(bwi/2,bh/2);
     x.beginPath();if(x.roundRect)x.roundRect(bx,by,bwi,bh,rr);else x.rect(bx,by,bwi,bh);x.fill()}}
 function vcFocus(on){const f=$('vcF');if(!f)return;clearTimeout(VC.fcT);if(on){VCW.h.fill(0);VCW.f=0}document.body.classList.toggle('vcfon',!!on);
-  if(on){$('vcfTx').textContent='';$('vcfPh').hidden=false;f.hidden=false;requestAnimationFrame(()=>f.classList.add('on'))}
-  else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},320)}}
+  const m=$('vcMic');if(m){const r=m.getBoundingClientRect();f.style.setProperty('--cx',(r.left+r.width/2)+'px');f.style.setProperty('--cy',(r.top+r.height/2)+'px');f.style.setProperty('--cr',(r.width/2)+'px')}
+  if(on){$('vcfTx').textContent='';$('vcfPh').hidden=false;f.hidden=false;void f.offsetWidth;requestAnimationFrame(()=>f.classList.add('on'))}
+  else{f.classList.remove('on');VC.fcT=setTimeout(()=>{f.hidden=true;rfToEnd()},480)}}
 // live words: an OpenAI realtime transcription session over WebRTC, fed the same mic as the recording.
 // It is only for seeing the words; the saved entry still comes from the full recording, so a dropped connection loses nothing.
 async function liveStart(stream){const my={items:{},order:[],pc:null,dc:null,off:false},M=window.__WD_MOCK;LV=my;
@@ -2210,7 +2214,7 @@ const rfBlocks=t=>(t||'').split(/\n\s*\n/).map((b,i)=>{const ls=b.trim().split('
 // replace (or with empty text, remove) one block of this week's text, keeping its day-and-time line
 function rfSetEntry(w,i,text){const raw=(w.liveRefl||'').split(/\n\s*\n/);if(i<0||i>=raw.length)return;const ls=raw[i].trim().split('\n'),stamp=RF_ST.test(ls[0].trim())&&ls.length>1?ls[0].trim():'';
   text=String(text||'').replace(/\n\s*\n+/g,'\n').trim();if(text)raw[i]=(stamp?stamp+'\n':'')+text;else raw.splice(i,1);store.patchWeek(w,{liveRefl:raw.map(b=>b.trim()).filter(Boolean).join('\n\n')})}
-let rfAll=false,rfIdx=0,rfDir=0;
+let rfAll=false,rfIdx=0,rfDir=0,rfRise=false;
 const rfEnts=t=>rfBlocks(t).filter(e=>!e.q);
 const rfOpen=new Set();
 // one week's opened content: days newest first, entries newest first, then the Saturday answers
@@ -2254,7 +2258,7 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   const go=d=>{const k=d===-99?0:Math.max(0,Math.min(W.length-1,rfIdx+d));if(k===rfIdx)return;rfDir=k>rfIdx?1:-1;rfIdx=k;haptic();rfRender()};
   el.querySelectorAll('[data-rfgo]').forEach(b=>b.onclick=()=>go(+b.dataset.rfgo));
   el.querySelectorAll('[data-rfread]').forEach(b=>b.onclick=()=>rfOpenWeek(W[rfIdx]));
-  {const c=$('rfCur');if(c){if(rfDir){c.classList.add(rfDir>0?'rfin-l':'rfin-r');rfDir=0}let x0,y0;c.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
+  {const c=$('rfCur');if(c){if(rfRise){c.classList.add('rise');rfRise=false}if(rfDir){c.classList.add(rfDir>0?'rfin-l':'rfin-r');rfDir=0}let x0,y0;c.addEventListener('touchstart',e=>{x0=e.touches[0].clientX;y0=e.touches[0].clientY},{passive:true});
     c.addEventListener('touchend',e=>{if(x0==null)return;const dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;if(Math.abs(dx)>55&&Math.abs(dx)>Math.abs(dy)*1.5)go(dx>0?1:-1)},{passive:true})}}
 
   $('rfLb').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{haptic();rfOpenWeek(D.weeks.find(w=>w.id===b.dataset.tg))});
@@ -2357,12 +2361,7 @@ function openStats(w,dir){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;const b=$('stBody').querySelectorAll('.stnb')[dx<0?1:0];if(b&&!b.disabled)b.click()},{passive:true})}
 function closeStats(){$('stR').classList.remove('on');setTimeout(()=>$('stR').hidden=true,300)}
 $('stClose').onclick=closeStats;
-let pgT=null;
-// how long you've been tracking honestly without a break (see trackStart); lives on Progress now
-function pgTimer(){clearInterval(pgT);const box=$('pgTm');if(!D.weeks.length){box.hidden=true;return}box.hidden=false;
-  const from=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:trackStart(),put=()=>{const [a,b]=elapsedParts(Date.now()-from);$('pgTv').textContent=a+b};
-  put();pgT=setInterval(()=>{if(tab!=='history')return clearInterval(pgT);put()},1000)}
-function renderHistory(){pgTimer();const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
+function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
   const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null;
