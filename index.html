@@ -484,6 +484,14 @@ nav.bar button:active{opacity:.6}
 .tline2{margin-top:6px;display:flex;align-items:center;justify-content:space-between;gap:10px}
 #sWeek .tline2 .timer{margin:0}
 .tline2 .wk-range{font-size:12px;letter-spacing:.18em;color:var(--mu2);white-space:nowrap}
+.wkline{margin-top:8px}
+.wkrng{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ac);white-space:nowrap}
+.wkday{font-family:var(--cond);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu2);white-space:nowrap}
+.wkdue{font-family:var(--serif);font-style:italic;font-size:17px;color:var(--ac)}
+/* Progress: the showing-up timer on the title row */
+.pgtm{display:flex;flex-direction:column;align-items:flex-end;gap:1px}
+.pgtm .lbl{font-size:11px;letter-spacing:.16em}
+.pgtv{font-family:var(--cond);font-weight:500;font-size:20px;letter-spacing:.03em;font-variant-numeric:tabular-nums;color:var(--tx)}
 
 #hList{margin-top:16px!important}
 
@@ -1230,7 +1238,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 
 <!-- History -->
 <section class="scr" id="sHistory" data-mode="dark" hidden>
-  <div class="trow"><h2 class="ttl">Progress</h2></div>
+  <div class="trow"><h2 class="ttl">Progress</h2><div class="pgtm" id="pgTm" hidden><span class="lbl">Showing up</span><span class="pgtv" id="pgTv"></span></div></div>
   <div id="hList" style="margin-top:24px"></div>
 </section>
 
@@ -1887,7 +1895,8 @@ function renderWeek(animate){
   const days=habitDays(w),habitToday=days.some(d=>ymd(d)===todayK);
   const tFrom=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:trackStart();
   const [tm,ts]=elapsedParts(now-tFrom);
-  const timer=due?`<div class="timer due">review due</div>`:''; // the live tracking timer is no longer shown here
+  const d0=new Date(start);d0.setHours(0,0,0,0);const d1=new Date(end);d1.setHours(0,0,0,0);const dayN=Math.min(Math.round((d1-d0)/864e5)+1,Math.floor((new Date().setHours(0,0,0,0)-d0)/864e5)+1),dayT=Math.round((d1-d0)/864e5)+1;
+  const timer=due?`<span class="wkdue">Review due</span>`:`<span class="wkday">Day ${dayN} of ${dayT}</span>`;
   const selKey=selK&&selK<=todayK&&days.some(d=>ymd(d)===selK)?selK:(habitToday?todayK:null),selDay=selKey?days.find(d=>ymd(d)===selKey):null;
   const doneAll=w.done||{},frac=k=>{const it=dayItems(w,days.find(d=>ymd(d)===k)||new Date(k)),dn=doneAll[k]||{};return it.length?it.filter(x=>dn[x]).length/it.length:0};
   const squares=`<div class="days" role="group" aria-label="Days this week">${days.map(d=>{const k=ymd(d),m=marks[k],fut=k>todayK,f=!m&&!fut?frac(k):0,rest=!dayItems(w,d).length;
@@ -1908,7 +1917,7 @@ function renderWeek(animate){
       return`<div class="hcard${on?' done':''}${st==='miss'||st==='fail'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st==='fail'?'miss':st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
   const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
   const closeBtn=due||revDay?`<button class="closewk${due?'':' soon'}" id="wkClose"><span><b>${due?'Close the week':'Weekly review'}</b><small>${weekStats(w).pct}% ${due?'':'so far '}· close &amp; plan</small></span>${ico('chev')}</button>`:'';
-  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2 wkline"><span class="cond wkrng">This week · ${fmtRange(start,end)}</span>${timer}</div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if(landWord){landWord=false;const f=el.querySelector('.trow .focus');if(f&&!RM.matches){f.classList.add('land');setTimeout(()=>f.classList.remove('land'),1400)}}
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{haptic();tmSwap(tFrom)};
@@ -1944,11 +1953,11 @@ function renderWeek(animate){
   bindCaf(el);
   if(selKey){const fin=w.commitments.filter(c=>onDay(c,selDay)&&hState(w,selKey,c)==='fin');if(fin.length&&!FC)setTimeout(()=>fin.forEach(c=>setItem(w,selKey,c.id,true)),60)}
   const flips=selKey?w.commitments.filter(c=>onDay(c,selDay)).flatMap(c=>{const st=hState(w,selKey,c),r=runOf(w,selKey,c.id);return st==='run'?[r+c.min*6e4]:st==='open'&&c.by?[deadline(selKey,c,w)]:st==='grace'?[deadline(selKey,c,w)+GRACE_MS]:[]}).filter(t=>t>Date.now()):[],flipAt=flips.length?Math.min(...flips):Infinity;
-  if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(!$('wkTimer')||tab!=='week')return clearInterval(tickT);
+  if(!due)tickT=setInterval(()=>{const m=$('tmMain'),sc=$('tmSec');if(tab!=='week')return clearInterval(tickT);
     if(new Date()>=end||Date.now()>=flipAt)return renderWeek(false);
     el.querySelectorAll('[data-left]').forEach(x=>{const c=w.commitments.find(y=>y.id===x.dataset.left),r=c&&runOf(w,selKey,c.id);if(!r)return;
       x.textContent=mmss(r+c.min*6e4-Date.now());x.closest('.hcard').style.setProperty('--rp',Math.min(1,(Date.now()-r)/(c.min*6e4)).toFixed(3))});
-    if(tmBusy)return;
+    if(!$('wkTimer')||tmBusy)return;
     if(Date.now()-tmAt>=TM_CYCLE&&!RM.matches){tmSwap(tFrom);return}
     if(tmMode){$('wkTimer').innerHTML=altTime(Date.now()-tFrom);return}
     const [a,b]=elapsedParts(Date.now()-tFrom);m.textContent=a;sc.innerHTML=`<span class="in">${b}</span>`},1000);
@@ -2299,7 +2308,12 @@ function openStats(w,dir){if(!w)return;SV=w.id;const s0=new Date(w.sealedAt),st=
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;const b=$('stBody').querySelectorAll('.stnb')[dx<0?1:0];if(b&&!b.disabled)b.click()},{passive:true})}
 function closeStats(){$('stR').classList.remove('on');setTimeout(()=>$('stR').hidden=true,300)}
 $('stClose').onclick=closeStats;
-function renderHistory(){const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
+let pgT=null;
+// how long you've been tracking honestly without a break (see trackStart); lives on Progress now
+function pgTimer(){clearInterval(pgT);const box=$('pgTm');if(!D.weeks.length){box.hidden=true;return}box.hidden=false;
+  const from=D.settings.timerMode==='fixed'&&D.settings.timerFrom?D.settings.timerFrom:trackStart(),put=()=>{const [a,b]=elapsedParts(Date.now()-from);$('pgTv').textContent=a+b};
+  put();pgT=setInterval(()=>{if(tab!=='history')return clearInterval(pgT);put()},1000)}
+function renderHistory(){pgTimer();const weeks=D.weeks.slice().sort((a,b)=>b.sealedAt-a.sealedAt);
   if(!weeks.length){$('hList').innerHTML=`<p class="mu" style="font-style:italic">Your weeks will appear here once you seal your first one.</p>`;return}
   const trend=weeks.filter(w=>w.status==='closed').slice(0,12).reverse();
   const ws=trend.map(w=>weekStats(w).pct),avg=ws.length?Math.round(ws.reduce((a,b)=>a+b,0)/ws.length):null;
