@@ -988,6 +988,13 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfwk.open .rfbin{opacity:1;transform:none;padding-bottom:22px}
 .rfbin>.rfday:first-child{margin-top:4px}
 .rfqa{display:block;padding:8px 0}
+.rfr{background:var(--bg);z-index:95}
+.rfr .jtop{position:sticky;top:0;z-index:2;background:linear-gradient(var(--bg) 70%,transparent)}
+.rfback{display:inline-flex;align-items:center;gap:2px;margin-left:-8px;font-size:16px;color:var(--ac)}.rfback svg.i{width:22px;height:22px}
+.rfrin{max-width:34em;margin:0 auto;padding:8px 24px calc(var(--sb) + 60px)}
+.rfrw{margin:4px 0 14px;font-family:var(--serif);font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-.01em;color:var(--tx)}
+.rfrs{margin:0 0 6px;padding:14px 16px;border-radius:16px;background:var(--card)}
+.rfrs p{margin:2px 0 0;font-family:var(--serif);font-size:17px;line-height:1.55;color:var(--tx)}
 .rfacts{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .rfmore2{font-size:14px;color:var(--mu)}
 .rfent{transition:transform .25s var(--ease),opacity .25s}
@@ -1299,6 +1306,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 </section>
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
+<div class="lifer rfr" id="rfR" hidden role="dialog" aria-modal="true" aria-label="Week"><div class="jtop"><button class="rfback" id="rfBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin" id="rfRb"></div></div>
 <div class="rfmenu" id="rfMenu" hidden><div class="rfmc"><div class="rfmh"><span class="rfwd" id="rfmT"></span><p class="rfmx" id="rfmX"></p></div><button id="rfmE">Edit</button><button id="rfmD" class="rfmdel">Delete</button></div><button class="rfmcan" id="rfmC">Cancel</button></div>
 <div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
 <nav class="bar" id="bar" hidden>
@@ -1839,6 +1847,7 @@ function closeJournal(cancel){$('jrnR').classList.remove('typing');clearTimeout(
 $('jrText').addEventListener('focus',()=>{$('jrnR').classList.add('typing');setTimeout(jrFit,50);setTimeout(jrFit,350)});
 $('jrText').addEventListener('blur',()=>{$('jrnR').classList.remove('typing');setTimeout(jrFit,50)});
 $('jrText').addEventListener('input',()=>{jrFit();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
+$('rfBack').onclick=rfCloseWeek;
 $('jrDone').onclick=()=>closeJournal();$('jrCancel').onclick=()=>{const t=$('jrText').value.trim();if(JENT==null&&t&&!confirm('Discard this entry?'))return;closeJournal(true)};
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
@@ -2178,15 +2187,21 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
       :act?(lastE?`<span class="rfsx">${esc(lastE.x)}</span>`:`<span class="rfsx rfmu">Nothing yet this week.</span>`)
       :`<span class="rfsx">${esc((rfBlocks(w.reflection||w.liveRefl)[0]||{x:''}).x)}</span>`;
     const n=ents.length;
-    return`<div class="rfwk${rfOpen.has(w.id)?' open':''}${act?' rfnow':''}" data-wk="${w.id}"><button class="rfwh" data-tg="${w.id}" aria-expanded="${rfOpen.has(w.id)}">`
-      +`<span class="rfwd">${act?'This week · ':''}${fmtRange(s0,weekEnd(s0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(w.focus)}<svg class="i rfchev" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></svg></span>${sum}</button>`
-      +`<div class="rfbody"><div class="rfbin">${rfBody(w,act)}</div></div></div>`}).join('');
+    return`<div class="rfwk" data-wk="${w.id}"><button class="rfwh" data-tg="${w.id}">`
+      +`<span class="rfwd">${act?'This week · ':''}${fmtRange(s0,weekEnd(s0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(w.focus)}<svg class="i rfchev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>${sum}</button></div>`}).join('');
   el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
-  el.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{const id=b.dataset.tg,wk=b.parentElement,on=!rfOpen.has(id);on?rfOpen.add(id):rfOpen.delete(id);wk.classList.toggle('open',on);b.setAttribute('aria-expanded',on);haptic()});
+  el.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{haptic();rfOpenWeek(D.weeks.find(w=>w.id===b.dataset.tg))});
   el.querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rfv),true));
   el.querySelectorAll('[data-rfall]').forEach(b=>b.onclick=()=>{rfAll=!rfAll;haptic();rfRender()});
   if(aw){el.querySelectorAll('[data-ri]').forEach(b=>rfHold(b,()=>rfMenu(aw,+b.dataset.ri)));el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
+// an earlier week on its own page: word, verse, AI summary, then everything said that week
+function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');
+  $('rfRb').innerHTML=`<span class="rfwd">${fmtRange(s0,weekEnd(s0))}</span><h2 class="rfrw">${esc(w.focus)}</h2>`
+    +(w.summary?`<div class="rfrs"><span class="rfsl">AI summary</span><p>${esc(w.summary)}</p></div>`:'')+rfBody(w,false);
+  $('rfRb').querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(w,true));
+  o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))}
+function rfCloseWeek(){const o=$('rfR');o.classList.remove('on');setTimeout(()=>o.hidden=true,300)}
 // press and hold an entry from this week: Edit or Delete
 function rfHold(el,fn){let t,x0,y0;const off=()=>clearTimeout(t);
   el.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;off();t=setTimeout(()=>{el.classList.remove('rfheld');fn()},500);el.classList.add('rfheld');setTimeout(()=>el.classList.remove('rfheld'),520)});
