@@ -1908,7 +1908,7 @@ function renderWeek(animate){
       return`<div class="hcard${on?' done':''}${st==='miss'||st==='fail'?' miss':''}${st==='run'?' run':''}${animate?' rise':''}" style="animation-delay:${i*40}ms${st==='run'?`;--rp:${rp.toFixed(3)}`:''}"><button class="hbody" data-hd="${c.id}" aria-label="${esc(c.name)}: details"><span class="ic">${ico(c.icon||'check')}</span><span class="tx"><span class="nm">${esc(c.name)}</span>${meta?`<span class="hmeta">${meta}</span>`:''}</span></button><button class="hck ${st==='fail'?'miss':st}" data-h="${c.id}" aria-pressed="${on}" aria-label="${esc(c.name)}: ${ckl}"><i>${ck}</i></button></div>`}).join('')}</div>`;
   const revDay=now.getDay()===D.settings.closeDay&&ymd(start)!==todayK;
   const closeBtn=due||revDay?`<button class="closewk${due?'':' soon'}" id="wkClose"><span><b>${due?'Close the week':'Weekly review'}</b><small>${weekStats(w).pct}% ${due?'':'so far '}· close &amp; plan</small></span>${ico('chev')}</button>`:'';
-  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${w.verse||w.verseRef?`<button class="wkverse" id="wkVerse">${w.verse?`<span class="wvt">${esc(w.verse)}</span>`:''}${w.verseRef?`<span class="wvr">${esc(w.verseRef)}</span>`:''}</button>`:''}${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
+  el.innerHTML=`<div class="trow"><h1 class="ttl focus">${esc(w.focus)}</h1>${gearBtn}</div><div class="tline2">${timer}<span class="cond wk-range">${fmtRange(start,end)}</span></div>${squares}${closeBtn}${pills}${habits}${streakCard(animate)}${cafCard(animate,selDay||now,selDn,!!selKey)}`;
   if($('wkClose'))$('wkClose').onclick=()=>openClose(w.id);
   if(landWord){landWord=false;const f=el.querySelector('.trow .focus');if(f&&!RM.matches){f.classList.add('land');setTimeout(()=>f.classList.remove('land'),1400)}}
   if($('wkTimerBtn'))$('wkTimerBtn').onclick=()=>{haptic();tmSwap(tFrom)};
@@ -2176,7 +2176,7 @@ function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);co
   if(active&&!rfAll&&ents.length>1){groups.length=1;groups[0].e.length=1}
   const head=d=>`<div class="rfday"><span>${d&&d===todayN?'Today':esc(d||'Notes')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
   let first=true;
-  return(!active&&(w.verse||w.verseRef)?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
+  return(w.verse||w.verseRef?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
     +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
     +(qa.length?`<div class="rfday"><span>Saturday review</span></div>${qa.map(e=>`<div class="rfqa"><span class="rfpq">${esc(e.q)}</span><span class="rfex">${esc(e.x)}</span></div>`).join('')}`:'')
     +(!ents.length&&!qa.length?`<p class="rfnone">${active?'Nothing yet this week.':'Nothing written this week.'}</p>`:'')
@@ -2186,7 +2186,7 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
   // this week: its own card at the top, always open
   let cur='';if(aw){const a0=new Date(aw.sealedAt),n=rfEnts(aw.liveRefl).length;
-    cur=`<div class="rfcur"><span class="rfwd rfcl">This week · ${fmtRange(a0,weekEnd(a0))}</span><span class="rfww">${esc(aw.focus)}</span>${rfBody(aw,true)}</div>`}
+    cur=`<div class="rfcur"><span class="rfwd rfcl">This week · ${fmtRange(a0,weekEnd(a0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(aw.focus)}</span>${rfBody(aw,true)}</div>`}
   const rows=ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
     const sum=w.summary?`<span class="rfsl">AI summary</span><span class="rfsx">${esc(w.summary)}</span>`
       :act?(lastE?`<span class="rfsx">${esc(lastE.x)}</span>`:`<span class="rfsx rfmu">Nothing yet this week.</span>`)
