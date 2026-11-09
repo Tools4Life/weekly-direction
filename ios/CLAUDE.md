@@ -5,8 +5,12 @@ SwiftUI rewrite of the web app (`../index.html`), personal use only (no App Stor
 `users/{uid}/weeklyDirection/data/{weeks, prayers, library, caffeine}`. The web app is the source of truth for
 behavior; read it before porting anything.
 
+## Start here
+Read `SPEC.md` (the full build spec) and look at `spec/screens/*.png` (every web screen to replicate).
+Fix the known bugs in SPEC section 1 first, then build screen by screen.
+
 ## State (Nov 9 2026)
-- Phase 1 written but NEVER COMPILED (written without a Swift toolchain). Expect build errors; fixing them is the first job.
+- Phase 1 builds and runs on the owner's iPhone, but it's barebones and read-only, with two bugs (SPEC §1).
 - Files: `WeeklyDirectionApp.swift` (entry, tabs), `Store.swift` (auth + live listeners, read-only), `Models.swift`,
   `Rules.swift` (port of the web app's habit rules), `ThisWeekView.swift`, `JournalView.swift`, `SignInView.swift`, `Theme.swift`.
 - `project.yml` is an XcodeGen spec; the `.xcodeproj` is generated and git-ignored. Re-run `xcodegen` after adding/removing files.
@@ -16,7 +20,8 @@ behavior; read it before porting anything.
 ```
 cd ios && xcodegen
 xcodebuild -project WeeklyDirection.xcodeproj -scheme WeeklyDirection \
-  -destination 'generic/platform=iOS Simulator' build | xcpretty   # or grep -E "error|warning"
+  -destination 'generic/platform=iOS' build 2>&1 | grep -E "error|warning: unused" | head -40
+# Don't boot a simulator or keep the debugger attached: the Mac has 16 GB and lldb alone took 6 GB.
 ```
 Run on the device from Xcode (the owner's iPhone 14 Pro, iOS 18). Signing: automatic, owner's team.
 
