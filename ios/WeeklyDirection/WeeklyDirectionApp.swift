@@ -107,13 +107,13 @@ struct MainTabs: View {
         case .settings: Text("Settings")
         case .plan: Text("Plan")
         case .vision(let id): VisionView(weekId: id, log: false)
-        case .stats: Text("Stats")
+        case .stats(let id): StatsView(weekId: id)
         case .focus(let wid, let hid, let k): FocusView(weekId: wid, habitId: hid, day: k)
         case .weekPage(let id): WeekPage(weekId: id)
         case .write: EntryEditor(entry: nil)
         case .edit(let i): EntryEditor(entry: i)
         case .recording: RecordingView()
-        case .closed: Text("Soon")
+        case .closed(let id): ClosedMoment(weekId: id)
         }
     }
 
@@ -121,7 +121,7 @@ struct MainTabs: View {
         switch s {
         case .habit(let wid, let hid, let k): HabitSheet(weekId: wid, habitId: hid, day: k)
         case .prayer(let id, let pinned): PrayerSheet(prayerId: id, pinned: pinned)
-        case .close: Text("Soon")
+        case .close(let id): CloseSheet(weekId: id)
         }
     }
 }
@@ -161,4 +161,3 @@ struct TabBar: View {
     }
 }
 
-struct ProgressScreen: View { var body: some View { Text("Progress").foregroundStyle(Theme.mu) } }

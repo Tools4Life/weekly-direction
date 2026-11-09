@@ -30,6 +30,6 @@ for s in "$@"; do
   # shellcheck disable=SC2086
   xcrun simctl launch "$SIM" $BUNDLE -UITestSeed 1 -OpenScreen "$s" ${SHOT_ARGS:-} >/dev/null
   sleep "${SHOT_WAIT:-3}"
-  xcrun simctl io "$SIM" screenshot "$OUT/$s.png" >/dev/null 2>&1
+  xcrun simctl io "$SIM" screenshot "$OUT/$s${SHOT_SUFFIX:-}.png" >/dev/null 2>&1
   echo "shot: $OUT/$s.png"
 done
