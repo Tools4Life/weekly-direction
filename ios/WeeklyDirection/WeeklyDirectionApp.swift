@@ -6,6 +6,7 @@ struct WeeklyDirectionApp: App {
     @StateObject private var store: Store
     @StateObject private var router = Router.shared
     @StateObject private var recorder = Recorder()
+    @StateObject private var notifier = Notifier()
     @UIApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     init() {
@@ -22,7 +23,10 @@ struct WeeklyDirectionApp: App {
                 .environmentObject(store)
                 .environmentObject(router)
                 .environmentObject(recorder)
+                .environmentObject(notifier)
                 .onAppear { recorder.attach(store) }
+                .onChange(of: store.weeks) { _, _ in notifier.schedule(store: store) }
+                .onChange(of: store.settings) { _, _ in notifier.schedule(store: store) }
         }
     }
 }
@@ -72,6 +76,7 @@ struct MainTabs: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
     @EnvironmentObject var recorder: Recorder
+    @EnvironmentObject var notifier: Notifier
 
     var body: some View {
         VStack(spacing: 0) {
@@ -90,7 +95,7 @@ struct MainTabs: View {
         .ignoresSafeArea(.keyboard)
         .modifier(EntryMenu(onEdit: { i in router.cover = .edit(i) }))
         .fullScreenCover(item: $router.cover) { c in
-            cover(c).environmentObject(store).environmentObject(router).environmentObject(recorder)
+            cover(c).environmentObject(store).environmentObject(router).environmentObject(recorder).environmentObject(notifier)
                 .preferredColorScheme(store.settings.theme == "light" ? .light : store.settings.theme == "auto" ? nil : .dark)
         }
         .sheet(item: $router.sheet) { s in
@@ -104,8 +109,8 @@ struct MainTabs: View {
 
     @ViewBuilder private func cover(_ c: Router.Cover) -> some View {
         switch c {
-        case .settings: Text("Settings")
-        case .plan: Text("Plan")
+        case .settings: SettingsView()
+        case .plan(let id): PlanView(replanId: id)
         case .vision(let id): VisionView(weekId: id, log: false)
         case .stats(let id): StatsView(weekId: id)
         case .focus(let wid, let hid, let k): FocusView(weekId: wid, habitId: hid, day: k)

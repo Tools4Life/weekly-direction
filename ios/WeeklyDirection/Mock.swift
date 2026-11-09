@@ -3,7 +3,10 @@ import Foundation
 /// Sample data for simulator screenshots and UI checks (`-UITestSeed 1`): the same week the reference screenshots in
 /// spec/screens were rendered from. Nothing here touches Firebase; writes stay in memory.
 enum Mock {
-    static var enabled: Bool { UserDefaults.standard.bool(forKey: "UITestSeed") }
+    /// also on under XCTest, so tests never start Firebase
+    static var enabled: Bool {
+        UserDefaults.standard.bool(forKey: "UITestSeed") || ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+    }
 
     private static func ms(_ day: String, _ hm: String) -> Double { Rules.localDate(day, hm)!.timeIntervalSince1970 * 1000 }
 

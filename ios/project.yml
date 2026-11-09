@@ -12,7 +12,9 @@ targets:
   WeeklyDirection:
     type: application
     platform: iOS
-    scheme: {}
+    scheme:
+      testTargets:
+        - WeeklyDirectionTests
     sources:
       - path: WeeklyDirection
     info:
@@ -59,3 +61,17 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Weekly Direction records your spoken reflections and turns them into journal entries.
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: DZJE34VW29
+  WeeklyDirectionTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: WeeklyDirectionTests
+    dependencies:
+      - target: WeeklyDirection
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.10"
+        PRODUCT_BUNDLE_IDENTIFIER: com.redeemedtools.WeeklyDirectionTests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/WeeklyDirection.app/WeeklyDirection
+        BUNDLE_LOADER: $(TEST_HOST)
