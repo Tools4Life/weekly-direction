@@ -988,7 +988,21 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfwk.open .rfbin{opacity:1;transform:none;padding-bottom:22px}
 .rfbin>.rfday:first-child{margin-top:4px}
 .rfqa{display:block;padding:8px 0}
-.rfacts{margin-top:14px}
+.rfacts{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.rfmore2{font-size:14px;color:var(--mu)}
+.rfent{transition:transform .25s var(--ease),opacity .25s}
+.rfent.rfheld{transform:scale(.98);opacity:.7;transition:transform .5s var(--ease),opacity .5s}
+.rfmenu{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;justify-content:flex-end;gap:8px;padding:0 10px calc(var(--sb) + 10px);background:rgba(0,0,0,0);transition:background .25s}
+.rfmenu.on{background:rgba(0,0,0,.5)}
+.rfmc,.rfmcan{transform:translateY(120%);transition:transform .3s var(--ease)}
+.rfmenu.on .rfmc,.rfmenu.on .rfmcan{transform:none}
+.rfmc{border-radius:16px;background:var(--card2);overflow:hidden}
+.rfmh{padding:14px 18px 12px;border-bottom:1px solid var(--rule)}
+.rfmx{margin:4px 0 0;font-family:var(--serif);font-size:15px;line-height:1.45;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.rfmc button{display:block;width:100%;padding:16px;font-size:18px;color:var(--ac);border-top:1px solid var(--rule)}
+.rfmc button:first-of-type{border-top:0}
+.rfmc .rfmdel{color:#E5484D}
+.rfmcan{display:block;width:100%;padding:16px;border-radius:16px;background:var(--card2);font-size:18px;font-weight:600;color:var(--tx)}
 /* this week stands apart: a card at the top, always open; earlier weeks below */
 .rfcur{margin:6px 0 8px;padding:20px 20px 18px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 22%,transparent)}
 .rfcur .rfwd.rfcl{color:var(--ac)}
@@ -1285,6 +1299,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 </section>
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
+<div class="rfmenu" id="rfMenu" hidden><div class="rfmc"><div class="rfmh"><span class="rfwd" id="rfmT"></span><p class="rfmx" id="rfmX"></p></div><button id="rfmE">Edit</button><button id="rfmD" class="rfmdel">Delete</button></div><button class="rfmcan" id="rfmC">Cancel</button></div>
 <div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
 <nav class="bar" id="bar" hidden>
   <button data-tab="week" aria-label="This week"><svg class="i" viewBox="0 0 24 24"><rect x="3.5" y="3.5" width="17" height="17" rx="4" class="sh"/><path d="M3.5 8.8h17"/><path d="M8.5 2.5v2.6M15.5 2.5v2.6"/><path d="m9.2 14.4 2 2 3.8-3.8"/></svg></button>
@@ -1808,7 +1823,7 @@ function openVision(w,log,dir){if(!w)return;VW=log?w.id:null;const s0=new Date(w
     if(Math.abs(dx)<60||Math.abs(dx)<Math.abs(dy)*1.6)return;const ws=D.weeks.slice().sort((a,b)=>a.sealedAt-b.sealedAt),i=ws.findIndex(x=>x.id===VW),t=ws[i+(dx<0?1:-1)];
     if(t){haptic();openVision(t,true,dx<0?1:-1)}else{const vb=$('visBody');vb.classList.remove('vbump');void vb.offsetWidth;vb.classList.add('vbump')}},{passive:true})}
 // ---- Reflect: a quiet, full-screen place to write this week's reflection; autosaves; Saturday's review starts from it ----
-let JW=null,jrT=null,JNEW=false;
+let JW=null,jrT=null,JNEW=false,JENT=null;
 function jrGrow(){} // the text area scrolls itself now
 // fit the Reflect page to the part of the screen above the keyboard, so the line being typed is never hidden
 function jrFit(){const o=$('jrnR');if(o.hidden)return;const vv=window.visualViewport;if(!vv){o.style.height='';return}
@@ -1816,15 +1831,15 @@ function jrFit(){const o=$('jrnR');if(o.hidden)return;const vv=window.visualView
   if(document.activeElement===t){const pos=t.selectionEnd;if(pos===t.value.length)t.scrollTop=t.scrollHeight}}
 if(window.visualViewport){visualViewport.addEventListener('resize',jrFit);visualViewport.addEventListener('scroll',jrFit)}
 function jrSave(){if(!JW||JNEW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.patchWeek(cur,{liveRefl:v});$('jrSaved').textContent='Saved'}}
-function openJournal(w,fresh){if(!w)return;JW=w.id;JNEW=!!fresh;const s0=new Date(w.sealedAt);$('jrCancel').hidden=!JNEW;$('jrSaved').hidden=JNEW;$('jrDone').textContent=JNEW?'Add':'Done';$('jrnR').classList.toggle('jnew',JNEW);
-  $('jrDate').textContent=JNEW?`New entry · ${stampOf(Date.now())}`:`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=JNEW?'':w.liveRefl||'';$('jrText').placeholder=JNEW?'':'How is this week going so far? What are you noticing, in your walk, at work, at home?';$('jrSaved').textContent='';
+function openJournal(w,fresh,ent){if(!w)return;JW=w.id;JENT=ent==null?null:ent;JNEW=!!fresh||JENT!=null;const s0=new Date(w.sealedAt);const eb=JENT!=null?rfBlocks(w.liveRefl).find(b=>b.i===JENT):null;$('jrCancel').hidden=!JNEW;$('jrSaved').hidden=JNEW;$('jrDone').textContent=JENT!=null?'Save':JNEW?'Add':'Done';$('jrnR').classList.toggle('jnew',JNEW);
+  $('jrDate').textContent=JENT!=null?`Edit entry${eb&&eb.d?` · ${eb.d}, ${eb.t}`:''}`:JNEW?`New entry · ${stampOf(Date.now())}`:`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=JENT!=null?(eb?eb.x:''):JNEW?'':w.liveRefl||'';$('jrText').placeholder=JNEW?'':'How is this week going so far? What are you noticing, in your walk, at work, at home?';$('jrSaved').textContent='';
   {const jq=qsOf(w);$('jrQs').innerHTML=jq.length?`<div class="lbl">Saturday you’ll answer</div>${jq.map(q=>`<p>${esc(q)}</p>`).join('')}`:''}
   $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
-function closeJournal(cancel){$('jrnR').classList.remove('typing');clearTimeout(jrT);if(JNEW){const t=$('jrText').value.trim();if(t&&cancel!==true)vcAppend(Date.now(),t)}else jrSave();JW=null;JNEW=false;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
+function closeJournal(cancel){$('jrnR').classList.remove('typing');clearTimeout(jrT);if(JENT!=null){const t=$('jrText').value.trim(),w=D.weeks.find(x=>x.id===JW);if(cancel!==true&&w)rfSetEntry(w,JENT,t)}else if(JNEW){const t=$('jrText').value.trim();if(t&&cancel!==true)vcAppend(Date.now(),t)}else jrSave();JW=null;JNEW=false;JENT=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
 $('jrText').addEventListener('focus',()=>{$('jrnR').classList.add('typing');setTimeout(jrFit,50);setTimeout(jrFit,350)});
 $('jrText').addEventListener('blur',()=>{$('jrnR').classList.remove('typing');setTimeout(jrFit,50)});
 $('jrText').addEventListener('input',()=>{jrFit();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
-$('jrDone').onclick=()=>closeJournal();$('jrCancel').onclick=()=>{const t=$('jrText').value.trim();if(t&&!confirm('Discard this entry?'))return;closeJournal(true)};
+$('jrDone').onclick=()=>closeJournal();$('jrCancel').onclick=()=>{const t=$('jrText').value.trim();if(JENT==null&&t&&!confirm('Discard this entry?'))return;closeJournal(true)};
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
 let landWord=false;
@@ -2130,8 +2145,12 @@ addEventListener('resize',()=>rfFit());
 function rfToEnd(){if(tab!=='prayer'||rfView!=='j')return;requestAnimationFrame(()=>{rfFit();const sc=$('rfScroll');if(sc)sc.scrollTop=0})}
 const RF_ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{1,2}:\d{2} [ap]m)$/;
 // a week's text as blocks: stamped entries {d,t,x}, Saturday answers {q,x}, or plain {x}
-const rfBlocks=t=>(t||'').split(/\n\s*\n/).map(b=>{const ls=b.trim().split('\n'),h=ls[0].trim(),m=h.match(RF_ST);
-  return m&&ls.length>1?{d:m[1],t:m[2],x:ls.slice(1).join('\n')}:ls.length>1&&/\?\s*$/.test(h)?{q:h,x:ls.slice(1).join('\n')}:{x:ls.join('\n')}}).filter(e=>e.x.trim());
+const rfBlocks=t=>(t||'').split(/\n\s*\n/).map((b,i)=>{const ls=b.trim().split('\n'),h=ls[0].trim(),m=h.match(RF_ST);
+  return m&&ls.length>1?{i,d:m[1],t:m[2],x:ls.slice(1).join('\n')}:ls.length>1&&/\?\s*$/.test(h)?{i,q:h,x:ls.slice(1).join('\n')}:{i,x:ls.join('\n')}}).filter(e=>e.x.trim());
+// replace (or with empty text, remove) one block of this week's text, keeping its day-and-time line
+function rfSetEntry(w,i,text){const raw=(w.liveRefl||'').split(/\n\s*\n/);if(i<0||i>=raw.length)return;const ls=raw[i].trim().split('\n'),stamp=RF_ST.test(ls[0].trim())&&ls.length>1?ls[0].trim():'';
+  if(text)raw[i]=(stamp?stamp+'\n':'')+text;else raw.splice(i,1);store.patchWeek(w,{liveRefl:raw.map(b=>b.trim()).filter(Boolean).join('\n\n')})}
+let rfAll=false;
 const rfEnts=t=>rfBlocks(t).filter(e=>!e.q);
 const rfOpen=new Set();
 // one week's opened content: days newest first, entries newest first, then the Saturday answers
@@ -2140,13 +2159,14 @@ function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);co
   const todayN=active?DOWL[new Date().getDay()]:null,md=d=>d?d.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'',fresh=active&&Date.now()-rfJust<4000;
   const groups=[];for(const e of ents){const g=groups[groups.length-1];if(g&&g.d===e.d)g.e.push(e);else groups.push({d:e.d,e:[e]})}
   groups.reverse().forEach(g=>g.e.reverse());
+  if(active&&!rfAll&&ents.length>1){groups.length=1;groups[0].e.length=1}
   const head=d=>`<div class="rfday"><span>${d&&d===todayN?'Today':esc(d||'Notes')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
   let first=true;
   return(w.verse||w.verseRef?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
-    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}"${active?' data-rfo':''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
+    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
     +(qa.length?`<div class="rfday"><span>Saturday review</span></div>${qa.map(e=>`<div class="rfqa"><span class="rfpq">${esc(e.q)}</span><span class="rfex">${esc(e.x)}</span></div>`).join('')}`:'')
     +(!ents.length&&!qa.length?`<p class="rfnone">${active?'Nothing yet this week.':'Nothing written this week.'}</p>`:'')
-    +`<div class="rfacts">${active?`<button class="rflink" data-rfw>${ico('pen')}Write</button>`:`<button class="rflink" data-rfv="${w.id}">Open week</button>`}</div>`}
+    +`<div class="rfacts">${active?`${ents.length>1?`<button class="rfmore2" data-rfall>${rfAll?'Show less':`All ${ents.length} entries`}</button>`:''}<button class="rflink" data-rfw>${ico('pen')}Write</button>`:`<button class="rflink" data-rfv="${w.id}">Open week</button>`}</div>`}
 // the journal: a list of weeks, newest first, each with its summary; tap one and its entries slide open
 function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>w.status==='active');
   const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
@@ -2164,8 +2184,20 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
   el.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{const id=b.dataset.tg,wk=b.parentElement,on=!rfOpen.has(id);on?rfOpen.add(id):rfOpen.delete(id);wk.classList.toggle('open',on);b.setAttribute('aria-expanded',on);haptic()});
   el.querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rfv),true));
-  if(aw){const op=()=>openJournal(aw);el.querySelectorAll('[data-rfo]').forEach(b=>b.onclick=op);el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
+  el.querySelectorAll('[data-rfall]').forEach(b=>b.onclick=()=>{rfAll=!rfAll;haptic();rfRender()});
+  if(aw){el.querySelectorAll('[data-ri]').forEach(b=>rfHold(b,()=>rfMenu(aw,+b.dataset.ri)));el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
+// press and hold an entry from this week: Edit or Delete
+function rfHold(el,fn){let t,x0,y0;const off=()=>clearTimeout(t);
+  el.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;off();t=setTimeout(()=>{el.classList.remove('rfheld');fn()},500);el.classList.add('rfheld');setTimeout(()=>el.classList.remove('rfheld'),520)});
+  el.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)>10){off();el.classList.remove('rfheld')}});
+  ['pointerup','pointercancel','pointerleave'].forEach(n=>el.addEventListener(n,()=>{off();el.classList.remove('rfheld')}));el.addEventListener('contextmenu',e=>e.preventDefault())}
+function rfMenu(w,i){const b=rfBlocks(w.liveRefl).find(x=>x.i===i);if(!b)return;haptic();const m=$('rfMenu');
+  $('rfmT').textContent=b.d?`${b.d}, ${b.t}`:'Entry';$('rfmX').textContent=b.x;m.hidden=false;requestAnimationFrame(()=>m.classList.add('on'));
+  const close=()=>{m.classList.remove('on');setTimeout(()=>m.hidden=true,250)};
+  $('rfmE').onclick=()=>{close();openJournal(w,false,i)};
+  $('rfmD').onclick=()=>{if(!confirm('Delete this entry? This can’t be undone.'))return;close();rfSetEntry(w,i,'')};
+  $('rfmC').onclick=close;m.onclick=e=>{if(e.target===m)close()}}
 function rfPast(){} // past weeks live in the same journal list
 // ---- Week stats: the in-depth page behind a week on Progress ----
 // one habit on one day: on | grace | late | fail | miss | open | fut | na
