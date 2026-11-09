@@ -989,6 +989,9 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfbin>.rfday:first-child{margin-top:4px}
 .rfqa{display:block;padding:8px 0}
 .rfr{background:var(--bg);z-index:95}
+.rfl{z-index:94}
+.rfearl{display:flex;align-items:center;justify-content:space-between;width:100%;margin-top:6px;padding:18px 4px;border-bottom:1px solid var(--rule);font-size:16px;color:var(--tx)}
+.rfen{display:inline-flex;align-items:center;gap:4px;color:var(--mu2);font-variant-numeric:tabular-nums}.rfen svg.i{width:18px;height:18px}
 .rfr .jtop{position:sticky;top:0;z-index:2;background:linear-gradient(var(--bg) 70%,transparent)}
 .rfback{display:inline-flex;align-items:center;gap:2px;margin-left:-8px;font-size:16px;color:var(--ac)}.rfback svg.i{width:22px;height:22px}
 .rfrin{max-width:34em;margin:0 auto;padding:8px 24px calc(var(--sb) + 60px)}
@@ -1306,6 +1309,7 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 </section>
 
 <div id="vcBox" class="vcdock" hidden></div><div class="vcglow" id="vcGlow" aria-hidden="true"></div>
+<div class="lifer rfr rfl" id="rfL" hidden role="dialog" aria-modal="true" aria-label="Earlier weeks"><div class="jtop"><button class="rfback" id="rfLBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin"><h2 class="rfrw">Earlier weeks</h2><div id="rfLb"></div></div></div>
 <div class="lifer rfr" id="rfR" hidden role="dialog" aria-modal="true" aria-label="Week"><div class="jtop"><button class="rfback" id="rfBack"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg>Journal</button><span></span></div><div class="rfrin" id="rfRb"></div></div>
 <div class="rfmenu" id="rfMenu" hidden><div class="rfmc"><div class="rfmh"><span class="rfwd" id="rfmT"></span><p class="rfmx" id="rfmX"></p></div><button id="rfmE">Edit</button><button id="rfmD" class="rfmdel">Delete</button></div><button class="rfmcan" id="rfmC">Cancel</button></div>
 <div class="vcf" id="vcF" hidden role="dialog" aria-modal="true" aria-label="Recording"><div class="vcftop"><button class="vcfx" id="vcfX">Cancel</button><span class="vcft" id="vcfT">0:00</span><span class="vcfsp"></span></div><div class="vcflive" id="vcfLive"><p class="vcfph" id="vcfPh">Listening…</p><p class="vcftx" id="vcfTx"></p></div><div class="vcforb"><button class="vcfb" id="vcfB" aria-label="Finish"><span class="vcfr"></span><span class="vcfr r2"></span><span class="vcfr r3"></span><span class="vcfc" id="vcfC"></span></button><div class="vcfs" id="vcfS">Tap to finish</div></div></div>
@@ -1847,7 +1851,7 @@ function closeJournal(cancel){$('jrnR').classList.remove('typing');clearTimeout(
 $('jrText').addEventListener('focus',()=>{$('jrnR').classList.add('typing');setTimeout(jrFit,50);setTimeout(jrFit,350)});
 $('jrText').addEventListener('blur',()=>{$('jrnR').classList.remove('typing');setTimeout(jrFit,50)});
 $('jrText').addEventListener('input',()=>{jrFit();$('jrSaved').textContent='';clearTimeout(jrT);jrT=setTimeout(jrSave,800)});
-$('rfBack').onclick=rfCloseWeek;
+$('rfBack').onclick=rfCloseWeek;$('rfLBack').onclick=()=>{const o=$('rfL');o.classList.remove('on');setTimeout(()=>o.hidden=true,300)};
 $('jrDone').onclick=()=>closeJournal();$('jrCancel').onclick=()=>{const t=$('jrText').value.trim();if(JENT==null&&t&&!confirm('Discard this entry?'))return;closeJournal(true)};
 function closeVision(){VW=null;$('visR').classList.remove('on');setTimeout(()=>$('visR').hidden=true,300)}
 $('visClose').onclick=closeVision;
@@ -2182,21 +2186,25 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   // this week: its own card at the top, always open
   let cur='';if(aw){const a0=new Date(aw.sealedAt),n=rfEnts(aw.liveRefl).length;
     cur=`<div class="rfcur"><span class="rfwd rfcl">This week · ${fmtRange(a0,weekEnd(a0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(aw.focus)}</span>${rfBody(aw,true)}</div>`}
-  const html=cur+(ws.length?`<div class="rfph">Earlier weeks</div>`:'')+ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
+  const rows=ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
     const sum=w.summary?`<span class="rfsl">AI summary</span><span class="rfsx">${esc(w.summary)}</span>`
       :act?(lastE?`<span class="rfsx">${esc(lastE.x)}</span>`:`<span class="rfsx rfmu">Nothing yet this week.</span>`)
       :`<span class="rfsx">${esc((rfBlocks(w.reflection||w.liveRefl)[0]||{x:''}).x)}</span>`;
     const n=ents.length;
     return`<div class="rfwk" data-wk="${w.id}"><button class="rfwh" data-tg="${w.id}">`
       +`<span class="rfwd">${act?'This week · ':''}${fmtRange(s0,weekEnd(s0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(w.focus)}<svg class="i rfchev" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span>${sum}</button></div>`}).join('');
+  // Journal is about this week; earlier weeks live one tap away
+  const html=cur+(ws.length?`<button class="rfearl" id="rfEarl"><span>Earlier weeks</span><span class="rfen">${ws.length}<svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></span></button>`:'');
   el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
-  el.querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{haptic();rfOpenWeek(D.weeks.find(w=>w.id===b.dataset.tg))});
+  $('rfLb').innerHTML=rows||'<p class="rfnone">No earlier weeks yet.</p>';
+  $('rfLb').querySelectorAll('[data-tg]').forEach(b=>b.onclick=()=>{haptic();rfOpenWeek(D.weeks.find(w=>w.id===b.dataset.tg))});
+  if($('rfEarl'))$('rfEarl').onclick=()=>{haptic();const o=$('rfL');o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))};
   el.querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rfv),true));
   el.querySelectorAll('[data-rfall]').forEach(b=>b.onclick=()=>{rfAll=!rfAll;haptic();rfRender()});
   if(aw){el.querySelectorAll('[data-ri]').forEach(b=>rfHold(b,()=>rfMenu(aw,+b.dataset.ri)));el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
 // an earlier week on its own page: word, verse, AI summary, then everything said that week
-function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');
+function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');$('rfBack').lastChild.textContent=$('rfL').hidden?'Journal':'Earlier weeks';
   $('rfRb').innerHTML=`<span class="rfwd">${fmtRange(s0,weekEnd(s0))}</span><h2 class="rfrw">${esc(w.focus)}</h2>`
     +(w.summary?`<div class="rfrs"><span class="rfsl">AI summary</span><p>${esc(w.summary)}</p></div>`:'')+rfBody(w,false);
   $('rfRb').querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(w,true));
