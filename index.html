@@ -610,6 +610,12 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
 /* iOS home-screen app sometimes shrinks the page by the status-bar height and centres it,
    which floats the tab bar about half that amount above the real bottom edge */
 nav.bar{bottom:calc(-1 * var(--barfix,0px))}
+/* same iOS home-screen gap: the glow, the recording space and the mic dock reach the real bottom edge */
+.vcglow{bottom:calc(-2 * var(--barfix,0px))!important}
+body.vcfon .vcglow{top:0}
+.vcf{bottom:calc(-2 * var(--barfix,0px))!important}
+.vcf .vcforb{padding-bottom:calc(var(--sb) + 44px + 2 * var(--barfix,0px))}
+.vcdock{bottom:calc(-1 * var(--barfix,0px))!important}
 
 /* no double-tap anything: no zoom, no word selection, no callout; typing fields still work normally */
 html,body,*{touch-action:manipulation}
