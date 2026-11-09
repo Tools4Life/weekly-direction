@@ -1207,6 +1207,8 @@ body[data-rv=p] #sPrayer{padding-bottom:calc(var(--sb) + 96px)}
 .jrnr.typing .jword2{font-size:24px;margin:2px 0 10px}
 .jrnr.typing .vdate{display:none}
 .jrnr.jnew.typing .vdate{display:block}
+.jrnr.jnew .jqs{display:none!important}
+.jrnr.jnew .jword2{font-size:24px;margin:2px 0 10px}
 .jrnr.typing .jin{padding-bottom:10px!important}
 /* Progress: Weeks | Habits */
 .pwhd{display:flex;align-items:center;justify-content:space-between}
@@ -1871,14 +1873,14 @@ let JW=null,jrT=null,JNEW=false,JENT=null;
 function jrGrow(){} // the text area scrolls itself now
 // fit the Reflect page to the part of the screen above the keyboard, so the line being typed is never hidden
 function jrFit(){const o=$('jrnR');if(o.hidden)return;const vv=window.visualViewport;if(!vv){o.style.height='';return}
-  o.style.height=vv.height+'px';o.style.top=vv.offsetTop+'px';const t=$('jrText');
+  o.style.height=vv.height+'px';o.style.top=vv.offsetTop+'px';o.style.left=vv.offsetLeft+'px';o.style.width=vv.width+'px';const t=$('jrText');
   if(document.activeElement===t){const pos=t.selectionEnd;if(pos===t.value.length)t.scrollTop=t.scrollHeight}}
 if(window.visualViewport){visualViewport.addEventListener('resize',jrFit);visualViewport.addEventListener('scroll',jrFit)}
 function jrSave(){if(!JW||JNEW)return;const cur=D.weeks.find(x=>x.id===JW);const v=$('jrText').value;if(cur&&v!==(cur.liveRefl||'')){store.patchWeek(cur,{liveRefl:v});$('jrSaved').textContent='Saved'}}
 function openJournal(w,fresh,ent){if(!w)return;JW=w.id;JENT=ent==null?null:ent;JNEW=!!fresh||JENT!=null;const s0=new Date(w.sealedAt);const eb=JENT!=null?rfBlocks(w.liveRefl).find(b=>b.i===JENT):null;$('jrCancel').hidden=!JNEW;$('jrSaved').hidden=JNEW;$('jrDone').textContent=JENT!=null?'Save':JNEW?'Add':'Done';$('jrnR').classList.toggle('jnew',JNEW);
   $('jrDate').textContent=JENT!=null?`Edit entry${eb&&eb.d?` · ${eb.d}, ${eb.t}`:''}`:JNEW?`New entry · ${stampOf(Date.now())}`:`Reflection · ${fmtRange(s0,weekEnd(s0))}`;$('jrWord').textContent=w.focus;$('jrText').value=JENT!=null?(eb?eb.x:''):JNEW?'':w.liveRefl||'';$('jrText').placeholder=JNEW?'':'How is this week going so far? What are you noticing, in your walk, at work, at home?';$('jrSaved').textContent='';
   {const jq=qsOf(w);$('jrQs').innerHTML=jq.length?`<div class="lbl">Saturday you’ll answer</div>${jq.map(q=>`<p>${esc(q)}</p>`).join('')}`:''}
-  $('jrnR').hidden=false;$('jrnR').scrollTop=0;requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
+  $('jrnR').hidden=false;$('jrnR').scrollTop=0;if(JNEW){const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}}requestAnimationFrame(()=>{$('jrnR').classList.add('on');jrGrow()});setTimeout(()=>{const t=$('jrText');try{t.focus({preventScroll:true})}catch(e){t.focus()}t.setSelectionRange(t.value.length,t.value.length)},380)}
 function closeJournal(cancel){$('jrnR').classList.remove('typing');clearTimeout(jrT);if(JENT!=null){const t=$('jrText').value.trim(),w=D.weeks.find(x=>x.id===JW);if(cancel!==true&&w)rfSetEntry(w,JENT,t)}else if(JNEW){const t=$('jrText').value.trim();if(t&&cancel!==true)vcAppend(Date.now(),t)}else jrSave();JW=null;JNEW=false;JENT=null;$('jrnR').classList.remove('on');setTimeout(()=>{$('jrnR').hidden=true;if(tab==='history')renderHistory()},300)}
 $('jrText').addEventListener('focus',()=>{$('jrnR').classList.add('typing');setTimeout(jrFit,50);setTimeout(jrFit,350)});
 $('jrText').addEventListener('blur',()=>{$('jrnR').classList.remove('typing');setTimeout(jrFit,50)});
@@ -2123,7 +2125,7 @@ async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
   VC.st='idle';vcPaint();vcPendPaint();return ok}
 // adds the words to this week's live reflection, under a day-and-time line
 const stampOf=at=>{const d=new Date(at);return`${DOWL[d.getDay()]}, ${clock(`${pad(d.getHours())}:${pad(d.getMinutes())}`)}`};let rfJust=0;
-function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;const stamp=stampOf(at);rfJust=Date.now();setTimeout(rfToEnd,150);
+function vcAppend(at,text){const w=D.weeks.find(x=>x.status==='active');if(!w)return;text=String(text||'').replace(/\n\s*\n+/g,'\n').trim();if(!text)return;const stamp=stampOf(at);rfJust=Date.now();setTimeout(rfToEnd,150);
   const cur=(w.liveRefl||'').replace(/\s+$/,'');store.patchWeek(w,{liveRefl:(cur?cur+'\n\n':'')+stamp+'\n'+text})}
 async function vcFlush(){if(vcFlushing||VC.st!=='idle'||!navigator.onLine)return;vcFlushing=true;
   try{const q=(await vqAll()).sort((a,b)=>a.at-b.at);for(const it of q){if(VC.st!=='idle')break;if(!await vcSend(it))break}}finally{vcFlushing=false}}
@@ -2197,7 +2199,7 @@ const rfBlocks=t=>(t||'').split(/\n\s*\n/).map((b,i)=>{const ls=b.trim().split('
   return m&&ls.length>1?{i,d:m[1],t:m[2],x:ls.slice(1).join('\n')}:ls.length>1&&/\?\s*$/.test(h)?{i,q:h,x:ls.slice(1).join('\n')}:{i,x:ls.join('\n')}}).filter(e=>e.x.trim());
 // replace (or with empty text, remove) one block of this week's text, keeping its day-and-time line
 function rfSetEntry(w,i,text){const raw=(w.liveRefl||'').split(/\n\s*\n/);if(i<0||i>=raw.length)return;const ls=raw[i].trim().split('\n'),stamp=RF_ST.test(ls[0].trim())&&ls.length>1?ls[0].trim():'';
-  if(text)raw[i]=(stamp?stamp+'\n':'')+text;else raw.splice(i,1);store.patchWeek(w,{liveRefl:raw.map(b=>b.trim()).filter(Boolean).join('\n\n')})}
+  text=String(text||'').replace(/\n\s*\n+/g,'\n').trim();if(text)raw[i]=(stamp?stamp+'\n':'')+text;else raw.splice(i,1);store.patchWeek(w,{liveRefl:raw.map(b=>b.trim()).filter(Boolean).join('\n\n')})}
 let rfAll=false,rfIdx=0,rfDir=0;
 const rfEnts=t=>rfBlocks(t).filter(e=>!e.q);
 const rfOpen=new Set();
