@@ -977,7 +977,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* the journal list: past weeks above, this week by the mic; only it scrolls, page height stays the viewport */
 body[data-screen=prayer][data-rv=j]{overflow:hidden}
 body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
-.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 36px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent)}
+.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 72px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent)}
 .rfscroll.sc{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent)}
 .rfscroll::-webkit-scrollbar{display:none}
 .rfwk{border-top:1px solid var(--rule)}
@@ -1007,6 +1007,7 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfrw{margin:4px 0 14px;font-family:var(--serif);font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-.01em;color:var(--tx)}
 .rfrs{margin:0 0 6px;padding:14px 16px;border-radius:16px;background:var(--card)}
 .rfrs p{margin:2px 0 0;font-family:var(--serif);font-size:17px;line-height:1.55;color:var(--tx)}
+.rfent.rfclamp .rfex{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .rfacts{margin-top:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
 .rfmore2{font-size:14px;color:var(--mu)}
 .rfent{transition:transform .25s var(--ease),opacity .25s}
@@ -2186,7 +2187,7 @@ function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);co
   const head=d=>`<div class="rfday"><span>${d&&d===todayN?'Today':esc(d||'Notes')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
   let first=true;
   return(w.verse||w.verseRef?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
-    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
+    +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}${active&&!rfAll?' rfclamp':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
     +(qa.length?`<div class="rfday"><span>Saturday review</span></div>${qa.map(e=>`<div class="rfqa"><span class="rfpq">${esc(e.q)}</span><span class="rfex">${esc(e.x)}</span></div>`).join('')}`:'')
     +(!ents.length&&!qa.length?`<p class="rfnone">${active?'Nothing yet this week.':'Nothing written this week.'}</p>`:'')
     +`<div class="rfacts">${active?`${ents.length>1?`<button class="rfmore2" data-rfall>${rfAll?'Show less':`All ${ents.length} entries`}</button>`:''}<button class="rflink" data-rfw>${ico('pen')}Write</button>`:`<button class="rflink" data-rfv="${w.id}">Open week</button>`}</div>`}
@@ -2212,7 +2213,7 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   if($('rfEarl'))$('rfEarl').onclick=()=>{haptic();const o=$('rfL');o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))};
   el.querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rfv),true));
   el.querySelectorAll('[data-rfall]').forEach(b=>b.onclick=()=>{rfAll=!rfAll;haptic();rfRender()});
-  if(aw){el.querySelectorAll('[data-ri]').forEach(b=>rfHold(b,()=>rfMenu(aw,+b.dataset.ri)));el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
+  if(aw){el.querySelectorAll('[data-ri]').forEach(b=>{rfHold(b,()=>rfMenu(aw,+b.dataset.ri));b.addEventListener('click',()=>{if(b.dataset.held){delete b.dataset.held;return}const x=b.querySelector('.rfex');if(b.classList.contains('rfclamp')&&x.scrollHeight>x.clientHeight+2){b.classList.remove('rfclamp');haptic()}})});el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
 // an earlier week on its own page: word, verse, AI summary, then everything said that week
 function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');$('rfBack').lastChild.textContent=$('rfL').hidden?'Journal':'Earlier weeks';
@@ -2223,7 +2224,7 @@ function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');$('
 function rfCloseWeek(){const o=$('rfR');o.classList.remove('on');setTimeout(()=>o.hidden=true,300)}
 // press and hold an entry from this week: Edit or Delete
 function rfHold(el,fn){let t,x0,y0;const off=()=>clearTimeout(t);
-  el.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;off();t=setTimeout(()=>{el.classList.remove('rfheld');fn()},500);el.classList.add('rfheld');setTimeout(()=>el.classList.remove('rfheld'),520)});
+  el.addEventListener('pointerdown',e=>{x0=e.clientX;y0=e.clientY;off();t=setTimeout(()=>{el.classList.remove('rfheld');el.dataset.held='1';fn()},500);el.classList.add('rfheld');setTimeout(()=>el.classList.remove('rfheld'),520)});
   el.addEventListener('pointermove',e=>{if(Math.abs(e.clientX-x0)+Math.abs(e.clientY-y0)>10){off();el.classList.remove('rfheld')}});
   ['pointerup','pointercancel','pointerleave'].forEach(n=>el.addEventListener(n,()=>{off();el.classList.remove('rfheld')}));el.addEventListener('contextmenu',e=>e.preventDefault())}
 function rfMenu(w,i){const b=rfBlocks(w.liveRefl).find(x=>x.i===i);if(!b)return;haptic();const m=$('rfMenu');
