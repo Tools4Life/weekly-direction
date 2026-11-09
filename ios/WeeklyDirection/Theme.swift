@@ -1,20 +1,59 @@
 import SwiftUI
+import UIKit
 
-// The web app's dark palette. Fraunces and Barlow Condensed fall back to the system serif and a condensed system font
-// until the font files are added to the project.
+// The web app's palette (dark first, light from html[data-theme=light]) and type: Fraunces for titles, focus word and
+// entries; Barlow for UI text; Barlow Condensed, letter-spaced and uppercase, for labels and dates.
 enum Theme {
-    static let bg = Color(hex: 0x0B0B0C)
-    static let card = Color(hex: 0x151517)
-    static let card2 = Color(hex: 0x1C1C1F)
-    static let tx = Color(hex: 0xF7F4EF)
-    static let mu = Color(hex: 0xABA69F)
-    static let mu2 = Color(hex: 0x8A857F)
-    static let rule = Color(hex: 0x222225)
-    static let ac = Color(hex: 0xE8743B)
-    static let onAc = Color(hex: 0x0B0B0C)
+    static let bg = dyn(0x0B0B0C, 0xF6F5F2)
+    static let card = dyn(0x151517, 0xFFFFFF)
+    static let card2 = dyn(0x1C1C1F, 0xF0EEE9)
+    static let tx = dyn(0xF7F4EF, 0x1B1917)
+    static let mu = dyn(0xABA69F, 0x6F6A63)
+    static let mu2 = dyn(0x8A857F, 0x8D877F)
+    static let rule = dyn(0x222225, 0xE4E1DB)
+    static let line = dyn(0x2C2C30, 0xD9D5CE)
+    static let ac = dyn(0xE8743B, 0xD2602A)
+    static let acSoft = dyn(0x4A2C22, 0xFBE7DC)
+    static let acDim = dyn(0x86452A, 0xE9A07C)
+    static let onAc = dyn(0x0B0B0C, 0xFFFFFF)
+    static let danger = Color(hex: 0xE5484D)
 
-    static func serif(_ size: CGFloat) -> Font { .system(size: size, design: .serif) }
-    static func label(_ size: CGFloat = 12) -> Font { .system(size: size, weight: .medium).width(.condensed) }
+    static func serif(_ size: CGFloat) -> Font { .custom("Fraunces-Regular", size: size) }
+    static func serifItalic(_ size: CGFloat) -> Font { .custom("Fraunces-Italic", size: size) }
+    static func ui(_ size: CGFloat, _ weight: Font.Weight = .regular) -> Font {
+        .custom(weight == .semibold || weight == .bold ? "Barlow-SemiBold" : weight == .medium ? "Barlow-Medium" : "Barlow-Regular", size: size)
+    }
+    static func label(_ size: CGFloat = 12) -> Font { .custom("BarlowCondensed-Medium", size: size) }
+    static func num(_ size: CGFloat) -> Font { .custom("Barlow-SemiBold", size: size) }
+
+    private static func dyn(_ dark: UInt32, _ light: UInt32) -> Color {
+        Color(UIColor { $0.userInterfaceStyle == .light ? UIColor(hex: light) : UIColor(hex: dark) })
+    }
+
+    /// the web's icon names (ICON_CHOICES and the prayer icons) as SF Symbols
+    static let symbols: [String: String] = [
+        "sun": "sunrise", "hands": "hands.sparkles", "book": "book", "bookmark": "bookmark", "scroll": "scroll",
+        "pen": "pencil.line", "brain": "brain", "cross": "cross", "church": "building.columns", "flame": "flame",
+        "moon": "moon.stars", "sunfull": "sun.max", "heart": "heart", "handheart": "hand.raised", "music": "music.note",
+        "leaf": "leaf", "drop": "drop", "eye": "eye", "phone": "iphone", "cup": "cup.and.saucer", "walk": "figure.walk",
+        "clock": "clock", "home": "house", "bed": "bed.double", "users": "person.2", "briefcase": "briefcase",
+        "hardhat": "shield.lefthalf.filled", "hammer": "hammer", "wrench": "wrench.adjustable", "laptop": "laptopcomputer",
+        "clipboard": "list.clipboard", "calendar": "calendar", "list": "list.bullet", "mail": "envelope", "target": "target",
+        "chart": "chart.line.uptrend.xyaxis", "money": "dollarsign.circle", "bulb": "lightbulb", "handshake": "person.2.wave.2",
+        "car": "car", "timer": "timer", "check": "checkmark",
+        "compass": "location.north.circle", "family": "figure.2.and.child.holdinghands", "work": "briefcase",
+        "health": "cross.case", "self": "person", "world": "globe"
+    ]
+    static func symbol(_ name: String?) -> String {
+        let s = symbols[name ?? "check"] ?? "checkmark"
+        return UIImage(systemName: s) == nil ? "checkmark" : s
+    }
+}
+
+extension UIColor {
+    convenience init(hex: UInt32) {
+        self.init(red: CGFloat((hex >> 16) & 0xFF) / 255, green: CGFloat((hex >> 8) & 0xFF) / 255, blue: CGFloat(hex & 0xFF) / 255, alpha: 1)
+    }
 }
 
 extension Color {
@@ -30,10 +69,59 @@ extension Color {
 struct Eyebrow: View {
     let text: String
     var color: Color = Theme.mu2
+    var size: CGFloat = 13
     var body: some View {
         Text(text.uppercased())
-            .font(Theme.label(12))
-            .tracking(1.8)
+            .font(Theme.label(size))
+            .tracking(size * 0.2)
             .foregroundStyle(color)
     }
+}
+
+/// a habit / prayer icon by its web name
+struct Ico: View {
+    let name: String?
+    var size: CGFloat = 20
+    var body: some View {
+        Image(systemName: Theme.symbol(name))
+            .font(.system(size: size, weight: .light))
+            .frame(width: size + 8, height: size + 8)
+    }
+}
+
+/// two-option pill switch (JOURNAL | PRAYER, WEEKS | HABITS, ALL TIME | WEEK)
+struct Seg: View {
+    let options: [(String, String)]   // (value, title)
+    @Binding var value: String
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(options, id: \.0) { o in
+                Button {
+                    if value != o.0 { Haptic.tick(); value = o.0 }
+                } label: {
+                    Text(o.1.uppercased())
+                        .font(Theme.label(14)).tracking(1.6)
+                        .foregroundStyle(value == o.0 ? Theme.tx : Theme.mu)
+                        .padding(.horizontal, 14).frame(height: 30)
+                        .background(value == o.0 ? Theme.card2 : .clear, in: Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(2)
+        .background(Theme.card, in: Capsule())
+    }
+}
+
+enum Haptic {
+    static func tick() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
+    static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+}
+
+extension View {
+    func card(_ radius: CGFloat = 20) -> some View {
+        background(Theme.card, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+    }
+    /// full-width, leading-aligned content: nothing in the app is centered in a narrow column
+    func fullWidth() -> some View { frame(maxWidth: .infinity, alignment: .leading) }
 }

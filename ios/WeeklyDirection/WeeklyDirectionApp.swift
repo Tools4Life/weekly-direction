@@ -25,7 +25,7 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Theme.bg.ignoresSafeArea()
-            if store.user == nil {
+            if !store.signedIn {
                 SignInView()
             } else if !store.ready {
                 ProgressView().tint(Theme.mu)

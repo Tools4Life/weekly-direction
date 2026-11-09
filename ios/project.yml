@@ -12,8 +12,27 @@ targets:
   WeeklyDirection:
     type: application
     platform: iOS
+    scheme: {}
     sources:
       - path: WeeklyDirection
+    info:
+      path: WeeklyDirection/Info.plist
+      properties:
+        CFBundleDisplayName: Weekly Direction
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        NSMicrophoneUsageDescription: Weekly Direction records your spoken reflections and turns them into journal entries.
+        NSSpeechRecognitionUsageDescription: Weekly Direction shows your words on screen while you record a reflection.
+        UIAppFonts:
+          - Fraunces.ttf
+          - Fraunces-Italic.ttf
+          - Barlow-Regular.ttf
+          - Barlow-Medium.ttf
+          - Barlow-SemiBold.ttf
+          - BarlowCondensed-Medium.ttf
+          - BarlowCondensed-SemiBold.ttf
     resources:
       - path: WeeklyDirection/GoogleService-Info.plist
         optional: true
@@ -35,3 +54,4 @@ targets:
         INFOPLIST_KEY_CFBundleDisplayName: Weekly Direction
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Weekly Direction records your spoken reflections and turns them into journal entries.
         CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: DZJE34VW29

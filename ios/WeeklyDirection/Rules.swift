@@ -7,6 +7,13 @@ enum HabitState: String {
     case done, fail, run, fin, open, grace, miss, late
 }
 
+/// The current time. Fixed only by the snapshot mode (sample data rendered at the spec's "today"); otherwise the real clock.
+enum Now {
+    static var fixed: Date?
+    static var date: Date { fixed ?? Date() }
+    static var ms: Double { date.timeIntervalSince1970 * 1000 }
+}
+
 enum Rules {
     static let graceFrom = "2026-11-08"
     static let graceSeconds: TimeInterval = 2 * 3600
@@ -61,10 +68,10 @@ enum Rules {
         return t
     }
 
-    static func state(_ w: Week, _ k: String, _ c: Commitment, now: Date = Date()) -> HabitState {
+    static func state(_ w: Week, _ k: String, _ c: Commitment, now: Date = Now.date) -> HabitState {
         if w.flag(k, c.id + "@fail") { return .fail }
         if w.flag(k, c.id) { return .done }
-        if let r = w.runs[k]?[c.id], let m = c.min {
+        if let r = w.run(k, c.id), let m = c.min {
             let start = Date(timeIntervalSince1970: r / 1000)
             return now >= start.addingTimeInterval(TimeInterval(m * 60)) ? .fin : .run
         }
