@@ -1106,7 +1106,10 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 @keyframes vcbreathe{0%,100%{filter:brightness(.85)}50%{filter:brightness(1.15)}}
 @media (prefers-reduced-motion:reduce){.vcmic::after{animation:none}.vcglow.on{animation:none}.vcmic .vcring{animation:none!important}}
 /* recording space: a live waveform above the orb shows your voice; no edge glow, no rings, no helper text */
-.vcfs,.vcfph{display:none!important}
+.vcf.on .vcfs,.vcf.on .vcfph{animation:vcquick 2.2s ease both}
+.vcf.busy .vcfs{animation:none;opacity:1}
+@keyframes vcquick{0%{opacity:0}12%{opacity:1}72%{opacity:1}100%{opacity:0}}
+.vcline{animation:vcin .2s ease both}@keyframes vcin{from{opacity:0}}
 body.vcfon .vcglow{display:none!important}
 .vcf .vcfr{display:none}
 .vcfwave{display:block;width:calc(100% - 48px);height:64px;margin:0 24px 6px}
@@ -2096,7 +2099,8 @@ function vcPaint(){const b=$('vcMic');if(!b)return;
   b.className='vcmic'+(VC.st==='rec'?' rec':VC.st==='busy'?' busy':'');$('vcBox').classList.toggle('rec',VC.st==='rec');b.disabled=VC.st==='busy';
   const ic=VC.st==='rec'?'stop':'mic';if(b.dataset.ic!==ic){b.dataset.ic=ic;b.innerHTML=`<span class="vcring"></span>${ico(ic)}`}
   b.setAttribute('aria-label',VC.st==='rec'?'Stop recording':'Speak a reflection');
-  $('vcSt').textContent=VC.msg||'';$('vcSt').closest('.vcline').hidden=!$('vcSt').textContent&&!vcPend;
+  $('vcSt').textContent=VC.st==='busy'?'Transcribing…':VC.msg||'';
+  if(VC.msg&&VC.msg!==VC.shown){VC.shown=VC.msg;clearTimeout(VC.msgT);const m=VC.msg,quick=/^(Added to this week|Too short|Nothing heard)$/.test(m);VC.msgT=setTimeout(()=>{if(VC.msg===m){VC.msg=null;VC.shown=null;vcPaint();vcPendPaint&&vcPendPaint()}},quick?1800:3500)}$('vcSt').closest('.vcline').hidden=!$('vcSt').textContent&&!vcPend;
   {const f=$('vcF');if(f){if(VC.st==='rec')$('vcfT').textContent=mmss(Math.floor((Date.now()-VC.t0)/1e3)*1e3);f.classList.toggle('busy',VC.st==='busy');$('vcfS').textContent=VC.st==='busy'?'Saving…':'Tap to finish'}}
   const o=$('vcOut');o.innerHTML=VC.st==='idle'&&VC.last?`<p class="vclast">${esc(VC.last)}</p><button class="vcedit" data-vce>Added to this week’s reflection · Edit</button>`:'';
   const e=o.querySelector('[data-vce]');if(e)e.onclick=()=>{const aw=D.weeks.find(x=>x.status==='active');if(aw)openJournal(aw)}}
@@ -2122,7 +2126,7 @@ async function vcStart(){
 function vcStop(){if(VC.st!=='rec')return;clearInterval(VC.tick);vcMeterOff();liveStop();clearTimeout(VC.fsT);VC.fsT=setTimeout(()=>vcFocus(false),20000);VC.st='busy';vcPaint();try{VC.rec.stop()}catch(e){vcStopped()}if(VC.stream)VC.stream.getTracks().forEach(t=>t.stop());haptic()}
 async function vcStopped(){const dur=Date.now()-VC.t0,type=(VC.rec&&VC.rec.mimeType)||vcMime()||'audio/mp4',blob=new Blob(VC.chunks||[],{type});VC.chunks=[];
   if(VC.cancel){VC.cancel=false;VC.st='idle';VC.msg=null;vcFocus(false);return vcPaint()}
-  if(dur<1500||!blob.size){VC.st='idle';VC.msg=null;vcFocus(false);return vcPaint()}
+  if(dur<1500||!blob.size){VC.st='idle';VC.msg='Too short';vcFocus(false);return vcPaint()}
   const item={id:'v'+VC.t0,at:VC.t0,dur,type:type.split(';')[0],blob};try{await vqPut(item)}catch(e){}
   const ok=await vcSend(item);clearTimeout(VC.fsT);vcFocus(false);if(ok)vcFlush()}
 async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
@@ -2130,7 +2134,7 @@ async function vcSend(item){VC.st='busy';vcPaint();let ok=false;
     const r=M&&M.transcribe?await M.transcribe(item):await fetch(VOICE_URL,{method:'POST',headers:{Authorization:'Bearer '+tok,'Content-Type':item.type,'X-Duration':String(Math.round(item.dur/1e3))},body:item.blob});
     const j=await r.json().catch(()=>({}));if(!r.ok)throw Object.assign(new Error(j.error||`Error ${r.status}`),{status:r.status,detail:String(j.detail||'')});
     const text=String(j.text||'').trim();if(text)vcAppend(item.at,text);await vqDel(item.id);ok=true;
-    VC.msg=null;VC.last=text||null;snd('done')}
+    VC.msg=text?'Added to this week':'Nothing heard';VC.last=text||null;snd('done')}
   catch(e){VC.last=null;VC.msg=!navigator.onLine?'Offline · saved for later':e instanceof TypeError||e.status===404?'Voice server not reachable · saved':e.status===429?'Daily limit reached · saved':e.status===401?'Sign in again · saved':/insufficient_quota|billing/i.test(e.detail||'')?'OpenAI has no credit · saved':/invalid_api_key|Incorrect API key|\b401\b/i.test(e.detail||'')?'OpenAI key rejected · saved':/model/i.test(e.detail||'')?'OpenAI model error · saved':/\b429\b/.test(e.detail||'')?'OpenAI rate limit · saved':`Failed ${e.status||'?'}: ${String((e.detail||e.message||'').replace(/^\d+\s*/,'').replace(/[{}"]/g,' ').replace(/\s+/g,' ').trim()).slice(0,60)}`;console.warn('voice',e)}
   VC.st='idle';vcPaint();vcPendPaint();return ok}
 // adds the words to this week's live reflection, under a day-and-time line
@@ -2188,7 +2192,7 @@ function vcDemo(){if(VC.st!=='idle'||VC.demo)return;VC.demo={t0:Date.now(),i:0};
   VC.demo.iv=setInterval(()=>{if(!VC.demo)return;if(VC.demo.i>=w.length){clearInterval(VC.demo.iv);return}VC.demo.i+=1+(Math.random()<.4?1:0);
     $('vcfTx').textContent=w.slice(0,VC.demo.i).join(' ');$('vcfPh').hidden=true;const b=$('vcfLive');b.scrollTop=b.scrollHeight},260)}
 function vcDemoEnd(done){const d=VC.demo;if(!d)return;clearInterval(d.iv);cancelAnimationFrame(d.raf);vcMeterOff();
-  if(done){VC.demo=null;vcFocus(false)}else{VC.demo=null;vcFocus(false)}}
+  if(done){$('vcF').classList.add('busy');$('vcfS').textContent='Preview · nothing saved';setTimeout(()=>{VC.demo=null;vcFocus(false)},900)}else{VC.demo=null;vcFocus(false)}}
 // ---- AI week summaries: written once a week is closed, stored beside the reflection (never replacing it) ----
 const SUM_URL='https://us-central1-ops-hub-9bebc.cloudfunctions.net/summarize';let sumBusy=false;
 async function sumWeek(w){const text=(w.reflection||'').trim();if(!w||w.summary||text.length<20)return false;
