@@ -1038,7 +1038,7 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfsum{font-size:11px;color:var(--ac)}
 .rfpt{font-family:var(--serif);font-size:15px;line-height:1.5;color:var(--mu);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
 /* voice dock: its own solid strip above the tab bar, nothing scrolls under the button */
-.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 24px calc(var(--sb) + 72px);background:var(--bg);--lv:0;gap:8px}
+.vcdock{position:fixed;left:0;right:0;bottom:0;z-index:19;display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 24px calc(var(--sb) + 80px);background:var(--bg);--lv:0;gap:8px}
 .rfcount{font-size:13px;color:var(--mu2)}
 .rfent.rfnew{animation:rfnew 1.6s var(--ease)}
 @keyframes rfnew{0%{opacity:0;transform:translateY(10px)}25%{opacity:1;transform:none}}
@@ -1052,9 +1052,9 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .vcwave i{display:block;width:3px;height:3px;border-radius:2px;background:var(--ac)}
 .vcdock.rec .vcwave{display:flex}.vcdock.rec .vcst{color:var(--tx)}
 .vcout{display:none}
-.vcmic{position:relative;width:66px;height:66px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
+.vcmic{position:relative;width:84px;height:84px;border-radius:50%;display:grid;place-items:center;background:var(--ac);color:var(--onAc);
   box-shadow:0 0 0 5px color-mix(in srgb,var(--ac) 13%,transparent);transition:transform .2s var(--spring),box-shadow .12s linear,opacity .2s}
-.vcmic svg.i{width:27px;height:27px;stroke-width:1.9}
+.vcmic svg.i{width:32px;height:32px;stroke-width:1.9}
 .vcline[hidden]{display:none}
 .vcmic::after{content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid color-mix(in srgb,var(--ac) 55%,transparent);opacity:0;pointer-events:none;animation:vcinvite 3.6s ease-out infinite}
 .vcmic.rec::after,.vcmic.busy::after{animation:none;opacity:0}
@@ -2176,7 +2176,7 @@ function rfBody(w,active){const s0=new Date(w.sealedAt);s0.setHours(12,0,0,0);co
   if(active&&!rfAll&&ents.length>1){groups.length=1;groups[0].e.length=1}
   const head=d=>`<div class="rfday"><span>${d&&d===todayN?'Today':esc(d||'Notes')}</span>${d?`<span class="rfdd">${d===todayN?esc(d)+' · ':''}${md(dayDate[d])}</span>`:''}</div>`;
   let first=true;
-  return(w.verse||w.verseRef?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
+  return(!active&&(w.verse||w.verseRef)?`<p class="rfverse">${w.verse?esc(w.verse):''}${w.verseRef?`<span>${esc(w.verseRef)}</span>`:''}</p>`:'')
     +groups.map(g=>head(g.d)+g.e.map(e=>{const nw=fresh&&first;first=false;return`<button class="rfent${nw?' rfnew':''}"${active?` data-ri="${e.i}"`:''}><span class="rfet">${esc(e.t)}</span><span class="rfex">${esc(e.x)}</span></button>`}).join('')).join('')
     +(qa.length?`<div class="rfday"><span>Saturday review</span></div>${qa.map(e=>`<div class="rfqa"><span class="rfpq">${esc(e.q)}</span><span class="rfex">${esc(e.x)}</span></div>`).join('')}`:'')
     +(!ents.length&&!qa.length?`<p class="rfnone">${active?'Nothing yet this week.':'Nothing written this week.'}</p>`:'')
@@ -2186,7 +2186,7 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   const ws=D.weeks.filter(w=>w.status==='closed'&&((w.reflection||w.liveRefl||'').trim()||w.summary)).sort((a,b)=>b.sealedAt-a.sealedAt);
   // this week: its own card at the top, always open
   let cur='';if(aw){const a0=new Date(aw.sealedAt),n=rfEnts(aw.liveRefl).length;
-    cur=`<div class="rfcur"><span class="rfwd rfcl">This week · ${fmtRange(a0,weekEnd(a0))}${n?` · ${n} ${n===1?'entry':'entries'}`:''}</span><span class="rfww">${esc(aw.focus)}</span>${rfBody(aw,true)}</div>`}
+    cur=`<div class="rfcur"><span class="rfwd rfcl">This week · ${fmtRange(a0,weekEnd(a0))}</span><span class="rfww">${esc(aw.focus)}</span>${rfBody(aw,true)}</div>`}
   const rows=ws.map(w=>{const act=w===aw,s0=new Date(w.sealedAt),ents=rfEnts(act?w.liveRefl:(w.reflection||w.liveRefl)),lastE=ents[ents.length-1];
     const sum=w.summary?`<span class="rfsl">AI summary</span><span class="rfsx">${esc(w.summary)}</span>`
       :act?(lastE?`<span class="rfsx">${esc(lastE.x)}</span>`:`<span class="rfsx rfmu">Nothing yet this week.</span>`)
