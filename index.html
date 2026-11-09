@@ -981,7 +981,7 @@ textarea.long.lrlive{min-height:160px;resize:none;overflow:hidden;font-size:18px
 /* the journal list: past weeks above, this week by the mic; only it scrolls, page height stays the viewport */
 body[data-screen=prayer][data-rv=j]{overflow:hidden}
 body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
-.rfscroll{overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;margin:14px -24px 0;padding:4px 24px 72px;scrollbar-width:none;-webkit-mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,#000 0,#000 calc(100% - 56px),transparent)}
+.rfscroll{overflow:hidden;margin:14px 0 0;padding:4px 0 0}
 .rfscroll.sc{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent);mask-image:linear-gradient(to bottom,transparent 0,#000 22px,#000 calc(100% - 56px),transparent)}
 .rfscroll::-webkit-scrollbar{display:none}
 .rfwk{border-top:1px solid var(--rule)}
@@ -1010,7 +1010,7 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfrin{max-width:34em;margin:0 auto;padding:8px 24px calc(var(--sb) + 60px)}
 .rfrw{margin:4px 0 14px;font-family:var(--serif);font-weight:400;font-size:40px;line-height:1.1;letter-spacing:-.01em;color:var(--tx)}
 .rfrs{margin:0 0 6px;padding:14px 16px;border-radius:16px;background:var(--card)}
-.rfrs p{margin:2px 0 0;font-family:var(--serif);font-size:17px;line-height:1.55;color:var(--tx)}
+.rfrs p{margin:2px 0 0;font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--tx)}
 .rfent.rfclamp .rfex{display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
 .rfnav{display:flex;align-items:center;gap:6px;margin:-6px -10px 0}
 .rfnav .rfwd{flex:1;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -1037,9 +1037,18 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfmc .rfmdel{color:#E5484D}
 .rfmcan{display:block;width:100%;padding:16px;border-radius:16px;background:var(--card2);font-size:18px;font-weight:600;color:var(--tx)}
 /* this week stands apart: a card at the top, always open; earlier weeks below */
-.rfcur{margin:6px 0 8px;padding:20px 20px 18px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 22%,transparent)}
+.rfcur{display:flex;flex-direction:column;margin:6px 0 0;padding:16px 20px 18px;border-radius:22px;background:var(--card);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ac) 22%,transparent);overflow:hidden}
 .rfcur .rfwd.rfcl{color:var(--ac)}
-.rfcur .rfww{font-size:32px;margin:4px 0 8px}
+.rfcur .rfww{font-size:26px;margin:10px 0 0}
+.rfcur .rfverse{margin:8px 0 0}
+.rfverse .rfvt{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0;font-family:var(--serif);font-style:italic;font-size:14px;line-height:1.5;letter-spacing:0;text-transform:none;color:var(--mu)}
+.rfverse .rfvr{display:block;margin-top:4px;font-family:var(--cond);font-style:normal;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
+.rffit{flex:1 1 auto;min-height:0;overflow:hidden;margin-top:16px;padding-top:16px;border-top:1px solid var(--rule)}
+.rffit .rfent{padding:0}
+.rffit .rfnone{padding:0;margin:0}
+.rfex.rfcl2{display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden}
+.rfcur .rfacts{flex:none;margin-top:16px}
+.rfsumx{margin:2px 0 0}
 .rfcur .rfday:first-of-type{margin-top:14px}
 .rfph{margin:30px 0 2px;font-family:var(--cond);font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--mu)}
 .rfph+.rfwk{border-top:0}
@@ -1051,7 +1060,7 @@ body[data-screen=prayer][data-rv=j] #sPrayer{padding-bottom:0}
 .rfdd{font-family:var(--cond);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--mu2)}
 .rfent{display:block;width:100%;text-align:left;padding:10px 0}
 .rfet{display:block;margin-bottom:3px;font-family:var(--cond);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--mu2);white-space:nowrap}
-.rfex{font-family:var(--serif);font-size:18px;line-height:1.55;color:var(--tx);white-space:pre-line}
+.rfex{font-family:var(--serif);font-size:16px;line-height:1.5;color:var(--tx);white-space:pre-line}
 .rfmore{display:block;width:100%;padding:12px 0 10px;border-top:1px solid var(--rule);font-size:14px;color:var(--mu);text-align:left}
 .rfempty{display:block;width:100%;text-align:left;border-radius:16px;background:var(--card);padding:18px;font-family:var(--serif);font-style:italic;font-size:16px;color:var(--mu)}
 .rfstrip{display:flex;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;margin:0 -24px;padding:0 24px 2px;scrollbar-width:none}.rfstrip::-webkit-scrollbar{display:none}
@@ -2177,7 +2186,9 @@ function rfSetView(v){if(v!=='j'&&typeof VC!=='undefined'&&VC.st==='rec')vcStop(
   document.querySelectorAll('[data-rv]').forEach(b=>{b.classList.toggle('on',b.dataset.rv===v);b.setAttribute('aria-selected',b.dataset.rv===v)});$('sPrayer').scrollTop=0;window.scrollTo(0,0);if(v==='j'){rfFit();rfToEnd()}}
 document.querySelectorAll('[data-rv]').forEach(b=>b.onclick=()=>{if(rfView!==b.dataset.rv){haptic();rfSetView(b.dataset.rv)}});
 document.body.dataset.rv='j';
-function rfFit(){const sc=$('rfScroll'),dk=$('vcBox');if(!sc||tab!=='prayer'||rfView!=='j')return;window.scrollTo(0,0);const top=sc.getBoundingClientRect().top,bot=dk&&!dk.hidden?dk.getBoundingClientRect().top:innerHeight-90;sc.style.height=Math.max(120,bot-top)+'px'}
+function rfFit(){const sc=$('rfScroll'),dk=$('vcBox');if(!sc||tab!=='prayer'||rfView!=='j')return;window.scrollTo(0,0);const top=sc.getBoundingClientRect().top,bot=dk&&!dk.hidden?dk.getBoundingClientRect().top:innerHeight-90;sc.style.height=Math.max(120,bot-top)+'px';
+  const c=$('rfCur'),box=$('rfFitBox'),tx=$('rfClampTx');if(!c)return;c.style.maxHeight=Math.max(160,bot-top-18)+'px';if(!box||!tx)return;tx.style.webkitLineClamp='';tx.classList.remove('rfcl2');
+  if(box.scrollHeight>box.clientHeight+1){const lh=parseFloat(getComputedStyle(tx).lineHeight)||24,room=box.clientHeight-(tx.getBoundingClientRect().top-box.getBoundingClientRect().top);tx.classList.add('rfcl2');tx.style.webkitLineClamp=String(Math.max(1,Math.floor(room/lh)))}}
 addEventListener('resize',()=>rfFit());
 function rfToEnd(){if(tab!=='prayer'||rfView!=='j')return;requestAnimationFrame(()=>{rfFit();const sc=$('rfScroll');if(sc)sc.scrollTop=0})}
 const RF_ST=/^(Sunday|Monday|Tuesday|Wednesday|Thursday|Friday|Saturday), (\d{1,2}:\d{2} [ap]m)$/;
@@ -2214,9 +2225,16 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
     cur=`<div class="rfcur${act?'':' rfpast'}" id="rfCur"><div class="rfnav"><button class="rfarr" data-rfgo="1" aria-label="Earlier week"${rfIdx>=W.length-1?' disabled':''}>${chev('m15 6-6 6 6 6')}</button>`
       +`<span class="rfwd${act?' rfcl':''}">${act?'This week · ':''}${fmtRange(a0,weekEnd(a0))}</span>`
       +`<button class="rfarr" data-rfgo="-1" aria-label="Later week"${rfIdx===0?' disabled':''}>${chev('m9 6 6 6-6 6')}</button></div>`
-      +`<span class="rfww">${esc(w.focus)}</span>`
-      +(act?rfBody(w,true):(w.summary?`<div class="rfrs"><span class="rfsl">AI summary</span><p>${esc(w.summary)}</p></div>`:`<p class="rfsx2">${esc((rfBlocks(w.reflection||w.liveRefl)[0]||{x:''}).x)}</p>`)
-        +`<div class="rfacts"><button class="rfmore2" data-rfread>Read the week${n?` · ${n} ${n===1?'entry':'entries'}`:''}</button>${aw?`<button class="rfmore2" data-rfgo="-99">This week</button>`:''}</div>`)+`</div>`}
+      +`<span class="rfww">${esc(w.focus)}</span>`;
+    // the card always fits above the mic: one text block that clamps to the room left, links to the rest
+    if(act){const ents=rfEnts(w.liveRefl),e=ents[ents.length-1],today=DOWL[new Date().getDay()];
+      cur+=(w.verse||w.verseRef?`<p class="rfverse">${w.verse?`<span class="rfvt">${esc(w.verse)}</span>`:''}${w.verseRef?`<span class="rfvr">${esc(w.verseRef)}</span>`:''}</p>`:'')
+        +`<div class="rffit" id="rfFitBox">${e?`<button class="rfent rf1e" data-ri="${e.i}">${e.d?`<span class="rfet">${e.d===today?'Today':esc(e.d)} · ${esc(e.t)}</span>`:''}<span class="rfex" id="rfClampTx">${esc(e.x)}</span></button>`:`<p class="rfnone">Nothing yet this week.</p>`}</div>`
+        +`<div class="rfacts">${n>1?`<button class="rfmore2" data-rfread>All ${n} entries ›</button>`:'<span></span>'}<button class="rflink" data-rfw>${ico('pen')}Write</button></div>`}
+    else{const t=w.summary||(rfBlocks(w.reflection||w.liveRefl)[0]||{x:''}).x;
+      cur+=`<div class="rffit" id="rfFitBox">${w.summary?`<span class="rfsl">AI summary</span>`:''}<p class="rfex rfsumx" id="rfClampTx">${esc(t)}</p></div>`
+        +`<div class="rfacts"><button class="rfmore2" data-rfread>Read the week${n?` · ${n} ${n===1?'entry':'entries'}`:''} ›</button>${aw?`<button class="rfmore2" data-rfgo="-99">This week</button>`:''}</div>`}
+    cur+=`</div>`}
   // Journal is about this week; earlier weeks live one tap away
   const html=cur;
   el.innerHTML=`<div class="rfscroll" id="rfScroll">${html||'<p class="rfnone">Nothing yet.</p>'}</div>`;
@@ -2231,7 +2249,7 @@ function rfRender(){const el=$('rfWeek');if(!el)return;const aw=D.weeks.find(w=>
   if($('rfEarl'))$('rfEarl').onclick=()=>{haptic();const o=$('rfL');o.hidden=false;o.scrollTop=0;requestAnimationFrame(()=>o.classList.add('on'))};
   el.querySelectorAll('[data-rfv]').forEach(b=>b.onclick=()=>openVision(D.weeks.find(w=>w.id===b.dataset.rfv),true));
   el.querySelectorAll('[data-rfall]').forEach(b=>b.onclick=()=>{rfAll=!rfAll;haptic();rfRender()});
-  if(aw){el.querySelectorAll('[data-ri]').forEach(b=>{rfHold(b,()=>rfMenu(aw,+b.dataset.ri));b.addEventListener('click',()=>{if(b.dataset.held){delete b.dataset.held;return}const x=b.querySelector('.rfex');if(b.classList.contains('rfclamp')&&x.scrollHeight>x.clientHeight+2){b.classList.remove('rfclamp');haptic()}})});el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
+  if(aw){el.querySelectorAll('[data-ri]').forEach(b=>{rfHold(b,()=>rfMenu(aw,+b.dataset.ri));b.addEventListener('click',()=>{if(b.dataset.held){delete b.dataset.held;return}haptic();rfOpenWeek(aw)})});el.querySelectorAll('[data-rfw]').forEach(b=>b.onclick=()=>{if(VC.st==='idle'){haptic();openJournal(aw,true)}})}
   rfFit()}
 // an earlier week on its own page: word, verse, AI summary, then everything said that week
 function rfOpenWeek(w){if(!w)return;const s0=new Date(w.sealedAt),o=$('rfR');$('rfBack').lastChild.textContent=$('rfL').hidden?'Journal':'Earlier weeks';
