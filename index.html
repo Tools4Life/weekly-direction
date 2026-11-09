@@ -611,10 +611,9 @@ nav.bar{will-change:transform;-webkit-backface-visibility:hidden;backface-visibi
    which floats the tab bar about half that amount above the real bottom edge */
 nav.bar{bottom:calc(-1 * var(--barfix,0px))}
 /* same iOS home-screen gap: the glow, the recording space and the mic dock reach the real bottom edge */
-.vcglow{bottom:calc(-2 * var(--barfix,0px))!important}
-body.vcfon .vcglow{top:0}
-.vcf{bottom:calc(-2 * var(--barfix,0px))!important}
-.vcf .vcforb{padding-bottom:calc(var(--sb) + 44px + 2 * var(--barfix,0px))}
+/* recording space + glow: sized to the phone's real screen height (--scrh), so they reach the bottom edge even when iOS reports a shorter page */
+.vcf{top:0!important;bottom:auto!important;height:max(100%,var(--scrh,100%))}
+body.vcfon .vcglow{top:0!important;bottom:auto!important;height:max(100%,var(--scrh,100%))!important}
 .vcdock{bottom:calc(-1 * var(--barfix,0px))!important}
 
 /* no double-tap anything: no zoom, no word selection, no callout; typing fields still work normally */
@@ -2399,7 +2398,8 @@ function renderSettingsAccount(){if(!$('acEmail'))return;$('acEmail').textConten
 
 (function(){const fix=()=>{const sa=navigator.standalone||matchMedia('(display-mode: standalone)').matches,portrait=innerHeight>innerWidth;
   const sh=portrait?Math.max(screen.height,screen.width):Math.min(screen.height,screen.width),gap=sa?sh-innerHeight:0;
-  document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap/2:0)+'px')};
+  document.documentElement.style.setProperty('--barfix',(gap>0&&gap<80?gap/2:0)+'px');
+  document.documentElement.style.setProperty('--scrh',(sa?sh:innerHeight)+'px')};
   fix();addEventListener('resize',fix);visualViewport&&visualViewport.addEventListener('resize',fix);setTimeout(fix,500)})();
 function renderSettings(){renderSettingsAccount();renderPush();const s=D.settings,act=document.activeElement;
   $('stSnd').checked=s.sounds!==false;
