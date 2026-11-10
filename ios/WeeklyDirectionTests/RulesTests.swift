@@ -129,6 +129,13 @@ final class RulesTests: XCTestCase {
         let third = Growth.sphere(Defaults.revQs[2], store.settings)
         XCTAssertEqual(Growth.sphere(Defaults.revQs[0], store.settings), Growth.anchorSphere)
         XCTAssertNotNil(g.rows.first { $0.sphere == third })
+        // one sphere over time: oldest first, with what he said; worse, same, better
+        let p = Growth.points(store.weeks, Growth.anchorSphere)
+        XCTAssertEqual(p.map(\.v), [-1, 0, 1])
+        XCTAssertEqual(p.last?.said.first, "I caught it twice before it went anywhere.")
+        XCTAssertEqual(Growth.standing(p).better, 1)
+        XCTAssertEqual(Growth.standing(p).of, 3)
+        XCTAssertEqual(Growth.holding(p), 2)
     }
 
     func testJournalBlocksAndEdits() {

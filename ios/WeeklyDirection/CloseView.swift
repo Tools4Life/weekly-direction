@@ -17,6 +17,8 @@ struct CloseSheet: View {
     @State private var rating = false
     @State private var ratings: [Int?] = []
     @State private var quotes: [String] = []
+    /// what was proposed for each question: the sentence is only kept with a rating he left as proposed
+    @State private var proposed: [Int?] = []
     @State private var asked = false
     @State private var reading = false
 
@@ -34,7 +36,7 @@ struct CloseSheet: View {
             reading = false
             guard let r else { return }
             // a rating he already tapped while it was reading stays his
-            for i in ratings.indices where ratings[i] == nil { ratings[i] = r[i].v; quotes[i] = r[i].quote }
+            for i in ratings.indices where ratings[i] == nil { ratings[i] = r[i].v; quotes[i] = r[i].quote; proposed[i] = r[i].v }
         }
     }
 
@@ -150,6 +152,7 @@ struct CloseSheet: View {
                     questions = Logic.qsOf(w, store.settings)
                     ratings = Array(repeating: nil, count: questions.count)
                     quotes = Array(repeating: "", count: questions.count)
+                    proposed = Array(repeating: nil, count: questions.count)
                     if router.rateOnOpen, store.isMock {      // screenshots: the step with a proposal in place
                         router.rateOnOpen = false; asked = true; rating = true
                         ratings = [1, 0, nil]; quotes = ["I caught it twice before it went anywhere.", "Worship was freer Sunday; midweek my mind was on the job.", ""]
@@ -180,7 +183,13 @@ struct CloseSheet: View {
         let st = Logic.weekStats(cur, store.settings), text = joined()
         var fields: [String: Any] = ["status": "closed", "closedAt": Now.ms, "percentage": st.pct, "reflection": text]
         // only the questions he rated; a week with none gets no `growth` field at all
-        let rated = zip(questions, ratings).compactMap { q, v in v.map { ["q": q, "v": $0, "s": Growth.sphere(q, store.settings)] as [String: Any] } }
+        let rated: [[String: Any]] = questions.indices.compactMap { i in
+            guard let v = ratings[i] else { return nil }
+            var r: [String: Any] = ["q": questions[i], "v": v, "s": Growth.sphere(questions[i], store.settings)]
+            // his own sentence, kept so the sphere's page can show growth in his words
+            if proposed[i] == v, !quotes[i].isEmpty { r["t"] = quotes[i] }
+            return r
+        }
         if !rated.isEmpty { fields["growth"] = rated }
         store.patchWeek(cur, fields)
         Haptic.success()

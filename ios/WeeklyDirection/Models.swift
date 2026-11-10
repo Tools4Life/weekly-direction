@@ -68,7 +68,8 @@ struct Week: Identifiable, Equatable {
     /// ratings confirmed at the review: one per Saturday question he spoke to (iOS only; older weeks have none)
     let growth: [Rating]
     /// `s` is the sphere the question belonged to when it was rated (its group in the question library)
-    struct Rating: Equatable { let q: String; let v: Int; let s: String }
+    /// `t` is the sentence of his the rating rested on, when the proposal he confirmed came with one
+    struct Rating: Equatable { let q: String; let v: Int; let s: String; var t: String = "" }
     let raw: [String: Any]
 
     var isActive: Bool { status == "active" }
@@ -100,7 +101,7 @@ struct Week: Identifiable, Equatable {
         summary = strOf(d["summary"])
         growth = (d["growth"] as? [[String: Any]] ?? []).compactMap { r in
             guard let q = r["q"] as? String, let v = intOf(r["v"]), (-1...1).contains(v) else { return nil }
-            return Rating(q: q, v: v, s: strOf(r["s"]) ?? q)
+            return Rating(q: q, v: v, s: strOf(r["s"]) ?? q, t: strOf(r["t"]) ?? "")
         }
         raw = d
     }

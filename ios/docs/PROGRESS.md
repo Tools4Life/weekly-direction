@@ -6,6 +6,12 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Sphere page (Nov 10, after 0.2 (3))
+- Tap a row in Progress → Growth to open the sphere: "Better in N of the last M weeks", weeks without slipping, a running line (better steps up, worse steps down), and "In your words": the sentence each rating rested on, newest first.
+- Each rating now also saves `t`, the sentence, but only when he kept the proposed rating (a rating he changed has no sentence that fits). Ratings made by hand, and every week closed before this, have none.
+- Journal: "Write" is "+ NEW" on the section line, same as Prayer.
+- Verified: 15 tests, shot `sphere`. Not verified: on the phone; real sentences (they need the undeployed `tidy` function).
+
 ## After 0.2 (2) (Nov 10)
 - Sounds (`Sound.swift`, the web's tones as short sine notes): a rising note when a timer starts, a two-note chime when a habit is finished, four rising notes when the day is kept or a week is closed. Follows the Sounds setting and the silent switch; never plays while the mic is open.
 - Practice mode (Settings → Practice mode): the app switches to the sample week on a Saturday evening so the review, rating, planning and sealing can be tried. The account's listeners are detached, every write stays in memory (`Store.isMock`), widgets and reminders are left alone, and leaving reloads the real data. Voice and AI functions still work in it. Recordings made in practice never reach the real journal, and real ones waiting on the phone are not sent during practice. His own settings (theme, questions) stay.

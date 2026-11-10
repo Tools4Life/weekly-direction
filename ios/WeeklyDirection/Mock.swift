@@ -55,7 +55,12 @@ enum Mock {
             var w: [String: Any] = ["id": id, "status": "closed", "focus": focus, "sealedAt": ms(id, "17:30"),
                                     "closedAt": ms(id, "17:30") + 7 * 864e5, "percentage": pct, "commitments": habits, "reflection": refl]
             if let summary { w["summary"] = summary }
-            let rated = zip(Defaults.revQs, growth).compactMap { q, v in v.map { ["q": q, "v": $0, "s": Growth.sphere(q, Settings()) ] as [String: Any] } }
+            let said = [1: ["I caught it twice before it went anywhere.", "Worship was freer than it has been in a month.", "I was home by six most nights."],
+                        0: ["About the same as last week, honestly.", "Sunday was good; midweek my mind was on the job.", "At home, yes. Mornings with God were rushed."],
+                        -1: ["Thursday night got away from me again.", "I could not settle my mind at all.", "I was on the phone through dinner twice."]]
+            let rated = zip(Defaults.revQs.indices, growth).compactMap { i, v in
+                v.map { ["q": Defaults.revQs[i], "v": $0, "s": Growth.sphere(Defaults.revQs[i], Settings()), "t": said[$0]![i]] as [String: Any] }
+            }
             if !rated.isEmpty { w["growth"] = rated }
             return w
         }

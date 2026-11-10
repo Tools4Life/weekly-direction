@@ -35,6 +35,8 @@ final class Router: ObservableObject {
             half = false
         }
     }
+    /// `-OpenScreen sphere`: open one sphere's page (screenshots)
+    var openSphere: String?
     /// `-OpenScreen close-rate`: open the review on its rating step (screenshots)
     var rateOnOpen = false
     /// the review was opened from the mic: start listening as it opens
@@ -91,6 +93,7 @@ final class Router: ObservableObject {
         case "progress": tab = "progress"
         case "progress-habits": tab = "progress"; progressView = "habits"
         case "progress-growth": tab = "progress"; progressView = "growth"
+        case "sphere": tab = "progress"; progressView = "growth"; openSphere = Growth.anchorSphere
         case "close-rate": if let aw { rateOnOpen = true; sheet = .close(aw.id) }
         case "stats": tab = "progress"; if let aw { cover = .stats(aw.id) }
         case "stats-all": tab = "progress"; cover = .stats(nil)
