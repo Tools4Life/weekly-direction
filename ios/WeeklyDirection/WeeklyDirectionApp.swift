@@ -35,6 +35,8 @@ struct RootView: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
     @EnvironmentObject var recorder: Recorder
+    /// the style being tried (Settings > Appearance): changing it redraws every screen
+    @AppStorage(Theme.styleKey) private var style = 0
 
     /// appearance: dark (default), light, or follow the phone
     private var scheme: ColorScheme? {
@@ -53,7 +55,7 @@ struct RootView: View {
             } else if !store.ready {
                 ProgressView().tint(Theme.mu)
             } else {
-                MainTabs()
+                MainTabs().id(style)
             }
         }
         .preferredColorScheme(scheme)

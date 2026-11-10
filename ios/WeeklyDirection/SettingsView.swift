@@ -4,6 +4,7 @@ import SwiftUI
 /// notifications on this phone, export.
 struct SettingsView: View {
     @EnvironmentObject var store: Store
+    @AppStorage(Theme.styleKey) private var style = 0
     @EnvironmentObject var router: Router
     @EnvironmentObject var notifier: Notifier
     @Environment(\.dismiss) private var dismiss
@@ -86,6 +87,25 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain).padding(16)
         }
+        group {
+            // a look being tried on the phone: saved on this phone only, never in the account
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Style (trying it out)").font(Theme.ui(14)).foregroundStyle(Theme.mu)
+                HStack(spacing: 6) {
+                    ForEach([(0, "Current"), (1, "Flat"), (2, "Flat + caps")], id: \.0) { t in
+                        let on = style == t.0
+                        Button(t.1) { Haptic.tick(); style = t.0 }
+                            .font(Theme.ui(16)).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
+                            .frame(maxWidth: .infinity).frame(height: 40)
+                            .background(on ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous).stroke(on ? Color.clear : Theme.line, lineWidth: 1))
+                    }
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(16)
+        }
+        .padding(.top, 8)
         group {
             toggle("Sounds", "Soft tones when you start a timer, finish a habit or keep the day. Silent when the phone is on silent.",
                    Binding(get: { store.settings.sounds }, set: { store.setSettings(["sounds": $0]) }))

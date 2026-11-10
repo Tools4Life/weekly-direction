@@ -7,6 +7,7 @@
 - Type scale down everywhere: screen titles 34 (focus word on This Week 40), rows 16, descriptions 14, labels 12, stats numbers a step smaller. Journal entry text stays 18.
 - Journal: card shows the latest three entries (latest in full, older shortened); week page has quiet italic times and roomier lines; new-entry screen has a placeholder, this week's questions as read-only prompts, and keeps an unfinished entry on the phone (UserDefaults `entryDraft.<weekId>`, never Firestore).
 - Not verified: anything on the phone; the kept-draft path (sample-data mode skips it); older entries on the card clamp to one line in the simulator although two are allowed.
+- Flat style trial: Settings > Appearance > Style (Current / Flat / Flat + caps), saved on the phone only (UserDefaults `MockStyle`), redraws live. A design finding Eddie is trying in hand, not the approved look; remove the switch once he decides. Live switching itself is not verified (shots used the launch argument).
 - Previous state: run DAY-2026-11-09 DONE.
 
 ## Run DAY-2026-11-09 (see docs/runs/DAY-2026-11-09.md)

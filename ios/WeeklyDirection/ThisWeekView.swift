@@ -249,7 +249,7 @@ struct DaySquare: View {
     var radius: CGFloat = 8
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Theme.r(radius), style: .continuous)
         ZStack {
             if mark == "on" { shape.fill(Theme.ac) }
             else if mark == "drift" { shape.fill(Color(hex: 0xF2EFEA)) }
