@@ -23,6 +23,8 @@ DEST=export; [ "$MODE" = "upload" ] && DEST=upload
 sed "s/DESTINATION/$DEST/" scripts/ExportOptions.plist > "$OUT/ExportOptions.plist"
 echo "$DEST…"
 xcodebuild -exportArchive -archivePath "$OUT/WeeklyDirection.xcarchive" -exportPath "$OUT/export" \
-  -exportOptionsPlist "$OUT/ExportOptions.plist" -allowProvisioningUpdates 2>&1 | grep -E "error|Error|EXPORT|Upload|upload" || true
+  -exportOptionsPlist "$OUT/ExportOptions.plist" -allowProvisioningUpdates > "$OUT/export.log" 2>&1 || true
+grep -E "error|Error|EXPORT|Upload|upload|App record" "$OUT/export.log" || true
+grep -q "EXPORT SUCCEEDED" "$OUT/export.log" || { echo "FAILED: build $BUILD was NOT $([ "$MODE" = upload ] && echo uploaded || echo exported) (full log: $OUT/export.log)"; exit 1; }
 if [ "$MODE" = "upload" ]; then echo "done: build $BUILD sent; it appears in TestFlight after Apple finishes processing"
 else ls -la "$OUT/export"/*.ipa && echo "done: build $BUILD exported, nothing uploaded"; fi
