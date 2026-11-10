@@ -1,13 +1,14 @@
 # Weekly Direction iOS — progress log
 
-**Current: POLISH-2026-11-09 type and journal pass DONE on the simulator; waiting for Eddie's device test and his call on the flat / condensed-caps direction (mockup first).** Nothing verified on the phone, nothing pushed (no git credentials in the Claude shell).
+**Current: POLISH-2026-11-09 type and journal pass DONE on the simulator; caps font applied to names, rows and buttons; waiting for Eddie's device test.** Nothing verified on the phone, nothing pushed (no git credentials in the Claude shell).
 
 ## Polish pass (Nov 9, evening)
 - Habit names now match the web: Barlow Regular 16.5, no extra tracking (was Medium 18 + tracking); meta Barlow Condensed 13.
 - Type scale down everywhere: screen titles 34 (focus word on This Week 40), rows 16, descriptions 14, labels 12, stats numbers a step smaller. Journal entry text stays 18.
 - Journal: card shows the latest three entries (latest in full, older shortened); week page has quiet italic times and roomier lines; new-entry screen has a placeholder, this week's questions as read-only prompts, and keeps an unfinished entry on the phone (UserDefaults `entryDraft.<weekId>`, never Firestore).
 - Not verified: anything on the phone; the kept-draft path (sample-data mode skips it); older entries on the card clamp to one line in the simulator although two are allowed.
-- Flat style trial: Settings > Appearance > Style (Current / Flat / Flat + caps), saved on the phone only (UserDefaults `MockStyle`), redraws live. A design finding Eddie is trying in hand, not the approved look; remove the switch once he decides. Live switching itself is not verified (shots used the launch argument).
+- Flat style: Eddie tried the idea and said "keep original" (Nov 9). The Settings switch is removed; the preview stays behind `-MockStyle 1/2` in sample-data mode only.
+- Caps font (Eddie, Nov 9): habit names, row titles, buttons and controls use Barlow Condensed SemiBold caps (`.caps()` in Theme.swift). Page titles and journal text keep the serif; sentences, descriptions, typed text and the account email keep Barlow.
 - Previous state: run DAY-2026-11-09 DONE.
 
 ## Run DAY-2026-11-09 (see docs/runs/DAY-2026-11-09.md)

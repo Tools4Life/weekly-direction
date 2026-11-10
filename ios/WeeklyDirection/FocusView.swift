@@ -42,7 +42,7 @@ struct FocusView: View {
                 Spacer()
                 HStack(spacing: 8) {
                     Ico(name: c.icon, size: 18).foregroundStyle(Theme.ac)
-                    Text(c.name).font(Theme.ui(16.5)).foregroundStyle(Color(hex: 0xF7F4EF))
+                    Text(c.name).rowTitle().foregroundStyle(Color(hex: 0xF7F4EF))
                 }
                 Dial(span: span, minutesLeft: left / 60).frame(width: 300, height: 300)
                 Text(left > 0 ? Fmt.mmss(left) : "Done")

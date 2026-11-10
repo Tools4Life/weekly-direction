@@ -231,7 +231,7 @@ struct HabitBar: View {
             HStack(spacing: 10) {
                 Ico(name: c.icon, size: 17).foregroundStyle(Theme.tx)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(c.name).font(Theme.ui(16.5)).foregroundStyle(Theme.tx).lineLimit(1)
+                    Text(c.name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
                     Text(sub).font(Theme.label(13)).tracking(0.9).foregroundStyle(Theme.mu2).lineLimit(1)
                 }
                 Spacer(minLength: 6)

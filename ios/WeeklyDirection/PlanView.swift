@@ -34,7 +34,7 @@ struct PlanView: View {
             HStack {
                 Button { leave() } label: {
                     HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("Later") }
-                        .font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                        .caps(16).foregroundStyle(Theme.mu)
                 }
                 .buttonStyle(.plain)
                 Spacer()
@@ -152,7 +152,7 @@ struct PlanView: View {
                 if let c = Commitment(raw) {
                     HStack(spacing: 12) {
                         Ico(name: c.icon, size: 17).foregroundStyle(Theme.mu)
-                        Text(c.name).font(Theme.ui(16)).foregroundStyle(Theme.tx).lineLimit(1).layoutPriority(1)
+                        Text(c.name).caps(16).foregroundStyle(Theme.tx).lineLimit(1).layoutPriority(1)
                         Spacer(minLength: 6)
                         Text(c.timeLabel()).font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1)
                         Button { tray.remove(at: i); saveDraft() } label: {
@@ -372,7 +372,7 @@ struct ChipSheet: View {
                 timeRow("Start by", $by).padding(.top, 20)
                 if days != "wd" { timeRow("Weekends", $byWe).padding(.top, 10) }
                 HStack {
-                    Text("Minutes (timed habit)").font(Theme.ui(16)).foregroundStyle(Theme.tx)
+                    Text("Minutes (timed habit)").caps(16).foregroundStyle(Theme.tx)
                     Spacer()
                     TextField("0", text: $minutes).keyboardType(.numberPad).multilineTextAlignment(.trailing).font(Theme.ui(16)).foregroundStyle(Theme.tx).frame(width: 70)
                 }
@@ -419,7 +419,7 @@ struct ChipSheet: View {
 
     private func timeRow(_ label: String, _ t: Binding<Date?>) -> some View {
         HStack {
-            Text(label).font(Theme.ui(16)).foregroundStyle(Theme.tx)
+            Text(label).caps(16).foregroundStyle(Theme.tx)
             Spacer()
             if let v = t.wrappedValue {
                 DatePicker("", selection: Binding(get: { v }, set: { t.wrappedValue = $0 }), displayedComponents: .hourAndMinute).labelsHidden().tint(Theme.ac)
@@ -440,7 +440,7 @@ struct ChipSheet: View {
                 Button("Remove from library") { confirmRemove = true }.font(Theme.ui(15)).foregroundStyle(Theme.danger)
             case .new:
                 primary("Save to library and add") { save("lib") }
-                Button("This week only") { save("week") }.font(Theme.ui(16)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 48)
+                Button("This week only") { save("week") }.caps(16).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 48)
                     .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1))
             }
         }
@@ -448,7 +448,7 @@ struct ChipSheet: View {
     }
     private func primary(_ t: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(t).font(Theme.ui(16, .semibold)).foregroundStyle(Color(hex: 0x0B0B0C)).frame(maxWidth: .infinity).frame(height: 50)
+            Text(t).caps(16).foregroundStyle(Color(hex: 0x0B0B0C)).frame(maxWidth: .infinity).frame(height: 50)
                 .background(Color(hex: 0xF7F4EF), in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
         }
     }
@@ -500,7 +500,7 @@ struct QuestionPicker: View {
                 HStack {
                     Text("Pick two questions · \(picked.count)/2").font(Theme.serif(20)).foregroundStyle(Theme.tx)
                     Spacer()
-                    Button("Done") { dismiss() }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
+                    Button("Done") { dismiss() }.caps(16).foregroundStyle(Theme.ac)
                 }
                 Eyebrow(text: "Anchor · every week", color: Theme.mu, size: 12).padding(.top, 18)
                 Text(a).font(Theme.serif(17)).foregroundStyle(Theme.tx).padding(.top, 6)

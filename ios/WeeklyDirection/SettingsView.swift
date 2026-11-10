@@ -4,7 +4,6 @@ import SwiftUI
 /// notifications on this phone, export.
 struct SettingsView: View {
     @EnvironmentObject var store: Store
-    @AppStorage(Theme.styleKey) private var style = 0
     @EnvironmentObject var router: Router
     @EnvironmentObject var notifier: Notifier
     @Environment(\.dismiss) private var dismiss
@@ -23,11 +22,11 @@ struct SettingsView: View {
             HStack {
                 Button { commit(); dismiss() } label: {
                     HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("This week") }
-                        .font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                        .caps(16).foregroundStyle(Theme.mu)
                 }
                 .buttonStyle(.plain)
                 Spacer()
-                if focus != nil { Button("Done") { focus = nil }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac) }
+                if focus != nil { Button("Done") { focus = nil }.caps(16).foregroundStyle(Theme.ac) }
             }
             .padding(.horizontal, 24).frame(height: 52)
             ScrollView {
@@ -61,7 +60,7 @@ struct SettingsView: View {
                 Text(store.isMock ? "Preview data" : "Synced to your account").font(Theme.ui(14)).foregroundStyle(Theme.mu)
             } }
             divider
-            Button { confirmSignOut = true } label: { row { Text("Sign out on this device").font(Theme.ui(16)).foregroundStyle(Theme.tx) } }.buttonStyle(.plain)
+            Button { confirmSignOut = true } label: { row { Text("Sign out on this device").caps(16).foregroundStyle(Theme.tx) } }.buttonStyle(.plain)
         }
         if let aw = store.activeWeek {
             label("This week")
@@ -79,7 +78,7 @@ struct SettingsView: View {
                 ForEach([("dark", "Dark"), ("light", "Light"), ("auto", "Auto")], id: \.0) { t in
                     let on = store.settings.theme == t.0
                     Button(t.1) { Haptic.tick(); store.setSettings(["theme": t.0]) }
-                        .font(Theme.ui(16)).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
+                        .caps(16).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
                         .frame(maxWidth: .infinity).frame(height: 40)
                         .background(on ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous).stroke(on ? Color.clear : Theme.line, lineWidth: 1))
@@ -87,25 +86,6 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain).padding(16)
         }
-        group {
-            // a look being tried on the phone: saved on this phone only, never in the account
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Style (trying it out)").font(Theme.ui(14)).foregroundStyle(Theme.mu)
-                HStack(spacing: 6) {
-                    ForEach([(0, "Current"), (1, "Flat"), (2, "Flat + caps")], id: \.0) { t in
-                        let on = style == t.0
-                        Button(t.1) { Haptic.tick(); style = t.0 }
-                            .font(Theme.ui(16)).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
-                            .frame(maxWidth: .infinity).frame(height: 40)
-                            .background(on ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous).stroke(on ? Color.clear : Theme.line, lineWidth: 1))
-                    }
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(16)
-        }
-        .padding(.top, 8)
         group {
             toggle("Sounds", "Soft tones when you start a timer, finish a habit or keep the day. Silent when the phone is on silent.",
                    Binding(get: { store.settings.sounds }, set: { store.setSettings(["sounds": $0]) }))
@@ -145,7 +125,7 @@ struct SettingsView: View {
                 titled("Export my data", "A copy of every week, habit, reflection, prayer and setting, as one file you can keep.")
                 Spacer()
                 Button("Export") { exportURL = export() }
-                    .font(Theme.ui(16, .semibold)).foregroundStyle(Theme.tx).padding(.horizontal, 16).frame(height: 40)
+                    .caps(16).foregroundStyle(Theme.tx).padding(.horizontal, 16).frame(height: 40)
                     .overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, lineWidth: 1)).buttonStyle(.plain)
             }
             .padding(16)
@@ -158,7 +138,7 @@ struct SettingsView: View {
     private func row<V: View>(@ViewBuilder _ c: () -> V) -> some View { c().fullWidth().padding(16).contentShape(Rectangle()) }
     private func titled(_ t: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(t).font(Theme.ui(16)).foregroundStyle(Theme.tx)
+            Text(t).caps(16).foregroundStyle(Theme.tx)
             Text(sub).font(Theme.ui(14)).foregroundStyle(Theme.mu).multilineTextAlignment(.leading)
         }
     }

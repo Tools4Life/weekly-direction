@@ -26,7 +26,7 @@ struct HabitSheet: View {
                             Text(metaLine(c)).font(Theme.label(13)).tracking(1.4).foregroundStyle(Theme.mu2)
                         }
                         Spacer()
-                        Button("Done") { router.sheet = nil }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
+                        Button("Done") { router.sheet = nil }.caps(16).foregroundStyle(Theme.ac)
                     }
                     Eyebrow(text: "About", color: Theme.mu, size: 12).padding(.top, 22)
                     TextEditor(text: $about)
@@ -94,14 +94,14 @@ struct HabitSheet: View {
                         router.sheet = nil
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { router.cover = .focus(week: w.id, habit: c.id, day: k) }
                     } label: {
-                        Text("Open timer").font(Theme.ui(16, .medium)).foregroundStyle(Theme.tx)
+                        Text("Open timer").caps(16).foregroundStyle(Theme.tx)
                             .frame(maxWidth: .infinity).frame(height: 48)
                             .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }
                 Button("Mark failed") { confirmFail = true }
-                    .font(Theme.ui(16)).foregroundStyle(Theme.ac).frame(maxWidth: .infinity)
+                    .caps(16).foregroundStyle(Theme.ac).frame(maxWidth: .infinity)
                     .accessibilityIdentifier("markFailed")
             }
             .confirmationDialog("Mark \(c.name) failed for \(k == Rules.ymd(Now.date) ? "today" : "this day")? The day won’t be kept, and this can’t be undone.",

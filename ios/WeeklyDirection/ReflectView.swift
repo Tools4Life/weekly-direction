@@ -186,7 +186,7 @@ struct WeekPage: View {
                         Button(selecting ? "Cancel" : "Select") { Haptic.tick(); selecting.toggle(); picked = [] }
                     }
                 }
-                .font(Theme.ui(16)).foregroundStyle(Theme.ac)
+                .caps(16).foregroundStyle(Theme.ac)
                 .padding(.horizontal, 22).frame(height: 52)
                 ScrollView {
                     if let w = store.week(weekId) {
@@ -199,7 +199,7 @@ struct WeekPage: View {
             if selecting {
                 Button { confirmDelete = true } label: {
                     Text(picked.isEmpty ? "Delete" : "Delete \(picked.count) \(picked.count == 1 ? "entry" : "entries")")
-                        .font(Theme.ui(16, .semibold)).foregroundStyle(.white)
+                        .caps(16).foregroundStyle(.white)
                         .frame(maxWidth: .infinity).frame(height: 54)
                         .background(Theme.danger.opacity(picked.isEmpty ? 0.4 : 1), in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
                 }
@@ -348,14 +348,14 @@ struct EntryMenu: ViewModifier {
                                 .fullWidth().padding(.horizontal, 18).padding(.vertical, 16)
                                 Rectangle().fill(Theme.rule).frame(height: 1)
                                 Button("Edit") { router.entryMenu = nil; onEdit(i) }
-                                    .font(Theme.ui(17)).foregroundStyle(Theme.ac).frame(maxWidth: .infinity).frame(height: 58)
+                                    .caps(16).foregroundStyle(Theme.ac).frame(maxWidth: .infinity).frame(height: 58)
                                 Rectangle().fill(Theme.rule).frame(height: 1)
                                 Button("Delete") { target = i; confirm = true }
-                                    .font(Theme.ui(17)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity).frame(height: 58)
+                                    .caps(16).foregroundStyle(Theme.danger).frame(maxWidth: .infinity).frame(height: 58)
                             }
                             .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
                             Button("Cancel") { router.entryMenu = nil }
-                                .font(Theme.ui(17, .semibold)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 58)
+                                .caps(16).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 58)
                                 .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
                         }
                         .buttonStyle(.plain)
@@ -395,9 +395,9 @@ struct EntryEditor: View {
                 Button("Cancel") {
                     if entry == nil, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { confirmDiscard = true } else { dismiss() }
                 }
-                .font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                .caps(16).foregroundStyle(Theme.mu)
                 Spacer()
-                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
+                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.caps(16).foregroundStyle(Theme.ac)
             }
             .frame(height: 52)
             Eyebrow(text: entry == nil ? "New entry · \(Fmt.stamp(opened))" : "Edit entry" + (blk?.d.map { " · \($0), \(blk?.t ?? "")" } ?? ""),

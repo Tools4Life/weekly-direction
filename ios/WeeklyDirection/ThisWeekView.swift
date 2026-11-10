@@ -39,7 +39,7 @@ struct ThisWeekView: View {
                 .font(Theme.ui(15)).foregroundStyle(Theme.mu)
             Button { router.cover = .plan(replan: nil) } label: {
                 Text(resume ? "Resume planning" : first ? "Plan your first week" : "Plan the week")
-                    .font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
+                    .caps(16).foregroundStyle(Theme.onAc)
                     .padding(.horizontal, 22).frame(height: 50)
                     .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
             }
@@ -149,7 +149,7 @@ struct ThisWeekView: View {
         Button { router.sheet = .close(w.id) } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(due ? "Close the week" : "Weekly review").font(Theme.ui(17, .semibold)).foregroundStyle(Theme.tx)
+                    Text(due ? "Close the week" : "Weekly review").caps(16).foregroundStyle(Theme.tx)
                     Eyebrow(text: "\(Logic.weekStats(w, store.settings).pct)% \(due ? "" : "so far ")· close & plan", color: Theme.mu)
                 }
                 Spacer()

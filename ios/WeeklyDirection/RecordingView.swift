@@ -50,7 +50,7 @@ struct RecordingView: View {
         VStack(spacing: 0) {
             ZStack {
                 HStack {
-                    Button("Cancel") { recorder.cancel(); router.cover = nil }.font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                    Button("Cancel") { recorder.cancel(); router.cover = nil }.caps(16).foregroundStyle(Theme.mu)
                     Spacer()
                 }
                 Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.label(15)).tracking(1.5).monospacedDigit().foregroundStyle(Theme.mu)

@@ -13,7 +13,7 @@ struct PrayerList: View {
                     Eyebrow(text: "Your prayers", color: Theme.mu, size: 12)
                     Spacer()
                     Button { router.sheet = .prayer(nil, pinned: false) } label: {
-                        HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").font(Theme.ui(16)) }.foregroundStyle(Theme.ac)
+                        HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").caps(16) }.foregroundStyle(Theme.ac)
                     }
                     .buttonStyle(.plain)
                 }
@@ -86,9 +86,9 @@ struct PrayerSheet: View {
                     Eyebrow(text: existing.map { Fmt.date(Date(timeIntervalSince1970: $0.created / 1000)) } ?? "New prayer", color: Theme.mu2, size: 12)
                     Spacer()
                     if !editing {
-                        Button("Edit") { if pinned { confirmRevise = true } else { startEdit() } }.font(Theme.ui(16)).foregroundStyle(Theme.mu).padding(.trailing, 22)
+                        Button("Edit") { if pinned { confirmRevise = true } else { startEdit() } }.caps(16).foregroundStyle(Theme.mu).padding(.trailing, 22)
                     }
-                    Button("Done") { router.sheet = nil }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
+                    Button("Done") { router.sheet = nil }.caps(16).foregroundStyle(Theme.ac)
                 }
                 if editing { editor } else { reader }
             }

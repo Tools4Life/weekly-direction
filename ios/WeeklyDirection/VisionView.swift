@@ -87,7 +87,7 @@ struct VisionView: View {
         HStack(spacing: 14) {
             Ico(name: c.icon, size: 19).foregroundStyle(Theme.tx)
             VStack(alignment: .leading, spacing: 4) {
-                Text(c.name).font(Theme.ui(16.5)).foregroundStyle(Theme.tx)
+                Text(c.name).rowTitle().foregroundStyle(Theme.tx)
                 if !sub.isEmpty { Text(sub).font(Theme.label(13)).tracking(1.1).foregroundStyle(Theme.mu2) }
             }
         }

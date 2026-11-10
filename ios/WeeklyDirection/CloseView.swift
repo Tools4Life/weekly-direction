@@ -56,7 +56,7 @@ struct CloseSheet: View {
                     .padding(.top, 28)
                     box(text: $reflection, placeholder: "Anything else from the week?", minHeight: 96).padding(.top, 10)
                     Button { close() } label: {
-                        Text("Close the week").font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
+                        Text("Close the week").caps(16).foregroundStyle(Theme.onAc)
                             .frame(maxWidth: .infinity).frame(height: 54)
                             .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
                     }
@@ -167,12 +167,12 @@ struct ClosedMoment: View {
             }
             Spacer()
             Button { router.cover = .plan(replan: nil) } label: {
-                Text("Plan the next week").font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
+                Text("Plan the next week").caps(16).foregroundStyle(Theme.onAc)
                     .frame(maxWidth: .infinity).frame(height: 54)
                     .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
             }
             .buttonStyle(.plain)
-            Button("Later") { router.cover = nil }.font(Theme.ui(16)).foregroundStyle(Theme.mu).padding(.top, 18).padding(.bottom, 24)
+            Button("Later") { router.cover = nil }.caps(16).foregroundStyle(Theme.mu).padding(.top, 18).padding(.bottom, 24)
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

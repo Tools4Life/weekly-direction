@@ -7,11 +7,9 @@ enum Theme {
     /// "Not now" palette preview (-MockPalette focus, sample-data mode only): a design finding, not an approved theme.
     /// bg, tx and ac are sampled from the /focus page screenshot; the other tones are derived from them.
     private static let focus = Mock.enabled && UserDefaults.standard.string(forKey: "MockPalette") == "focus"
-    /// Flat style trial (Settings > Appearance > Style, or -MockStyle 1 / 2): a design finding Eddie is trying on the
-    /// phone, not yet the approved look. 0 = current; 1 = square, outlined shapes; 2 = the same plus heavy condensed
-    /// caps for titles and habit names. Kept on this phone only (UserDefaults), never in Firestore.
-    static let styleKey = "MockStyle"
-    static var style: Int { UserDefaults.standard.integer(forKey: styleKey) }
+    /// Flat style preview (-MockStyle 1 or 2, sample-data mode only): a design finding Eddie tried and turned down
+    /// (Nov 9 2026: "keep original"). 1 = square, outlined shapes; 2 = the same plus condensed caps titles.
+    static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
     static func r(_ x: CGFloat) -> CGFloat { style > 0 ? 0 : x }
     static var pill: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Capsule()) }
     static var dot: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Circle()) }
@@ -144,11 +142,13 @@ extension View {
         if Theme.style == 2 { font(.custom("BarlowCondensed-SemiBold", size: size * 1.12)).textCase(.uppercase).tracking(size * 0.03) }
         else { font(Theme.serif(size)) }
     }
-    /// habit name: the web's Barlow Regular 16.5, or condensed caps in flat style 2 (preview only)
-    @ViewBuilder func rowTitle() -> some View {
-        if Theme.style == 2 { font(.custom("BarlowCondensed-SemiBold", size: 17)).textCase(.uppercase).tracking(2.2) }
-        else { font(Theme.ui(16.5)) }
+    /// Names, rows and buttons: heavy condensed caps (Eddie, Nov 9 2026). Page titles and journal text keep the serif;
+    /// sentences and descriptions keep Barlow.
+    func caps(_ size: CGFloat = 16) -> some View {
+        font(.custom("BarlowCondensed-SemiBold", size: size)).textCase(.uppercase).tracking(size * 0.11)
     }
+    /// habit name
+    func rowTitle() -> some View { caps(17) }
     /// full-width, leading-aligned content: nothing in the app is centered in a narrow column
     func fullWidth() -> some View { frame(maxWidth: .infinity, alignment: .leading) }
 }
