@@ -92,6 +92,9 @@ struct PlanView: View {
             }
         }
         .padding(.top, 10)
+        DictateCard(title: replan != nil ? "Talk through this week" : "Plan next week",
+                    hint: "Say what you want the week to be. It’s cleaned up and added to your vision.", onText: spoken)
+            .padding(.top, 26)
         Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.top, 26)
         field {
             TextField("What do you want this week to be?", text: $thoughts, axis: .vertical)
@@ -153,6 +156,16 @@ struct PlanView: View {
         .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 10)
         .background(Theme.bg.ignoresSafeArea(edges: .bottom))
         .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
+    }
+
+    /// spoken plan: tidied, then added under what the vision already says
+    private func spoken(_ raw: String) async -> String? {
+        let tidy = await Tidy.vision(store, raw)
+        let text = tidy ?? raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cur = thoughts.trimmingCharacters(in: .whitespacesAndNewlines)
+        thoughts = cur.isEmpty ? text : cur + "\n\n" + text
+        saveDraft()
+        return tidy == nil ? Tidy.asSpoken : "Added to your vision below. Edit anything that isn’t right."
     }
 
     private func field<V: View>(stroke: Color = Theme.line, @ViewBuilder _ content: () -> V) -> some View {

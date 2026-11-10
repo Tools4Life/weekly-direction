@@ -51,4 +51,5 @@ exports.sendReminders = onSchedule({ schedule: 'every 1 minutes', region: 'us-ce
 
 exports.transcribe = require('./transcribe').transcribe;
 exports.summarize = require('./summarize').summarize;
+exports.tidy = require('./tidy').tidy;
 exports.liveToken = require('./live').liveToken;

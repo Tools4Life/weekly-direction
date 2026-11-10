@@ -108,7 +108,7 @@ struct MainTabs: View {
                 .preferredColorScheme(store.settings.theme == "light" ? .light : store.settings.theme == "auto" ? nil : .dark)
         }
         .sheet(item: $router.sheet) { s in
-            sheet(s).environmentObject(store).environmentObject(router)
+            sheet(s).environmentObject(store).environmentObject(router).environmentObject(recorder)
                 // a habit, and a prayer with nothing but its name, open as a half sheet; pull it up for more room
                 .presentationDetents({ if case .close = s { return [.large] } else { return [.medium, .large] } }(), selection: $router.detent)
                 .presentationDragIndicator(.visible)

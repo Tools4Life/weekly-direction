@@ -6,6 +6,13 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Talk first: review and plan by voice (Nov 10)
+- `DictateCard` (Dictate.swift): "Reflect on this week" on the close sheet, "Plan next week" / "Talk through this week" above the Vision field. Records with the same recorder, transcribes with `transcribe`, hands the text to the screen; nothing joins the journal and nothing is saved until the screen's own Close / Seal.
+- New Cloud Function `tidy` (`functions/tidy.js`, exported in `functions/index.js`): cleans spoken text (fillers, repeats, false starts) without summarizing; review mode places what was said under the Saturday questions (`answers`, `other`). **Not deployed**: Eddie runs `firebase deploy --only functions:tidy`. Until then the app falls back to the words as spoken and says so.
+- Review: answers are added to what is already typed; `other` goes under Reflection. Plan: tidied text is appended to the vision and the draft saves as usual.
+- Not built: AI suggesting habits or a focus word (Eddie was unsure he needs it).
+- Verified: simulator shots `close`, `plan` (idle card only), 13 tests, `node --check` on the function. Not verified: recording, transcription, the tidy function's output, anything on the phone.
+
 ## Edit / plan the week restyle (Nov 10)
 - Layout only; the draft, seal and field-level writes are untouched. Serif page title ("Edit the week" / "Plan the week") under an accent eyebrow. Order is now word, verse, vision, habits, Saturday questions, week started (vision used to be last).
 - Verse is one card: the words in italic, the reference under them. Habit rows show the time under the name (it was cut off). Library chips use the caps font. Questions are one card. Week started is one row.

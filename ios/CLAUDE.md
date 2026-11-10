@@ -47,6 +47,10 @@ Small steps, commit after each, keep `docs/PROGRESS.md` current, run file in `do
 Every report shows the simulator shot next to the reference, says what was not verified, and ends with
 "NEXT ACTION FOR EDDIE: …". Never claim something works on the device until Eddie has tested it.
 
+## Voice in plan and review (Nov 10 2026)
+`DictateCard` + `Tidy` (Dictate.swift) and `Recorder.startDictation / finishDictation`. Cloud Function `tidy` takes
+`{mode: "vision", text}` → `{text}` or `{mode: "review", text, questions}` → `{answers, other}`. It must clean, never summarize.
+
 ## Known pitfalls
 - A failing XCTest assertion hangs (XCTest stalls collecting the failure's call stack) instead of printing. `scripts/test.sh`
   caps each test at 60 s; a test that "exceeded execution time allowance" is a failed assertion: print the actual values.

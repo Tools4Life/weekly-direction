@@ -5,6 +5,7 @@ import SwiftUI
 struct VisionView: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
+    @EnvironmentObject var recorder: Recorder
     @Environment(\.dismiss) private var dismiss
     @State private var replan: SettingsView.PlanRef?
     @State var weekId: String
@@ -43,7 +44,7 @@ struct VisionView: View {
                 .accessibilityIdentifier("editWeek")
             }
         }
-        .fullScreenCover(item: $replan) { r in PlanView(replanId: r.id).environmentObject(store).environmentObject(router) }
+        .fullScreenCover(item: $replan) { r in PlanView(replanId: r.id).environmentObject(store).environmentObject(router).environmentObject(recorder) }
         .background(Theme.bg.ignoresSafeArea())
         .gesture(DragGesture(minimumDistance: 40).onEnded { g in
             guard log, abs(g.translation.width) > 60, abs(g.translation.width) > abs(g.translation.height) * 1.6 else { return }

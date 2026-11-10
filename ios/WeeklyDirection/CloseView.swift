@@ -11,6 +11,23 @@ struct CloseSheet: View {
     @State private var reflection = ""
     @State private var loaded = false
 
+    /// spoken review: tidied and placed under the questions it answers; typed answers already there are kept
+    private func spoken(_ raw: String) async -> String? {
+        func add(_ old: String, _ new: String) -> String {
+            let o = old.trimmingCharacters(in: .whitespacesAndNewlines)
+            return new.isEmpty ? old : o.isEmpty ? new : o + " " + new
+        }
+        if let r = await Tidy.review(store, raw, questions) {
+            for i in answers.indices { answers[i] = add(answers[i], r.answers[i]) }
+            if !r.other.isEmpty { reflection = reflection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? r.other : reflection + "\n\n" + r.other }
+            let n = r.answers.filter { !$0.isEmpty }.count
+            return n == 0 ? "Added under Reflection. Read it over before you close." : "Filled in \(n) of \(questions.count). Read them over before you close."
+        }
+        let text = Tidy.oneLine(raw)
+        if answers.isEmpty { reflection = reflection.isEmpty ? text : reflection + "\n\n" + text } else { answers[0] = add(answers[0], text) }
+        return Tidy.asSpoken
+    }
+
     var body: some View {
         ScrollView {
             if let w = store.week(weekId) {
@@ -44,6 +61,8 @@ struct CloseSheet: View {
                         Eyebrow(text: "Caffeine next week", color: Theme.mu, size: 12).padding(.top, 22)
                         Text(lim > 0 ? "Starts at \(lim) mg · AM \(sp.am) · PM \(sp.pm)" : "Caffeine-free").font(Theme.ui(15)).foregroundStyle(Theme.tx).padding(.top, 6)
                     }
+                    DictateCard(title: "Reflect on this week", hint: "Talk it through. Your words fill in the answers below.", onText: spoken)
+                        .padding(.top, 26)
                     ForEach(Array(questions.enumerated()), id: \.offset) { i, q in
                         Text(q).font(Theme.serif(18)).lineSpacing(5).foregroundStyle(Theme.tx).padding(.top, 24)
                         box(text: Binding(get: { i < answers.count ? answers[i] : "" }, set: { if i < answers.count { answers[i] = $0 } }), placeholder: "Answer", minHeight: 72)

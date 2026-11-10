@@ -143,7 +143,57 @@ final class Recorder: NSObject, ObservableObject {
         stop()
     }
 
+    // MARK: dictation into a screen (plan, review)
+
+    /// the recording in progress belongs to a screen, not the journal
+    private(set) var dictating = false
+
+    func startDictation() async -> Bool {
+        guard state == .idle, !dictating else { return false }
+        dictating = true
+        let ok = await start()
+        if !ok { dictating = false }
+        return ok
+    }
+
+    /// stops the recording and returns its text; nothing is queued or written. The transcript comes from the server;
+    /// if that fails, the words recognised on the phone are returned instead.
+    func finishDictation(cancel: Bool = false) async -> String? {
+        guard dictating else { return nil }
+        guard state == .rec, let r = recorder else { dictating = false; return nil }
+        meter?.invalidate(); meter = nil
+        stopLive()
+        let dur = Date().timeIntervalSince(startedAt), url = r.url
+        r.stop()
+        recorder = nil
+        dictating = false
+        audioQ.async { try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation) }
+        let heard = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
+        state = .idle
+        defer { try? FileManager.default.removeItem(at: url) }
+        if cancel { Haptic.tick(); return nil }
+        Haptic.micOff()
+        if dur < 1.5 { say("Too short"); return nil }
+        guard let store, !store.isMock else { return heard.isEmpty ? nil : heard }
+        do {
+            var req = URLRequest(url: Self.voiceURL)
+            req.httpMethod = "POST"
+            req.setValue("Bearer " + (try await store.token()), forHTTPHeaderField: "Authorization")
+            req.setValue("audio/mp4", forHTTPHeaderField: "Content-Type")
+            req.setValue(String(Int(dur.rounded())), forHTTPHeaderField: "X-Duration")
+            let (data, resp) = try await URLSession.shared.upload(for: req, fromFile: url)
+            guard (200..<300).contains((resp as? HTTPURLResponse)?.statusCode ?? 0) else { throw URLError(.badServerResponse) }
+            let text = (((try? JSONSerialization.jsonObject(with: data)) as? [String: Any])?["text"] as? String ?? "")
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty { return text }
+        } catch {}
+        if heard.isEmpty { say("Couldn’t reach the voice server"); return nil }
+        return heard
+    }
+
     func stop() {
+        // a dictation is ended by its own screen (`finishDictation`), never queued for the journal
+        guard !dictating else { return }
         guard state == .rec, let r = recorder else { return }
         meter?.invalidate(); meter = nil
         stopLive()

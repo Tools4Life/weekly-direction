@@ -4,6 +4,8 @@ import Charts
 /// Stats (web: openStats / openAllStats, simplified Nov 9 2026 at Eddie's request): ALL TIME | WEEK. One headline, the week
 /// as a grid, what slipped in one quiet line, each habit as a bar. A week in progress is never compared with a finished one. The week view steps through weeks with ‹ › or a swipe.
 struct StatsView: View {
+    @EnvironmentObject var router: Router
+    @EnvironmentObject var recorder: Recorder
     @EnvironmentObject var store: Store
     @Environment(\.dismiss) private var dismiss
     /// the week the Week view shows; nil opens on All time
@@ -44,7 +46,7 @@ struct StatsView: View {
             if let t = g.translation.width < 0 ? d.next : d.prev { Haptic.tick(); weekId = t.id }
         })
         .fullScreenCover(isPresented: $vision) {
-            if let w = shown { VisionView(weekId: w.id, log: true).environmentObject(store) }
+            if let w = shown { VisionView(weekId: w.id, log: true).environmentObject(store).environmentObject(router).environmentObject(recorder) }
         }
     }
 

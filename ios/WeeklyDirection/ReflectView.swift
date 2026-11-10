@@ -7,6 +7,7 @@ import SwiftUI
 struct WeekPage: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
+    @EnvironmentObject var recorder: Recorder
     @Environment(\.dismiss) private var dismiss
     /// the week on the page; swiping sideways moves to the week before or after
     @State var weekId: String
@@ -79,7 +80,7 @@ struct WeekPage: View {
         }
         .modifier(EntryMenu(onEdit: { i in editing = EditRef(id: i) }))
         .fullScreenCover(item: $editing) { e in EntryEditor(entry: e.id).environmentObject(store).environmentObject(router) }
-        .fullScreenCover(isPresented: $vision) { VisionView(weekId: weekId, log: true).environmentObject(store) }
+        .fullScreenCover(isPresented: $vision) { VisionView(weekId: weekId, log: true).environmentObject(store).environmentObject(router).environmentObject(recorder) }
     }
 
     private var ordered: [Week] { store.weeks.sorted { $0.sealedAtMs < $1.sealedAtMs } }
