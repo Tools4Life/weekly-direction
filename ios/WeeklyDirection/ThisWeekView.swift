@@ -100,7 +100,8 @@ struct ThisWeekView: View {
             if let k = x.selKey, let d = x.selDay { doses(w, k, d, locked: k != x.todayK) }
         }
         .padding(.top, 12)
-        StreakCard(info: Logic.streak(store.weeks, store.settings)).padding(.top, 34)
+        if Theme.micFirst { LatestThought(week: w).padding(.top, 14) }
+        StreakCard(info: Logic.streak(store.weeks, store.settings)).padding(.top, Theme.micFirst ? 14 : 34)
     }
 
     private func reviewDay(_ w: Week, _ x: Ctx) -> Bool {

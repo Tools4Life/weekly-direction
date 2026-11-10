@@ -10,6 +10,9 @@ enum Theme {
     /// Flat style preview (-MockStyle 1 or 2, sample-data mode only): a design finding Eddie tried and turned down
     /// (Nov 9 2026: "keep original"). 1 = square, outlined shapes; 2 = the same plus condensed caps titles.
     static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
+    /// Mic-first layout preview (-MockLayout 1, sample-data mode only): a design finding, not the approved layout.
+    /// The mic sits in the middle of the tab bar, This Week shows the latest thought, Reflect is a plain journal list.
+    static let micFirst: Bool = Mock.enabled && UserDefaults.standard.integer(forKey: "MockLayout") == 1
     static func r(_ x: CGFloat) -> CGFloat { style > 0 ? 0 : x }
     static var pill: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Capsule()) }
     static var dot: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Circle()) }

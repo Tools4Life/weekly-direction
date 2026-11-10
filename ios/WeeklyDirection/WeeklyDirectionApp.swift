@@ -82,7 +82,13 @@ struct MainTabs: View {
         VStack(spacing: 0) {
             ZStack {
                 switch router.tab {
-                case "reflect": ReflectView()
+                case "reflect": if Theme.micFirst { JournalList() } else { ReflectView() }
+                case "prayer":
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("Prayer").font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.horizontal, 24).padding(.top, 20)
+                        PrayerList()
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
                 case "progress": ProgressScreen()
                 default: ThisWeekView()
                 }
@@ -134,12 +140,29 @@ struct MainTabs: View {
 /// three square icons: week, reflect, progress
 struct TabBar: View {
     @EnvironmentObject var router: Router
-    private let tabs = [("week", "calendar.badge.checkmark"), ("reflect", "square.and.pencil"), ("progress", "chart.line.uptrend.xyaxis")]
+    private var tabs: [(String, String)] {
+        Theme.micFirst
+            ? [("week", "calendar.badge.checkmark"), ("reflect", "book"), ("mic", "mic"), ("prayer", "hands.sparkles"), ("progress", "chart.line.uptrend.xyaxis")]
+            : [("week", "calendar.badge.checkmark"), ("reflect", "square.and.pencil"), ("progress", "chart.line.uptrend.xyaxis")]
+    }
     @State private var bounce: String?
 
     var body: some View {
         HStack {
             ForEach(tabs, id: \.0) { t in
+                if t.0 == "mic" {
+                    Button { router.startRecording() } label: {
+                        ZStack {
+                            Circle().fill(Theme.bg).frame(width: 76, height: 76)
+                            Circle().fill(Theme.ac.opacity(0.18)).frame(width: 70, height: 70)
+                            Circle().fill(Theme.ac).frame(width: 60, height: 60)
+                            Image(systemName: "mic").font(.system(size: 24, weight: .regular)).foregroundStyle(Theme.onAc)
+                        }
+                        .frame(maxWidth: .infinity).frame(height: 52).offset(y: -16)
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Speak a reflection")
+                } else {
                 Button {
                     if router.tab != t.0 { Haptic.tick() }
                     if t.0 == "week" { router.selK = nil }
@@ -156,10 +179,11 @@ struct TabBar: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(t.0 == "week" ? "This week" : t.0 == "reflect" ? "Reflect" : "Progress")
+                .accessibilityLabel(t.0 == "week" ? "This week" : t.0 == "reflect" ? "Reflect" : t.0 == "prayer" ? "Prayer" : "Progress")
+                }
             }
         }
-        .padding(.horizontal, 36)
+        .padding(.horizontal, Theme.micFirst ? 14 : 36)
         .padding(.top, 6)
         .background(Theme.bg)
         .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
