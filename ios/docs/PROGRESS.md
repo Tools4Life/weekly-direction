@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (7) uploaded to TestFlight Nov 10 (through commit bb3cac9). After it, not yet uploaded: the debugging-run fixes and Eddie's four picks below. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Next: Eddie says "upload" for 0.2 (8), tests it on the phone, then the app is frozen. Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (8) uploaded to TestFlight Nov 10 (through commit 7b847e6: debugging-run fixes, the four picks, the label batch). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Nothing pushed (no git credentials in the Claude shell).
 
 ## Label batch before the freeze (Nov 10, Eddie agreed to the list)
 - This Week: "Day N of M" removed; "Review due" is the caps label; the streak card's "N to M" removed.
