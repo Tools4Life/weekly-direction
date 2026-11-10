@@ -61,6 +61,8 @@ Every report shows the simulator shot next to the reference, says what was not v
   Grace: from 2026-11-08, starting within 2 h of the start-by counts on time; after that it's missed and final. No late, no reschedule.
 - Writes (phase 2+) must be field-level like the web app's `store.patchWeek` / `store.setDay`; never overwrite a whole week doc
   except when creating a brand-new week. Past days lock at midnight; closed weeks are read-only; no undo for checks or failures.
+  One exception (Eddie, Nov 10 2026, iOS only): in the open week a past day can be changed to failed from the habit sheet
+  (same fields as a failure made on the day); never back to done.
 - Don't change past records unless the app itself got it wrong.
 - Journal text (`liveRefl`): blocks separated by a blank line, first line a stamp like `Sunday, 10:22 pm`. Never put blank
   lines inside an entry.

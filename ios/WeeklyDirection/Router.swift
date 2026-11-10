@@ -50,6 +50,7 @@ final class Router: ObservableObject {
         case "week": break
         case "week-day": selK = aw.flatMap { w in Rules.habitDays(w, store.settings).map(Rules.ymd).first { $0 < k && w.marks[$0] == nil } }
         case "habit": if let aw, let last { sheet = .habit(week: aw.id, habit: last.id, day: k) }
+        case "habit-past": if let aw, let last { selK = "2026-11-10"; sheet = .habit(week: aw.id, habit: last.id, day: "2026-11-10") }
         case "focus": if let aw, let first { store.setRun(aw, k, first.id, Now.ms - 5 * 60000 - 20000); cover = .focus(week: aw.id, habit: first.id, day: k) }
         case "vision": if let aw { cover = .vision(aw.id) }
         case "settings": cover = .settings

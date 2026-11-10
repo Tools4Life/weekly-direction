@@ -1,7 +1,8 @@
 import Foundation
 
 // The web app's habit actions (index.html: setItem, the check tap in renderWeek, Mark failed in openHabit),
-// built on the field-level store writes. Past days are locked and nothing here undoes a check or a failure.
+// built on the field-level store writes. Past days are locked: nothing here checks one off or undoes a failure; the
+// habit sheet can still correct a past day of the open week to failed (iOS only, Eddie, Nov 10 2026).
 extension Store {
     /// setItem: sets one item for a day and keeps the day's kept mark in step with it
     func setItem(_ w: Week, _ k: String, _ id: String, _ val: Bool) {

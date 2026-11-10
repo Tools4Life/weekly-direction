@@ -66,8 +66,10 @@ struct HabitSheet: View {
         let graceEnd = Rules.deadline(k, c, w).map { Fmt.clock($0.addingTimeInterval(Rules.graceSeconds)) } ?? ""
         var s: String
         if k < today {
-            s = st == .done ? (late ? "Done \(dayName), late. Locked." : "Done \(dayName). Locked.")
-                : st == .fail ? "Failed \(dayName). Locked." : "Missed \(dayName). Locked."
+            // a past day can't be checked off any more; in the open week it can still be corrected to failed
+            let fix = w.isActive ? " It can only be changed to failed." : ""
+            s = st == .done ? (late ? "Done \(dayName), late. Locked." : "Done \(dayName). Locked.") + fix
+                : st == .fail ? "Failed \(dayName). Locked." : "Missed \(dayName). Locked." + fix
         } else {
             switch st {
             case .done: s = late ? "Done \(dayName), late." : "Done \(dayName)."
@@ -86,8 +88,11 @@ struct HabitSheet: View {
     }
 
     @ViewBuilder private func actions(_ w: Week, _ c: Commitment, _ k: String) -> some View {
-        let st = Rules.state(w, k, c)
-        if k >= Rules.ymd(Now.date), st != .miss, st != .fail {
+        let st = Rules.state(w, k, c), today = Rules.ymd(Now.date), past = k < today
+        let dayName = Fmt.dowl[Rules.weekday(Logic.noon(k))]
+        // today: until it is missed or failed. A past day of the open week (Eddie, Nov 10 2026): a wrong check or a miss
+        // can be corrected to failed, never back to done.
+        if past ? (w.isActive && st != .fail) : (st != .miss && st != .fail) {
             VStack(spacing: 18) {
                 if st == .run {
                     Button {
@@ -100,17 +105,19 @@ struct HabitSheet: View {
                     }
                     .buttonStyle(.plain)
                 }
-                Button("Mark failed") { confirmFail = true }
-                    .caps(16).foregroundStyle(Theme.ac).frame(maxWidth: .infinity)
+                Button(past ? "Change \(dayName) to failed" : "Mark failed") { confirmFail = true }
+                    .caps(16).foregroundStyle(past ? Theme.mu : Theme.ac).frame(maxWidth: .infinity)
                     .accessibilityIdentifier("markFailed")
             }
-            .confirmationDialog("Mark \(c.name) failed for \(k == Rules.ymd(Now.date) ? "today" : "this day")? The day won’t be kept, and this can’t be undone.",
+            .confirmationDialog(past
+                                ? "Change \(c.name) to failed for \(dayName)? It is recorded as \(st == .done ? "done" : "missed"). \(dayName) won’t be kept, and this can’t be undone."
+                                : "Mark \(c.name) failed for today? The day won’t be kept, and this can’t be undone.",
                                 isPresented: $confirmFail, titleVisibility: .visible) {
-                Button("Mark failed", role: .destructive) {
+                Button(past ? "Change \(dayName) to failed" : "Mark failed", role: .destructive) {
                     // re-read: the day may have rolled over or the habit changed while the dialog was open
-                    guard let cur = store.week(weekId), k >= Rules.ymd(Now.date) else { router.sheet = nil; return }
-                    let now = Rules.state(cur, k, c)
-                    if now != .miss && now != .fail { store.fail(cur, k, c); Haptic.tick() }
+                    guard let cur = store.week(weekId), cur.isActive else { router.sheet = nil; return }
+                    let now = Rules.state(cur, k, c), isPast = k < Rules.ymd(Now.date)
+                    if now != .fail && (isPast || now != .miss) { store.fail(cur, k, c); Haptic.tick() }
                     router.sheet = nil
                 }
                 Button("Cancel", role: .cancel) {}

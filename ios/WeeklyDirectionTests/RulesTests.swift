@@ -94,6 +94,17 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(Rules.state(w, "2026-11-11", habit("ph")), .fail)
     }
 
+    /// a past day's check can be corrected to failed with the same fields as a failure made on the day
+    func testPastDoneDayCanBeChangedToFailed() {
+        XCTAssertEqual(Rules.state(w, "2026-11-10", habit("ph")), .done)
+        store.fail(w, "2026-11-10", habit("ph"))
+        XCTAssertEqual(w.done["2026-11-10"]?["ph@fail"] as? Bool, true)
+        XCTAssertEqual(w.done["2026-11-10"]?["ph"] as? Bool, false)
+        XCTAssertEqual(w.done["2026-11-10"]?["wr"] as? Bool, true)
+        XCTAssertEqual(w.marks["2026-11-10"], "drift")
+        XCTAssertEqual(Rules.state(w, "2026-11-10", habit("ph")), .fail)
+    }
+
     func testJournalBlocksAndEdits() {
         let ents = Journal.entries(w.liveRefl)
         XCTAssertEqual(ents.map(\.d), ["Sunday", "Monday", "Tuesday", "Wednesday"])

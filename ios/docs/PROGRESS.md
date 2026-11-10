@@ -1,6 +1,11 @@
 # Weekly Direction iOS — progress log
 
-**Current: calmer stats, journal divider, half-sheet habit panel BUILT; TestFlight script added (`scripts/testflight.sh`), upload not yet run.** Eddie has the app on his phone (real data reads). Open: prayer icon pick, device check of dictation. Nothing pushed (no git credentials in the Claude shell).
+**Current: a past day of the open week can be changed to failed from the habit sheet (Nov 10) BUILT, not on the phone yet; next TestFlight upload is 0.2 (1).** Open: prayer icon pick, device check of dictation. Nothing pushed (no git credentials in the Claude shell).
+
+## Past-day correction (Nov 10)
+- Habit sheet on a past day of the open week: "Change <day> to failed" plus a confirm that names the day and what is recorded. Works for a done or a missed habit; a failure stays final; a past day still cannot be checked off. Writes what a same-day failure writes (`id: false`, `id@fail: true`, mark `drift`). Closed weeks stay read-only.
+- iOS only: the web app still closes the sheet on past days, but shows the failure.
+- Verified: unit test (13 pass), simulator shot `habit-past`. Not verified: on the phone, on real data.
 
 ## Polish pass (Nov 9, evening)
 - Habit names now match the web: Barlow Regular 16.5, no extra tracking (was Medium 18 + tracking); meta Barlow Condensed 13.
