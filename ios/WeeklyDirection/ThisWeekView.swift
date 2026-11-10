@@ -110,7 +110,9 @@ struct ThisWeekView: View {
             .transition(.opacity)
         }
         if !tucked {
-        habitsHeader(x).padding(.top, 24).rise(1)
+        // opened at review time: the same line tucks them away again
+        habitsHeader(x, hide: review ? { Haptic.tick(); withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showHabits = false } } : nil)
+            .padding(.top, 24).rise(1)
         VStack(spacing: 6) {
             let shown = w.commitments.filter { c in x.selDay.map { Rules.onDay(c, $0) } ?? true }
             ForEach(Array(shown.enumerated()), id: \.element.id) { n, c in
@@ -223,13 +225,15 @@ struct ThisWeekView: View {
         .overlay(RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous).stroke(due ? Theme.acDim : Theme.line, lineWidth: 1))
     }
 
-    private func habitsHeader(_ x: Ctx) -> some View {
+    private func habitsHeader(_ x: Ctx, hide: (() -> Void)? = nil) -> some View {
         HStack(alignment: .firstTextBaseline) {
-            Button { router.cover = .vision(x.w.id) } label: {
+            Button { if let hide { hide() } else { router.cover = .vision(x.w.id) } } label: {
                 HStack(spacing: 8) {
                     Eyebrow(text: "Daily habits", color: Theme.mu, size: 12)
-                    Image(systemName: "chevron.right").font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.mu)
+                    Image(systemName: hide != nil ? "chevron.up" : "chevron.right").font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.mu)
+                    if hide != nil { Spacer() }
                 }
+                .padding(.vertical, hide != nil ? 10 : 0).contentShape(Rectangle())
             }
             .buttonStyle(.plain)
             Spacer()

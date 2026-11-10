@@ -72,7 +72,7 @@ struct DictateWidget: Widget {
             .containerBackground(for: .widget) { Color.clear }
             .widgetURL(Shared.dictateURL)
         }
-        .configurationDisplayName("Dictate")
+        .configurationDisplayName("Record a thought")
         .description("Straight into recording a thought.")
         .supportedFamilies([.accessoryCircular])
     }
@@ -82,9 +82,9 @@ struct DictateWidget: Widget {
 struct DictateControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(kind: "DictateControl") {
-            ControlWidgetButton(action: DictateIntent()) { Label("Dictate", systemImage: "mic.fill") }
+            ControlWidgetButton(action: DictateIntent()) { Label("Record a thought", systemImage: "mic.fill") }
         }
-        .displayName("Dictate")
+        .displayName("Record a thought")
         .description("Open Weekly Direction and start recording.")
     }
 }

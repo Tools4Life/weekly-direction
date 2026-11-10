@@ -18,8 +18,8 @@ struct ReflectIntent: AppIntent {
 /// and the Action button; both appear in the Shortcuts app.
 struct WeeklyDirectionShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
-        AppShortcut(intent: DictateIntent(), phrases: ["Dictate in \(.applicationName)", "Start dictating in \(.applicationName)"],
-                    shortTitle: "Dictate", systemImageName: "mic.fill")
+        AppShortcut(intent: DictateIntent(), phrases: ["Record a thought in \(.applicationName)", "Speak in \(.applicationName)"],
+                    shortTitle: "Record a thought", systemImageName: "mic.fill")
         AppShortcut(intent: ReflectIntent(), phrases: ["Reflect in \(.applicationName)", "Record a reflection in \(.applicationName)"],
                     shortTitle: "Reflect", systemImageName: "mic")
     }

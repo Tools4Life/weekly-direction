@@ -68,7 +68,7 @@ struct TimerAttributes: ActivityAttributes {
 /// "Dictate": opens the app straight into recording. Used by the Lock Screen / Control Center control, Siri, Shortcuts,
 /// Back Tap and the Action button. It only leaves a flag; the app does the rest when it opens.
 struct DictateIntent: AppIntent {
-    static var title: LocalizedStringResource = "Dictate"
+    static var title: LocalizedStringResource = "Record a thought"
     static var description = IntentDescription("Open Weekly Direction and start recording a thought.")
     static var openAppWhenRun = true
 

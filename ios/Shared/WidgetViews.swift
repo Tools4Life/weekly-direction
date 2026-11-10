@@ -111,11 +111,9 @@ struct WeekWidgetBody: View {
                 if !s.verseRef.isEmpty { Text(s.verseRef.uppercased()).font(label(11)).tracking(1.8).foregroundStyle(p.mu2).padding(.top, 4) }
                 Spacer(minLength: 6)
                 Link(destination: Shared.dictateURL) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "mic").font(.system(size: 12, weight: .medium))
-                        Text("DICTATE").font(caps(12)).tracking(1.6)
-                    }
-                    .foregroundStyle(p.onAc).padding(.horizontal, 11).frame(height: 28).background(p.ac, in: Capsule())
+                    // the mic alone, like the one in the app's tab bar: no word on it
+                    Image(systemName: "mic").font(.system(size: 17, weight: .medium)).foregroundStyle(p.onAc)
+                        .frame(width: 40, height: 40).background(p.ac, in: Circle())
                 }
             }
             .frame(width: 118, alignment: .leading)
@@ -148,11 +146,8 @@ struct WeekWidgetBody: View {
                 Spacer()
                 // the one thing this widget does besides show the week: straight into dictation
                 Link(destination: Shared.dictateURL) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "mic").font(.system(size: 15, weight: .medium))
-                        Text("DICTATE").font(caps(14)).tracking(1.8)
-                    }
-                    .foregroundStyle(p.onAc).padding(.horizontal, 16).frame(height: 38).background(p.ac, in: Capsule())
+                    Image(systemName: "mic").font(.system(size: 20, weight: .medium)).foregroundStyle(p.onAc)
+                        .frame(width: 48, height: 48).background(p.ac, in: Circle())
                 }
             }
         }

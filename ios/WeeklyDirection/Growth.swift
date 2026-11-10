@@ -85,7 +85,7 @@ struct GrowthGrid: View {
 
     var body: some View {
         let g = Growth.rows(store.weeks)
-        // always eight columns, newest on the right: the squares keep their size while the first weeks fill in
+        // always eight columns, oldest on the left: the squares keep their size while the first weeks fill in
         let pad = max(0, 8 - g.weeks.count)
         VStack(alignment: .leading, spacing: 0) {
             if g.rows.isEmpty {
@@ -102,8 +102,9 @@ struct GrowthGrid: View {
                             }
                         }
                         HStack(spacing: 6) {
-                            ForEach(0..<pad, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity).frame(height: 26) }
+                            // from the left, under the name; the row fills towards the right as weeks are rated
                             ForEach(Array(r.cells.enumerated()), id: \.offset) { _, v in GrowthSquare(v: v).frame(maxWidth: .infinity).frame(height: 26) }
+                            ForEach(0..<pad, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity).frame(height: 26) }
                         }
                     }
                     .padding(.top, 22).rise(n)
@@ -111,8 +112,8 @@ struct GrowthGrid: View {
                     .onTapGesture { Haptic.tick(); open = Open(id: r.sphere) }
                 }
                 HStack(spacing: 6) {
-                    ForEach(0..<pad, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity).frame(height: 1) }
                     ForEach(g.weeks) { w in Text(Fmt.slash(w.sealedAt)).font(Theme.label(11)).foregroundStyle(Theme.mu2).frame(maxWidth: .infinity) }
+                    ForEach(0..<pad, id: \.self) { _ in Color.clear.frame(maxWidth: .infinity).frame(height: 1) }
                 }
                 .padding(.top, 10)
                 HStack(spacing: 14) { key(1, "Better"); key(0, "Same"); key(-1, "Worse"); key(nil, "Not said") }.padding(.top, 28)
