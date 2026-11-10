@@ -23,11 +23,20 @@ struct HabitSheet: View {
                         Ico(name: c.icon, size: 22).foregroundStyle(Theme.ac).padding(.top, 4)
                         VStack(alignment: .leading, spacing: 6) {
                             Text(c.name).font(Theme.serif(24)).foregroundStyle(Theme.tx)
-                            Text(metaLine(c)).font(Theme.label(13)).tracking(1.4).foregroundStyle(Theme.mu2)
                         }
                         Spacer()
                         Button("Done") { router.sheet = nil }.caps(16).foregroundStyle(Theme.ac)
                     }
+                    // when, by what time, for how long: one quiet fact per line, only the ones that apply
+                    VStack(alignment: .leading, spacing: 7) {
+                        ForEach(facts(c), id: \.1) { f in
+                            HStack(spacing: 10) {
+                                Image(systemName: f.0).font(.system(size: 13, weight: .light)).foregroundStyle(Theme.mu2).frame(width: 18)
+                                Text(f.1).font(Theme.ui(15)).foregroundStyle(Theme.mu)
+                            }
+                        }
+                    }
+                    .padding(.top, 14)
                     Eyebrow(text: "About", color: Theme.mu, size: 12).padding(.top, 22)
                     TextEditor(text: $about)
                         .font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
@@ -54,8 +63,14 @@ struct HabitSheet: View {
         .onDisappear { if let w = week, let c = habit, loaded { store.saveAbout(w, c, about) } }
     }
 
-    private func metaLine(_ c: Commitment) -> String {
-        [c.days == "wd" ? "weekdays" : c.days == "we" ? "weekends" : "every day", c.planMeta].filter { !$0.isEmpty }.joined(separator: " · ")
+    private func facts(_ c: Commitment) -> [(String, String)] {
+        var out = [("calendar", c.days == "wd" ? "Weekdays" : c.days == "we" ? "Weekends" : "Every day")]
+        if let by = c.by {
+            let we = c.byWe.flatMap { $0 != by && c.days == nil ? ", weekends \(Fmt.clock($0))" : nil } ?? ""
+            out.append(("clock", "Start by \(Fmt.clock(by))\(we)"))
+        }
+        if let m = c.min { out.append(("timer", "\(m) minute timer")) }
+        return out
     }
 
     /// the status sentence, word for word from the web app

@@ -105,6 +105,16 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(Rules.state(w, "2026-11-10", habit("ph")), .fail)
     }
 
+    /// unchecking writes the same fields a check does, and takes the day's kept mark back
+    func testUncheckSameDayClearsTheCheck() {
+        store.setItem(w, "2026-11-11", "ge", true)
+        XCTAssertEqual(w.done["2026-11-11"]?["ge"] as? Bool, true)
+        store.setItem(w, "2026-11-11", "ge", false)
+        XCTAssertEqual(w.done["2026-11-11"]?["ge"] as? Bool, false)
+        XCTAssertEqual(Rules.state(w, "2026-11-11", habit("ge")), .open)
+        XCTAssertNil(w.marks["2026-11-11"])
+    }
+
     func testGrowthRowsAndTrend() {
         XCTAssertNil(Growth.trend([1, 1, 1]))
         XCTAssertEqual(Growth.trend([-1, -1, 0, 1, 1, 1]), 1)

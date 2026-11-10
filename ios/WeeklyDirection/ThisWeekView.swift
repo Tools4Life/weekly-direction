@@ -267,10 +267,13 @@ struct ThisWeekView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { if nudge == id { nudge = nil } }
     }
 
-    /// the check tap (web: toggleItem). Past days are locked; done, failed and missed are final.
+    /// the check tap (web: toggleItem). Past days are locked; failed and missed are final, and so is done for a timed habit.
     private func tapCheck(_ w: Week, _ x: Ctx, _ c: Commitment) {
         guard let k = x.selKey, k == Rules.ymd(Now.date) else { bump(c.id); return }
         let st = Rules.state(w, k, c)
+        // A plain habit (no start-by time, no timer) can be unchecked the same day: a slip of the thumb (Eddie, Nov 10
+        // 2026). Anything timed stays final, and so do failed and missed.
+        if st == .done, c.by == nil, c.min == nil { Haptic.tick(); store.setItem(w, k, c.id, false); return }
         if st == .done || st == .fail || st == .miss { bump(c.id); return }
         if c.min != nil {
             Haptic.tick()
@@ -400,7 +403,8 @@ struct HabitCardShell: View {
         HStack(spacing: 0) {
             Button(action: onBody) {
                 HStack(spacing: 13) {
-                    Ico(name: icon, size: 19).foregroundStyle(done || running > 0 ? Theme.ac : Theme.mu)
+                    // a finished habit reads white on its warm card (Eddie, Nov 10 2026); orange is for the one that is running
+                    Ico(name: icon, size: 19).foregroundStyle(done ? Theme.tx : running > 0 ? Theme.ac : Theme.mu)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
                             .strikethrough(strike, color: Theme.tx.opacity(0.35))

@@ -156,12 +156,13 @@ struct TabBar: View {
                 if t.0 == "mic" {
                     Button { router.startRecording() } label: {
                         ZStack {
-                            Circle().fill(Theme.bg).frame(width: 76, height: 76)
-                            Circle().fill(Theme.ac.opacity(0.18)).frame(width: 70, height: 70)
-                            Circle().fill(Theme.ac).frame(width: 60, height: 60)
-                            Image(systemName: "mic").font(.system(size: 24, weight: .regular)).foregroundStyle(Theme.onAc)
+                            // larger (Eddie, Nov 10 2026): it is the most used control in the app
+                            Circle().fill(Theme.bg).frame(width: 90, height: 90)
+                            Circle().fill(Theme.ac.opacity(0.18)).frame(width: 84, height: 84)
+                            Circle().fill(Theme.ac).frame(width: 72, height: 72)
+                            Image(systemName: "mic").font(.system(size: 29, weight: .regular)).foregroundStyle(Theme.onAc)
                         }
-                        .frame(maxWidth: .infinity).frame(height: 52).offset(y: -16)
+                        .frame(maxWidth: .infinity).frame(height: 52).offset(y: -22)
                     }
                     .buttonStyle(.plain)
                     .disabled(store.activeWeek == nil)
