@@ -48,7 +48,9 @@ struct RootView: View {
     var body: some View {
         ZStack {
             Theme.bg.ignoresSafeArea()
-            if !store.signedIn {
+            if Mock.enabled, UserDefaults.standard.string(forKey: "OpenScreen") == "icons" {
+                IconOptions()
+            } else if !store.signedIn {
                 SignInView()
             } else if !store.ready {
                 ProgressView().tint(Theme.mu)
