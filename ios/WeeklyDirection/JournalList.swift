@@ -58,6 +58,27 @@ struct LatestThought: View {
     }
 }
 
+/// A week's AI summary: an accent rule down the side, its own label and italic text, so it never reads as an entry
+struct SummaryBlock: View {
+    let text: String
+    var size: CGFloat = 18
+    var lines: Int? = nil
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            Rectangle().fill(Theme.ac).frame(width: 2)
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: "sparkles").font(.system(size: 10)).foregroundStyle(Theme.ac)
+                    Eyebrow(text: "AI summary", color: Theme.ac)
+                }
+                Text(text).font(Theme.jitalic(size)).lineSpacing(size * 0.34).foregroundStyle(Theme.tx)
+                    .lineLimit(lines).multilineTextAlignment(.leading)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
 /// Reflect as a plain reading list: this week's entries, newest first, then earlier weeks
 struct JournalList: View {
     @EnvironmentObject var store: Store
@@ -118,8 +139,12 @@ struct JournalList: View {
                                 Spacer()
                                 Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2)
                             }
-                            let first = w.summary ?? Journal.blocks(w.reflection.isEmpty ? w.liveRefl : w.reflection).first?.x
-                            if let first { Text(first).font(Theme.jserif(15)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(2).multilineTextAlignment(.leading) }
+                            if let s = w.summary {
+                                // the AI summary is what a past week is read by: set apart from ordinary entries
+                                SummaryBlock(text: s, size: 16, lines: 5).padding(.top, 6)
+                            } else if let first = Journal.blocks(w.reflection.isEmpty ? w.liveRefl : w.reflection).first?.x {
+                                Text(first).font(Theme.jserif(15)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(2).multilineTextAlignment(.leading)
+                            }
                         }
                         .fullWidth().padding(.vertical, 14).contentShape(Rectangle())
                     }

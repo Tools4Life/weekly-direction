@@ -73,11 +73,7 @@ struct WeekPage: View {
         Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
         Text(w.focus).font(Theme.jserif(34)).foregroundStyle(Theme.tx).padding(.top, 6)
         if let s = w.summary {
-            VStack(alignment: .leading, spacing: 6) {
-                Eyebrow(text: "AI summary", color: Theme.mu2)
-                Text(s).font(Theme.jserif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
-            }
-            .padding(.top, 16)
+            SummaryBlock(text: s).padding(.top, 18)
         }
         if w.verse != nil || w.verseRef != nil {
             VStack(alignment: .leading, spacing: 8) {
