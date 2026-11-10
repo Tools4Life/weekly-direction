@@ -42,6 +42,8 @@ struct WeekWidget: Widget {
         }
         .configurationDisplayName("This Week")
         .description("Your focus word, verse and today's habits.")
+        // keep our own background wherever iOS would otherwise take it away and show its grey one
+        .containerBackgroundRemovable(false)
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge, .accessoryRectangular])
     }
 }

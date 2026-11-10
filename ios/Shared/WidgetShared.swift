@@ -78,13 +78,14 @@ struct DictateIntent: AppIntent {
     }
 }
 
-/// the app's colours for the widgets (dark first, like the app)
+/// the app's colours for the widgets (dark first, like the app). The dark background is true black (Eddie, Nov 10 2026):
+/// on the Home Screen the app's near-black read as dark grey.
 struct WPalette {
     let bg, card, tx, mu, mu2, line, ac, acDim, onAc: Color
     static func of(light: Bool) -> WPalette {
         func c(_ h: UInt32) -> Color { Color(.sRGB, red: Double((h >> 16) & 0xFF) / 255, green: Double((h >> 8) & 0xFF) / 255, blue: Double(h & 0xFF) / 255) }
         return light
             ? WPalette(bg: c(0xF6F5F2), card: c(0xF0EEE9), tx: c(0x1B1917), mu: c(0x6F6A63), mu2: c(0x8D877F), line: c(0xD9D5CE), ac: c(0xD2602A), acDim: c(0xE9A07C), onAc: c(0xFFFFFF))
-            : WPalette(bg: c(0x0B0B0C), card: c(0x1C1C1F), tx: c(0xF7F4EF), mu: c(0xABA69F), mu2: c(0x8A857F), line: c(0x2C2C30), ac: c(0xE8743B), acDim: c(0x86452A), onAc: c(0x0B0B0C))
+            : WPalette(bg: c(0x000000), card: c(0x1C1C1F), tx: c(0xF7F4EF), mu: c(0xABA69F), mu2: c(0x8A857F), line: c(0x2C2C30), ac: c(0xE8743B), acDim: c(0x86452A), onAc: c(0x0B0B0C))
     }
 }
