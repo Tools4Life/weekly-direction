@@ -119,8 +119,15 @@ struct WeekWidgetBody: View {
                 }
             }
             .frame(width: 118, alignment: .leading)
-            VStack(alignment: .leading, spacing: 8) { ForEach(Array(hs.prefix(4).enumerated()), id: \.offset) { _, h in row(h, size: 13, time: false) } }
-                .frame(maxWidth: .infinity, alignment: .topLeading)
+            // the habits share the full height evenly, first at the top edge and last at the bottom, however many there are
+            VStack(alignment: .leading, spacing: 0) {
+                let shown = Array(hs.prefix(4))
+                ForEach(Array(shown.enumerated()), id: \.offset) { i, h in
+                    row(h, size: 13, time: false)
+                    if i < shown.count - 1 { Spacer(minLength: 4) }
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
