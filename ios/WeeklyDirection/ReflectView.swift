@@ -155,7 +155,7 @@ struct WeekPage: View {
             Spacer()
             if active {
                 Button { router.cover = .write } label: {
-                    HStack(spacing: 7) { Image(systemName: "pencil.line").font(.system(size: 15)); Text("Write") }.foregroundStyle(Theme.ac)
+                    HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").caps(16) }.foregroundStyle(Theme.ac)
                 }
             } else {
                 Button("Open week") { vision = true }.foregroundStyle(Theme.mu)

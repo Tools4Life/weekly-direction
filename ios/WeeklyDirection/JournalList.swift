@@ -98,17 +98,20 @@ struct JournalList: View {
                 HStack {
                     Text("Journal").font(Theme.jserif(34)).foregroundStyle(Theme.tx)
                     Spacer()
-                    if store.activeWeek != nil {
-                        Button { router.cover = .write } label: {
-                            HStack(spacing: 6) { Image(systemName: "pencil.line").font(.system(size: 14)); Text("Write").jbutton(15) }.foregroundStyle(Theme.ac)
-                        }
-                        .buttonStyle(.plain)
-                    }
                 }
                 RecorderStatus().padding(.top, 10)
                 if let w = store.activeWeek {
                     // this week's focus word leads the page, as large as the earlier weeks' names are small
-                    Eyebrow(text: "This week · \(Fmt.weekRange(w, store.settings))", color: Theme.ac).padding(.top, 20)
+                    // adding an entry looks and sits the same as adding a prayer: "+ NEW" at the right of the section line
+                    HStack {
+                        Eyebrow(text: "This week · \(Fmt.weekRange(w, store.settings))", color: Theme.ac)
+                        Spacer()
+                        Button { router.cover = .write } label: {
+                            HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").caps(16) }.foregroundStyle(Theme.ac)
+                        }
+                        .buttonStyle(.plain).accessibilityIdentifier("newEntry")
+                    }
+                    .padding(.top, 20)
                     Text(w.focus).font(Theme.jserif(22)).foregroundStyle(Theme.tx).padding(.top, 4).padding(.bottom, 4)
                     let ents = Array(Journal.entries(w.liveRefl).reversed())
                     // recordings still on the phone hold their place here until they are written down
