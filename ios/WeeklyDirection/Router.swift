@@ -35,6 +35,8 @@ final class Router: ObservableObject {
             half = false
         }
     }
+    /// the review was opened from the mic: start listening as it opens
+    var dictateOnOpen = false
     /// `-OpenScreen settings-…`: the settings page to open on
     var settingsPage: String?
     /// how tall the open sheet is; a half sheet goes to `.large` when its editor opens

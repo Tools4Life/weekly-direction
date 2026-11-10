@@ -6,6 +6,8 @@ import SwiftUI
 struct DictateCard: View {
     @EnvironmentObject var recorder: Recorder
     let title: String
+    /// opened from a mic button: start listening straight away
+    var autoStart = false
     /// what to do with the spoken words (tidy them, fill the fields); the card shows it is working until this returns
     let onText: (String) async -> String?
 
@@ -64,6 +66,11 @@ struct DictateCard: View {
         .overlay(RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous).stroke(phase == .idle ? Color.clear : Theme.acDim, lineWidth: 1))
         .animation(.easeOut(duration: 0.18), value: phase)
         .onChange(of: recorder.elapsed) { _, e in if phase == .rec, e >= Recorder.maxSeconds - 1 { Task { await finish() } } }
+        .onAppear {
+            guard autoStart, phase == .idle else { return }
+            // after the sheet has finished rising
+            Task { try? await Task.sleep(nanoseconds: 450_000_000); if phase == .idle { await begin() } }
+        }
         .onDisappear { if phase == .rec { Task { _ = await recorder.finishDictation(cancel: true) } } }
     }
 

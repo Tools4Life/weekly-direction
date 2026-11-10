@@ -6,6 +6,12 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Review on the main page (Nov 10)
+- This Week on review day / when due: a block under the day strip with "Reflect on this week" (the mic opens the review and starts listening; the row opens it to read or type) and "Plan next week" (muted until the week is closed; opens the review). Replaces the old "Weekly review" card.
+- When every habit of today is done, failed or missed, the habit list tucks away under one row ("Daily habits · done for today", tap to open again).
+- Review page: no boxes, no standing subtext.
+- Verified: shots `week-review`, `week-due` (habits still open, so not tucked), 13 tests. Not verified: the tucked state, the mic auto-start, on the phone.
+
 ## Talk first: review and plan by voice (Nov 10)
 - `DictateCard` (Dictate.swift): "Reflect on this week" on the close sheet, "Plan next week" / "Talk through this week" above the Vision field. Records with the same recorder, transcribes with `transcribe`, hands the text to the screen; nothing joins the journal and nothing is saved until the screen's own Close / Seal.
 - New Cloud Function `tidy` (`functions/tidy.js`, exported in `functions/index.js`): cleans spoken text (fillers, repeats, false starts) without summarizing; review mode places what was said under the Saturday questions (`answers`, `other`). **Not deployed**: Eddie runs `firebase deploy --only functions:tidy`. Until then the app falls back to the words as spoken and says so.

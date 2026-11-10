@@ -3,6 +3,8 @@ import Combine
 
 /// This Week (web: renderWeek): focus word, day strip, the selected day's habits with their live states, streak.
 struct ThisWeekView: View {
+    /// review time, habits settled: the list is tucked away unless it was opened again
+    @State private var showHabits = false
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
     @State private var now = Now.date
@@ -85,11 +87,27 @@ struct ThisWeekView: View {
         }
         .padding(.top, 6)
         strip(x).padding(.top, 16).rise(0)
-        if x.due || reviewDay(w, x) { closeCard(w, due: x.due).padding(.top, 18) }
+        // review time: Reflect and Plan take the page; once today's habits are settled they tuck away under one row
+        let review = x.due || reviewDay(w, x)
+        let tucked = review && !showHabits && settled(w, x)
+        if review { reviewBlock(w, due: x.due).padding(.top, 18).rise(1) }
         if x.selKey == nil, !x.due, reviewDay(w, x) {
             Text("\(Fmt.dowl[store.settings.closeDay]) · review and plan from \(Fmt.hourLabel(store.settings.closeHour))")
                 .font(Theme.ui(14)).foregroundStyle(Theme.mu).padding(.top, 16)
         }
+        if tucked {
+            Button { Haptic.tick(); withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showHabits = true } } label: {
+                HStack(spacing: 8) {
+                    Eyebrow(text: "Daily habits · done for today", color: Theme.mu, size: 12)
+                    Image(systemName: "chevron.down").font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.mu)
+                    Spacer()
+                }
+                .padding(.vertical, 10).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain).padding(.top, 16)
+            .transition(.opacity)
+        }
+        if !tucked {
         habitsHeader(x).padding(.top, 24).rise(1)
         VStack(spacing: 6) {
             let shown = w.commitments.filter { c in x.selDay.map { Rules.onDay(c, $0) } ?? true }
@@ -103,6 +121,8 @@ struct ThisWeekView: View {
             if let k = x.selKey, let d = x.selDay { doses(w, k, d, locked: k != x.todayK) }
         }
         .padding(.top, 12)
+        .transition(.move(edge: .top).combined(with: .opacity))
+        }
         LatestThought(week: w).padding(.top, 14).rise(6)
         StreakCard(info: Logic.streak(store.weeks, store.settings)).padding(.top, 14).rise(7)
     }
@@ -148,23 +168,58 @@ struct ThisWeekView: View {
         return it.isEmpty ? 0 : Double(it.filter { w.flag(k, $0) }.count) / Double(it.count)
     }
 
-    // MARK: close card, habits header, doses
+    // MARK: review block, habits header, doses
 
-    private func closeCard(_ w: Week, due: Bool) -> some View {
-        Button { router.sheet = .close(w.id) } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(due ? "Close the week" : "Weekly review").caps(16).foregroundStyle(Theme.tx)
-                    Eyebrow(text: "\(Logic.weekStats(w, store.settings).pct)% \(due ? "" : "so far ")· close & plan", color: Theme.mu)
-                }
-                Spacer()
-                Image(systemName: "chevron.right").font(.system(size: 15, weight: .medium)).foregroundStyle(Theme.mu)
-            }
-            .padding(.horizontal, 17).padding(.vertical, 16)
-            .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous).stroke(Theme.line, lineWidth: 1))
+    /// nothing left to do today: every habit of the day is done, failed or missed, and the doses are taken
+    private func settled(_ w: Week, _ x: Ctx) -> Bool {
+        guard x.habitToday, let d = x.days.first(where: { Rules.ymd($0) == x.todayK }) else { return true }
+        guard x.selKey == x.todayK else { return false }      // looking at another day: leave the list alone
+        let open = w.commitments.filter { Rules.onDay($0, d) }.contains { c in
+            let st = Rules.state(w, x.todayK, c)
+            return !(st == .done || st == .fail || st == .miss)
         }
-        .buttonStyle(.plain)
+        let doses = Logic.dayItems(w, d, store.settings).filter { $0 == "am" || $0 == "pm" }
+        return !open && doses.allSatisfy { w.flag(x.todayK, $0) }
+    }
+
+    /// Review time on the main page (Eddie, Nov 10 2026): 1 Reflect on this week (the mic starts it talking, the row
+    /// opens it to read or type), 2 Plan next week (opens once the week is closed).
+    private func reviewBlock(_ w: Week, due: Bool) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 14) {
+                Button { router.dictateOnOpen = true; router.sheet = .close(w.id) } label: {
+                    Image(systemName: "mic").font(.system(size: 20, weight: .medium)).foregroundStyle(Theme.onAc)
+                        .frame(width: 50, height: 50).background(Theme.ac, in: Circle())
+                }
+                .buttonStyle(.plain).accessibilityLabel("Reflect on this week by voice")
+                Button { router.sheet = .close(w.id) } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: 5) {
+                            Text("Reflect on this week").caps(17).foregroundStyle(Theme.tx)
+                            Eyebrow(text: "\(Logic.weekStats(w, store.settings).pct)%\(due ? "" : " so far")", color: Theme.mu)
+                        }
+                        Spacer()
+                        Image(systemName: "chevron.right").font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.mu)
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("openReview")
+            }
+            .padding(16)
+            Rectangle().fill(Theme.rule).frame(height: 1).padding(.leading, 16)
+            // planning needs the week closed first: the row is there to show what comes next, and opens the review
+            Button { router.sheet = .close(w.id) } label: {
+                HStack(spacing: 14) {
+                    Image(systemName: "calendar").font(.system(size: 19, weight: .light)).foregroundStyle(Theme.mu2).frame(width: 50, height: 34)
+                    Text("Plan next week").caps(17).foregroundStyle(Theme.mu2)
+                    Spacer()
+                }
+                .padding(.horizontal, 16).padding(.vertical, 12).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        }
+        .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous).stroke(due ? Theme.acDim : Theme.line, lineWidth: 1))
     }
 
     private func habitsHeader(_ x: Ctx) -> some View {

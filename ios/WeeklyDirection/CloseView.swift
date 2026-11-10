@@ -58,7 +58,7 @@ struct CloseSheet: View {
                         Eyebrow(text: "Caffeine next week", color: Theme.mu, size: 12).padding(.top, 22)
                         Text(lim > 0 ? "Starts at \(lim) mg · AM \(sp.am) · PM \(sp.pm)" : "Caffeine-free").font(Theme.ui(15)).foregroundStyle(Theme.tx).padding(.top, 6)
                     }
-                    DictateCard(title: "Reflect on this week", onText: spoken).padding(.top, 28)
+                    DictateCard(title: "Reflect on this week", autoStart: router.dictateOnOpen, onText: spoken).padding(.top, 28)
                     // the questions are a plain page: each one, then its answer (spoken or typed) straight under it
                     ForEach(Array(questions.enumerated()), id: \.offset) { i, q in
                         Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
@@ -81,6 +81,7 @@ struct CloseSheet: View {
                 .onAppear {
                     guard !loaded else { return }
                     loaded = true
+                    router.dictateOnOpen = false
                     questions = Logic.qsOf(w, store.settings)
                     answers = Array(repeating: "", count: questions.count)
                     reflection = w.liveRefl
