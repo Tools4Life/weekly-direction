@@ -35,6 +35,8 @@ final class Router: ObservableObject {
             half = false
         }
     }
+    /// `-OpenScreen settings-…`: the settings page to open on
+    var settingsPage: String?
     /// how tall the open sheet is; a half sheet goes to `.large` when its editor opens
     @Published var detent: PresentationDetent = .large
     /// set right before `sheet` to open a prayer as a half sheet
@@ -65,6 +67,10 @@ final class Router: ObservableObject {
         case "focus": if let aw, let first { store.setRun(aw, k, first.id, Now.ms - 5 * 60000 - 20000); cover = .focus(week: aw.id, habit: first.id, day: k) }
         case "vision": if let aw { cover = .vision(aw.id) }
         case "settings": cover = .settings
+        case "settings-questions": settingsPage = "questions"; cover = .settings
+        case "settings-caffeine":
+            if store.isMock { store.setSettings(["cafOn": true, "cafFrom": Logic.midnight(Now.date.addingTimeInterval(-6 * 86400)).timeIntervalSince1970 * 1000]) }
+            settingsPage = "caffeine"; cover = .settings
         case "plan": cover = .plan(replan: aw?.id)
         case "reflect": tab = "reflect"
         case "week-page": tab = "reflect"; if let aw { cover = .weekPage(aw.id) }

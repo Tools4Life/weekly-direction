@@ -6,6 +6,13 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Settings rework (Nov 10)
+- First page is short rows: Appearance, Sounds, Reminders, Saturday questions (count), Caffeine wean (state), Export, Sign out; the account is one quiet line at the bottom.
+- Saturday questions has its own page: anchor, then each group as a list of editable questions with add / remove and New group. Still saved as the web's one text (`qLib`, `# Group` lines); nothing is written unless something was edited.
+- Caffeine wean has its own page with what the web has and iOS lacked: starting limit, drop, days, start date (`cafStart`, `cafStep`, `cafDays`, `cafFrom`), today's dose and the steps. A finished plan says so and offers "Start a new wean today". Turning it on sets `cafFrom` when it was empty (the web does this at launch).
+- Editing the open week moved from Settings to the page the focus word opens ("Edit this week", VisionView).
+- Not verified: on the phone; editing questions and caffeine numbers with the keyboard (screenshots only); real data.
+
 ## Mic feedback (Nov 10)
 - Starting a recording: heavy knock + system begin-record tone (1113) on the tap, before the microphone opens. Stopping: rigid knock + end-record tone (1114). Cancel keeps the light tick. Haptics are now allowed while the recording session is active (iOS mutes them by default, which is likely why it felt soft).
 - Not verified: any of it. The simulator has no haptics and the tones were not heard; needs the phone.

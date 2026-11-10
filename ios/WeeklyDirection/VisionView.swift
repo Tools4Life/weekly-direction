@@ -4,7 +4,9 @@ import SwiftUI
 /// From Stats (`log`): also the result, the reflection and each habit's tally, with ‹ › / swipe between weeks.
 struct VisionView: View {
     @EnvironmentObject var store: Store
+    @EnvironmentObject var router: Router
     @Environment(\.dismiss) private var dismiss
+    @State private var replan: SettingsView.PlanRef?
     @State var weekId: String
     let log: Bool
 
@@ -27,6 +29,21 @@ struct VisionView: View {
             .padding(.trailing, 12).padding(.top, 10)
             .accessibilityLabel("Close")
         }
+        // the open week is edited from here (Eddie, Nov 10 2026): the word, verse, vision and habits, sealed again
+        .overlay(alignment: .topLeading) {
+            if !log, let w = store.week(weekId), w.isActive {
+                Button { replan = SettingsView.PlanRef(id: w.id) } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "pencil").font(.system(size: 14))
+                        Text(strOf(store.draft?["replan"]) == w.id ? "Resume editing" : "Edit this week")
+                    }
+                    .caps(15).foregroundStyle(Theme.mu).frame(height: 44).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain).padding(.leading, 24).padding(.top, 10)
+                .accessibilityIdentifier("editWeek")
+            }
+        }
+        .fullScreenCover(item: $replan) { r in PlanView(replanId: r.id).environmentObject(store).environmentObject(router) }
         .background(Theme.bg.ignoresSafeArea())
         .gesture(DragGesture(minimumDistance: 40).onEnded { g in
             guard log, abs(g.translation.width) > 60, abs(g.translation.width) > abs(g.translation.height) * 1.6 else { return }
@@ -56,7 +73,7 @@ struct VisionView: View {
         if log { Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.bottom, 12) }
         let paras = w.planThoughts.components(separatedBy: "\n\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         if paras.isEmpty {
-            Text(log ? "No vision written." : "No vision written for this week. Add one from Settings → Re-plan this week.")
+            Text(log ? "No vision written." : "No vision written for this week. Add one with Edit this week.")
                 .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2)
         } else {
             VStack(alignment: .leading, spacing: 14) {
