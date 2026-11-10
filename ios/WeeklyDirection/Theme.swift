@@ -10,8 +10,6 @@ enum Theme {
     /// Flat style preview (-MockStyle 1 or 2, sample-data mode only): a design finding Eddie tried and turned down
     /// (Nov 9 2026: "keep original"). 1 = square, outlined shapes; 2 = the same plus condensed caps titles.
     static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
-    /// Calmer stats preview (-MockStats 1, sample data only): a design finding, not approved.
-    static let statsV2: Bool = Mock.enabled && UserDefaults.standard.integer(forKey: "MockStats") == 1
     /// The journal's own page (Eddie, Nov 9 2026): a warm brown-black page in dark mode, the web app's cream paper in
     /// light mode, set in Georgia with plain-word buttons and italic stamps. Used by the journal list, the week page
     /// and the editor only.

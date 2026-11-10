@@ -1,7 +1,8 @@
 import SwiftUI
 import Charts
 
-/// Stats (web: openStats / openAllStats): ALL TIME | WEEK. The week view steps through weeks with ‹ › or a swipe.
+/// Stats (web: openStats / openAllStats, simplified Nov 9 2026 at Eddie's request): ALL TIME | WEEK. One headline, the week
+/// as a grid, what slipped in one quiet line, each habit as a bar. A week in progress is never compared with a finished one. The week view steps through weeks with ‹ › or a swipe.
 struct StatsView: View {
     @EnvironmentObject var store: Store
     @Environment(\.dismiss) private var dismiss
@@ -30,7 +31,7 @@ struct StatsView: View {
             .padding(.leading, 24).padding(.trailing, 12).padding(.top, 8)
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    if mode == "all" { if Theme.statsV2 { allTime2 } else { allTime } } else if let w = shown { if Theme.statsV2 { week2(w) } else { week(w) } }
+                    if mode == "all" { allTime } else if let w = shown { week(w) }
                 }
                 .fullWidth().padding(.horizontal, 24).padding(.top, 14).padding(.bottom, 50)
             }
@@ -47,52 +48,6 @@ struct StatsView: View {
         }
     }
 
-    // MARK: week
-
-    @ViewBuilder private func week(_ w: Week) -> some View {
-        let d = Logic.weekDetail(w, store.weeks, store.settings), st = d.stats
-        HStack(spacing: 6) {
-            navButton("chevron.left", d.prev)
-            Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
-            navButton("chevron.right", d.next)
-            Spacer()
-            Button { vision = true } label: {
-                HStack(spacing: 8) { Image(systemName: "book").font(.system(size: 14)).foregroundStyle(Theme.ac); Text("Vision").font(Theme.ui(15)).foregroundStyle(Theme.tx) }
-                    .padding(.horizontal, 14).frame(height: 32)
-                    .overlay(Theme.pill.stroke(Theme.ac.opacity(0.6), lineWidth: 1))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(.leading, -12)
-        HStack(alignment: .lastTextBaseline) {
-            Text(w.focus).title(34).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
-            Spacer()
-            VStack(alignment: .trailing, spacing: 2) {
-                bigPct(st.pct)
-                if let pv = d.prev, let pp = d.prevPct {
-                    Text("\(st.pct >= pp ? "▲" : "▼") \(abs(st.pct - pp)) vs \(pv.focus)").font(Theme.label(13)).tracking(1).foregroundStyle(Theme.mu)
-                }
-            }
-        }
-        .padding(.top, 6)
-        let today = Rules.ymd(Now.date)
-        TrendChart(title: "Daily trend", sub: "",
-                   points: d.keys.enumerated().map { i, k in .init(label: Fmt.dow[Rules.weekday(st.days[i])], value: d.daily[i], live: k == today) }, height: 150)
-            .padding(.top, 12)
-        StatGrid(rows: [("Days kept", "\(st.kept)/\(st.days.count)"), ("Habits done", "\(d.done)/\(d.due)"),
-                        ("On time", d.tDone > 0 ? "\(Fmt.pct(d.tOn, d.tDone))% · \(d.tOn)/\(d.tDone)" : "—"),
-                        ("In grace", "\(d.grace)"), ("Missed", "\(d.miss)"), ("Failed", "\(d.fail)")]).padding(.top, 8)
-        section("Day by day") { grid(w, d) }
-        section("By habit") {
-            ForEach(Array(d.per.enumerated()), id: \.offset) { i, t in
-                let pct = t.due > 0 ? Fmt.pct(t.done, t.due) : 0
-                let bits = ["\(t.done)/\(t.due)", t.c.by != nil && t.done > 0 ? "\(Fmt.pct(t.on + t.grace, t.done))% on time" : "",
-                            t.grace > 0 ? "\(t.grace) grace" : "", t.late > 0 ? "\(t.late) late" : "", t.fail > 0 ? "\(t.fail) failed" : ""]
-                HabitBar(c: t.c, sub: bits.filter { !$0.isEmpty }.joined(separator: " · "), pct: pct, last: i == d.per.count - 1)
-            }
-        }
-    }
-
     private func navButton(_ icon: String, _ target: Week?) -> some View {
         Button { if let target { Haptic.tick(); weekId = target.id } } label: {
             Image(systemName: icon).font(.system(size: 15, weight: .semibold)).foregroundStyle(target == nil ? Theme.line : Theme.tx)
@@ -102,48 +57,6 @@ struct StatsView: View {
         .accessibilityLabel(icon == "chevron.left" ? "Previous week" : "Next week")
     }
 
-    private func bigPct(_ v: Int) -> some View {
-        HStack(alignment: .firstTextBaseline, spacing: 1) {
-            Text("\(v)").font(Theme.num(36)).foregroundStyle(Theme.tx)
-            Text("%").font(Theme.ui(17)).foregroundStyle(Theme.mu)
-        }
-    }
-
-    private func section<V: View>(_ title: String, @ViewBuilder _ content: () -> V) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(text: title, color: Theme.tx, size: 12)
-            content()
-        }
-        .fullWidth().padding(15)
-        .card(22)
-        .padding(.top, 16)
-    }
-
-    /// habit × day cells: on time, grace, late, missed, failed
-    private func grid(_ w: Week, _ d: Logic.WeekDetail) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 6) {
-                Color.clear.frame(width: 30, height: 1)
-                ForEach(d.stats.days, id: \.self) { day in
-                    Text(Fmt.dow[Rules.weekday(day)]).font(Theme.label(12)).tracking(1).foregroundStyle(Theme.mu).frame(maxWidth: .infinity)
-                }
-            }
-            ForEach(w.commitments) { c in
-                HStack(spacing: 6) {
-                    Ico(name: c.icon, size: 16).foregroundStyle(Theme.mu).frame(width: 30)
-                    ForEach(d.keys, id: \.self) { k in
-                        CellView(cell: Logic.cell(w, k, c)).frame(maxWidth: .infinity).frame(height: 28)
-                            .accessibilityLabel("\(c.name) · \(Fmt.dowl[Rules.weekday(Logic.noon(k))]): \(Logic.cell(w, k, c).rawValue)")
-                    }
-                }
-            }
-            HStack(spacing: 14) {
-                legend(.on, "on time"); legend(.grace, "grace"); legend(.late, "late"); legend(.miss, "missed")
-            }
-            .padding(.top, 6)
-            legend(.fail, "failed")
-        }
-    }
     private func legend(_ c: Logic.Cell, _ t: String) -> some View {
         HStack(spacing: 7) {
             CellView(cell: c, round: true).frame(width: 14, height: 14)
@@ -151,10 +64,10 @@ struct StatsView: View {
         }
     }
 
-    // MARK: calmer stats (preview, -MockStats 1)
+    // MARK: week
 
     /// one headline, the week as a grid, what slipped in a single quiet line, then each habit
-    @ViewBuilder private func week2(_ w: Week) -> some View {
+    @ViewBuilder private func week(_ w: Week) -> some View {
         let d = Logic.weekDetail(w, store.weeks, store.settings), st = d.stats
         let today = Rules.ymd(Now.date)
         let elapsed = w.isActive ? d.keys.filter { $0 <= today }.count : st.days.count
@@ -174,7 +87,7 @@ struct StatsView: View {
         .padding(.top, 14)
         Text("\(d.done) of \(d.due) habits done" + (d.tDone > 0 ? " · \(Fmt.pct(d.tOn, d.tDone))% on time" : ""))
             .font(Theme.ui(15)).foregroundStyle(Theme.mu)
-        grid2(w, d, today).padding(.top, 30)
+        grid(w, d, today).padding(.top, 30)
         let slipped = [d.miss > 0 ? "\(d.miss) missed" : "", d.fail > 0 ? "\(d.fail) failed" : "", d.grace > 0 ? "\(d.grace) in grace" : ""].filter { !$0.isEmpty }
         Text(slipped.isEmpty ? "Nothing missed." : slipped.joined(separator: " · ")).font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 14)
         Eyebrow(text: "By habit", color: Theme.mu2, size: 12).padding(.top, 34)
@@ -183,7 +96,7 @@ struct StatsView: View {
         }
     }
 
-    private func grid2(_ w: Week, _ d: Logic.WeekDetail, _ today: String) -> some View {
+    private func grid(_ w: Week, _ d: Logic.WeekDetail, _ today: String) -> some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack(spacing: 7) {
                 Color.clear.frame(width: 30, height: 1)
@@ -211,7 +124,9 @@ struct StatsView: View {
         }
     }
 
-    @ViewBuilder private var allTime2: some View {
+    // MARK: all time
+
+    @ViewBuilder private var allTime: some View {
         let a = Logic.allTime(store.weeks, store.settings), s = Logic.streak(store.weeks, store.settings)
         if let first = a.weeks.first {
             Eyebrow(text: "Since \(Fmt.dateYear(first.w.sealedAt)) · \(a.weeks.count) week\(a.weeks.count > 1 ? "s" : "")", color: Theme.mu2, size: 12)
@@ -239,33 +154,6 @@ struct StatsView: View {
         }
     }
 
-    // MARK: all time
-
-    @ViewBuilder private var allTime: some View {
-        let a = Logic.allTime(store.weeks, store.settings), s = Logic.streak(store.weeks, store.settings)
-        if let first = a.weeks.first {
-            Eyebrow(text: "Since \(Fmt.dateYear(first.w.sealedAt)) · \(a.weeks.count) week\(a.weeks.count > 1 ? "s" : "")", color: Theme.mu2, size: 12)
-            Text("All time").title(34).foregroundStyle(Theme.tx).padding(.top, 4)
-            HStack(alignment: .firstTextBaseline, spacing: 12) {
-                bigPct(a.pct)
-                Text("of all habits done").font(Theme.label(13)).tracking(1).foregroundStyle(Theme.tx)
-            }
-            TrendChart(title: "Weekly trend",
-                       sub: a.avg.map { "avg \($0)%" + (a.best.map { " · best \($0.w.focus) \($0.pct)%" } ?? "") } ?? "",
-                       points: a.weeks.map { .init(label: Fmt.slash($0.w.sealedAt.addingTimeInterval(86400)), value: $0.pct, live: $0.w.isActive) }, height: 190)
-                .padding(.top, 10)
-            StatGrid(rows: [("Days kept", "\(a.kept)/\(a.days)"), ("Day streak", "\(s.cur) · best \(s.best)"),
-                            ("On time", a.onTime.map { "\($0)%" } ?? "—"), ("Perfect weeks", "\(a.perfect)"), ("Weeks closed", "\(a.closed)"),
-                            ("In grace", "\(a.grace)"), ("Missed", "\(a.miss)"), ("Failed", "\(a.fail)")]).padding(.top, 8)
-            section("By habit") {
-                ForEach(Array(a.habits.enumerated()), id: \.offset) { i, h in
-                    let p = h.due > 0 ? Fmt.pct(h.done, h.due) : 0
-                    HabitBar(c: h.c, sub: ["\(h.done)/\(h.due) days", h.tdone > 0 ? "\(Fmt.pct(h.on, h.tdone))% on time" : ""].filter { !$0.isEmpty }.joined(separator: " · "),
-                             pct: p, last: i == a.habits.count - 1)
-                }
-            }
-        }
-    }
 }
 
 struct CellView: View {
@@ -292,7 +180,7 @@ struct CellView: View {
     }
 }
 
-/// calmer stats: a habit as its name, one figure and a full-width hairline bar
+/// a habit as its name, one figure and a full-width hairline bar
 struct HabitLine: View {
     let c: Commitment
     let value: String
@@ -314,53 +202,6 @@ struct HabitLine: View {
             .frame(height: 3)
         }
         .padding(.top, 16)
-    }
-}
-
-/// stat grid, three across, numbers centered
-struct StatGrid: View {
-    let rows: [(String, String)]
-    var body: some View {
-        LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 3), spacing: 0) {
-            ForEach(rows, id: \.0) { r in
-                VStack(spacing: 4) {
-                    Text(r.1).font(Theme.ui(17)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(r.0).font(Theme.ui(13)).foregroundStyle(Theme.mu)
-                }
-                .frame(maxWidth: .infinity).padding(.vertical, 10)
-                .overlay(alignment: .bottom) { Rectangle().fill(Theme.rule).frame(height: 1) }
-            }
-        }
-    }
-}
-
-struct HabitBar: View {
-    let c: Commitment
-    let sub: String
-    let pct: Int
-    let last: Bool
-    var body: some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 10) {
-                Ico(name: c.icon, size: 17).foregroundStyle(Theme.tx)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(c.name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
-                    Text(sub).font(Theme.label(13)).tracking(0.9).foregroundStyle(Theme.mu2).lineLimit(1)
-                }
-                Spacer(minLength: 6)
-                ZStack(alignment: .leading) {
-                    Theme.pill.fill(Theme.line).frame(width: 40, height: 4)
-                    Theme.pill.fill(Theme.ac).frame(width: 40 * CGFloat(pct) / 100, height: 4)
-                }
-                HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(pct)").font(Theme.num(18)).foregroundStyle(Theme.tx)
-                    Text("%").font(Theme.ui(11)).foregroundStyle(Theme.mu)
-                }
-                .frame(width: 54, alignment: .trailing)
-            }
-            .padding(.vertical, 12)
-            if !last { Rectangle().fill(Theme.rule).frame(height: 1) }
-        }
     }
 }
 
