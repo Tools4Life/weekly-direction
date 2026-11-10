@@ -32,6 +32,7 @@ xcodebuild -project WeeklyDirection.xcodeproj -scheme WeeklyDirection \
   -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO build 2>&1 | grep -E "error:|warning:|BUILD"
 scripts/test.sh                      # XCTest (rules, write fields, journal, reminders) on the dedicated simulator
 scripts/shot.sh week stats close     # screenshots with sample data → docs/screenshots/latest/
+scripts/testflight.sh                # Release archive + local .ipa in build/; `scripts/testflight.sh upload` sends it to TestFlight (ask Eddie first)
 ```
 Simulator rule (Eddie, 2026-11-09): one simulator only ("Weekly Direction Tests", iPhone 14 Pro), booted only for tests and
 screenshots, launched with simctl (never Xcode Run, never the debugger); both scripts shut every simulator down when done.

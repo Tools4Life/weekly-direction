@@ -32,7 +32,7 @@ struct HabitSheet: View {
                     TextEditor(text: $about)
                         .font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
                         .scrollContentBackground(.hidden)
-                        .frame(minHeight: 140)
+                        .frame(minHeight: 96)
                         .padding(.horizontal, -4).padding(.top, 6)
                         .overlay(alignment: .topLeading) {
                             if about.isEmpty {
@@ -46,7 +46,7 @@ struct HabitSheet: View {
                     }
                 }
                 .fullWidth()
-                .padding(.horizontal, 20).padding(.top, 34).padding(.bottom, 30)
+                .padding(.horizontal, 20).padding(.top, 28).padding(.bottom, 24)
                 .onAppear { if !loaded { about = c.about ?? ""; loaded = true } }
             }
         }

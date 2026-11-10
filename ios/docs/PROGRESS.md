@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: dictation made instant (built, untested on device); journal page built (warm in dark, paper in light); waiting for Eddie's call on the calmer stats and the prayer icon, findings in docs/design/findings/2026-11-09-stats-journal-prayer.** Eddie has the app running on his phone (real data reads, Nov 9). Nothing pushed (no git credentials in the Claude shell).
+**Current: calmer stats, journal divider, half-sheet habit panel BUILT; TestFlight script added (`scripts/testflight.sh`), upload not yet run.** Eddie has the app on his phone (real data reads). Open: prayer icon pick, device check of dictation. Nothing pushed (no git credentials in the Claude shell).
 
 ## Polish pass (Nov 9, evening)
 - Habit names now match the web: Barlow Regular 16.5, no extra tracking (was Medium 18 + tracking); meta Barlow Condensed 13.
@@ -13,6 +13,10 @@
 - Not verified: recording from the centre mic on a device; the "Transcribing… / N waiting · Retry" line in its new places (This Week above the latest thought, top of Journal).
 - Dictation (Nov 9, late): the recording space is an overlay (0.16 s fade, orb grows from the tab mic), not a full-screen cover. Finishing closes it at once; transcription runs behind (`Recorder.sending`), the latest-thought strip shows the on-device words as "Just now · transcribing" until the real text lands, and a new recording can start meanwhile. Audio session and recorder set-up run off the main thread; live words start 0.35 s after the screen opens. Not verified on a device: any of it (sample data records nothing).
 - Journal page (Eddie, Nov 9: "paper for light mode, not dark"): the journal list, week page and editor use their own page: warm brown-black in dark mode, the web's cream paper in light mode, Georgia throughout, plain-word buttons, italic stamps (`Theme.j*`). Georgia in light mode too is Claude's call (the paper mockup he saw was Fraunces); one line to switch back.
+- Stats (Eddie approved the mockup, Nov 9): one headline, week grid, one quiet line for what slipped, habits as bars. A week in progress is never compared with a finished one; the all-time trend shows finished weeks only. Old six-box grid, daily trend and habit cards removed.
+- Journal colours (Eddie, Nov 9): warm / paper tones on the write and edit screen ONLY. The Journal list and week page use the app's default colours (they keep Georgia and plain-word buttons). A ruled "Earlier weeks" divider separates this week from prior weeks.
+- Habit tap opens a half sheet (medium detent, pull up for full).
+- TestFlight: `scripts/testflight.sh` (archive + local .ipa) and `scripts/testflight.sh upload`. Build number = build time. `ITSAppUsesNonExemptEncryption` = false. Upload needs an App Store Connect app record for com.redeemedtools.WeeklyDirection and is Eddie's call each time.
 - Previous state: run DAY-2026-11-09 DONE.
 
 ## Run DAY-2026-11-09 (see docs/runs/DAY-2026-11-09.md)

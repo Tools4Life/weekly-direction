@@ -11,8 +11,8 @@ enum Theme {
     /// (Nov 9 2026: "keep original"). 1 = square, outlined shapes; 2 = the same plus condensed caps titles.
     static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
     /// The journal's own page (Eddie, Nov 9 2026): a warm brown-black page in dark mode, the web app's cream paper in
-    /// light mode, set in Georgia with plain-word buttons and italic stamps. Used by the journal list, the week page
-    /// and the editor only.
+    /// light mode. Colours: the write / edit screen only (Eddie: the list and the week page keep the app's default
+    /// colours). The Georgia text, plain-word buttons and italic stamps are shared by the list, week page and editor.
     static let jbg = dyn(0x17130F, 0xF3EEE4)
     static let jtx = dyn(0xEFE6D8, 0x1F1B16)
     static let jmu = dyn(0xA99D8D, 0x6B6257)
