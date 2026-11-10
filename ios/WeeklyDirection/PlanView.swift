@@ -127,7 +127,7 @@ struct PlanView: View {
         Button { seal() } label: {
             Text("Seal the week").font(Theme.serif(19)).foregroundStyle(Color(hex: 0x0B0B0C))
                 .frame(maxWidth: .infinity).frame(height: 54)
-                .background(Color(hex: 0xF7F4EF).opacity(ok ? 1 : 0.35), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .background(Color(hex: 0xF7F4EF).opacity(ok ? 1 : 0.35), in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
         }
         .buttonStyle(.plain).disabled(!ok).padding(.top, 34)
         .accessibilityIdentifier("sealWeek")
@@ -141,8 +141,8 @@ struct PlanView: View {
         content()
             .foregroundStyle(Theme.tx)
             .fullWidth().padding(.horizontal, 15).padding(.vertical, 14)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(stroke, lineWidth: 1))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(stroke, lineWidth: 1))
     }
 
     private var trayCard: some View {
@@ -168,8 +168,8 @@ struct PlanView: View {
             }
         }
         .padding(.horizontal, 15).padding(.vertical, 6)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Theme.line, lineWidth: 1))
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous).stroke(Theme.line, lineWidth: 1))
     }
 
     /// library chips: tap adds, press and hold edits
@@ -192,8 +192,8 @@ struct PlanView: View {
             Text(text).font(serif ? Theme.serif(17) : Theme.ui(16)).foregroundStyle(dashed ? Theme.mu : Theme.tx)
         }
         .padding(.horizontal, 13).frame(height: 42)
-        .background(dashed ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, style: StrokeStyle(lineWidth: 1, dash: dashed ? [4, 3] : [])))
+        .background(dashed ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, style: StrokeStyle(lineWidth: 1, dash: dashed ? [4, 3] : [])))
         .contentShape(Rectangle())
     }
 
@@ -354,8 +354,8 @@ struct ChipSheet: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text(edit.mode == .edit ? "Edit habit" : edit.mode == .tray ? "This week’s habit" : "New habit").font(Theme.serif(24)).foregroundStyle(Theme.tx)
                 TextField("Habit name", text: $name).font(Theme.ui(17)).foregroundStyle(Theme.tx).focused($nameFocus)
-                    .padding(14).background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(needName ? Theme.ac : Theme.line, lineWidth: 1))
+                    .padding(14).background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(needName ? Theme.ac : Theme.line, lineWidth: 1))
                     .onChange(of: name) { _, _ in needName = false }
                     .padding(.top, 16)
                 Eyebrow(text: "Days", color: Theme.mu, size: 12).padding(.top, 22)
@@ -364,8 +364,8 @@ struct ChipSheet: View {
                         Button(d.1) { days = d.0 }
                             .font(Theme.ui(15)).foregroundStyle(days == d.0 ? Color(hex: 0x0B0B0C) : Theme.tx)
                             .frame(maxWidth: .infinity).frame(height: 40)
-                            .background(days == d.0 ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1))
+                            .background(days == d.0 ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, lineWidth: 1))
                     }
                 }
                 .buttonStyle(.plain).padding(.top, 8)
@@ -380,14 +380,14 @@ struct ChipSheet: View {
                 Eyebrow(text: "About", color: Theme.mu, size: 12).padding(.top, 22)
                 TextField("Why it matters, and the verse behind it", text: $about, axis: .vertical)
                     .font(Theme.serif(17)).lineSpacing(5).foregroundStyle(Theme.tx).frame(minHeight: 70, alignment: .topLeading)
-                    .padding(14).background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1)).padding(.top, 8)
+                    .padding(14).background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1)).padding(.top, 8)
                 Eyebrow(text: "Icon", color: Theme.mu, size: 12).padding(.top, 22)
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7), spacing: 8) {
                     ForEach(Self.icons, id: \.self) { n in
                         Button { icon = n } label: {
                             Ico(name: n, size: 18).foregroundStyle(icon == n ? Theme.onAc : Theme.mu).frame(maxWidth: .infinity).frame(height: 42)
-                                .background(icon == n ? Theme.ac : Theme.card, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                .background(icon == n ? Theme.ac : Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(10), style: .continuous))
                         }
                         .buttonStyle(.plain).accessibilityLabel(n)
                     }
@@ -441,7 +441,7 @@ struct ChipSheet: View {
             case .new:
                 primary("Save to library and add") { save("lib") }
                 Button("This week only") { save("week") }.font(Theme.ui(16)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 48)
-                    .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1))
             }
         }
         .buttonStyle(.plain)
@@ -449,7 +449,7 @@ struct ChipSheet: View {
     private func primary(_ t: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(t).font(Theme.ui(16, .semibold)).foregroundStyle(Color(hex: 0x0B0B0C)).frame(maxWidth: .infinity).frame(height: 50)
-                .background(Color(hex: 0xF7F4EF), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .background(Color(hex: 0xF7F4EF), in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
         }
     }
 
@@ -514,8 +514,8 @@ struct QuestionPicker: View {
                         } label: {
                             Text(q).font(Theme.serif(17)).lineSpacing(4).foregroundStyle(Theme.tx).multilineTextAlignment(.leading)
                                 .fullWidth().padding(13)
-                                .background(on ? Theme.acSoft : Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-                                .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(on ? Theme.ac : Theme.line, lineWidth: 1))
+                                .background(on ? Theme.acSoft : Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous))
+                                .overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(on ? Theme.ac : Theme.line, lineWidth: 1))
                         }
                         .buttonStyle(.plain).padding(.top, 8)
                     }

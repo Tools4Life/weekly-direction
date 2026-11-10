@@ -70,7 +70,7 @@ struct RecordingView: View {
             } label: {
                 ZStack {
                     Circle().fill(Theme.ac).frame(width: 105, height: 105)
-                    RoundedRectangle(cornerRadius: 3).fill(Theme.onAc).frame(width: 14, height: 14)
+                    RoundedRectangle(cornerRadius: Theme.r(3)).fill(Theme.onAc).frame(width: 14, height: 14)
                 }
                 .scaleEffect(1 + 0.08 * (recorder.levels.last ?? 0))
                 .animation(.easeOut(duration: 0.12), value: recorder.levels.last)

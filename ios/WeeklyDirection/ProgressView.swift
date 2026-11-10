@@ -11,7 +11,7 @@ struct ProgressScreen: View {
         let weeks = store.weeks.sorted { $0.sealedAtMs > $1.sealedAtMs }
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text("Progress").font(Theme.serif(34)).foregroundStyle(Theme.tx)
+                Text("Progress").title(34).foregroundStyle(Theme.tx)
                 if let aw = weeks.first(where: { $0.isActive }) ?? weeks.first {
                     hero(aw, weeks).padding(.top, 18)
                     Seg(options: [("weeks", "Weeks"), ("habits", "Habits")], value: $router.progressView).padding(.top, 18)
@@ -56,8 +56,8 @@ struct ProgressScreen: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
             .padding(16)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Theme.ac.opacity(0.35), lineWidth: 1))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(22), style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Theme.r(22), style: .continuous).stroke(Theme.ac.opacity(0.35), lineWidth: 1))
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Open stats")
@@ -109,11 +109,11 @@ struct ProgressScreen: View {
                         HStack(spacing: 4) {
                             ForEach(Array(r.cells.enumerated()), id: \.offset) { _, c in
                                 if let c {
-                                    RoundedRectangle(cornerRadius: 3).fill(Theme.ac.opacity(0.15 + 0.85 * Double(c.k) / Double(c.t)))
+                                    RoundedRectangle(cornerRadius: Theme.r(3)).fill(Theme.ac.opacity(0.15 + 0.85 * Double(c.k) / Double(c.t)))
                                         .frame(width: 13, height: 13)
                                         .onTapGesture { tip[r.id] = "\(c.focus): \(c.k) of \(c.t) days" }
                                 } else {
-                                    RoundedRectangle(cornerRadius: 3).stroke(Theme.rule, lineWidth: 1).frame(width: 13, height: 13)
+                                    RoundedRectangle(cornerRadius: Theme.r(3)).stroke(Theme.rule, lineWidth: 1).frame(width: 13, height: 13)
                                 }
                             }
                         }
@@ -141,9 +141,9 @@ struct MiniDays: View {
         HStack(spacing: 4) {
             ForEach(days, id: \.self) { d in
                 let m = week.marks[Rules.ymd(d)]
-                RoundedRectangle(cornerRadius: 3, style: .continuous)
+                RoundedRectangle(cornerRadius: Theme.r(3), style: .continuous)
                     .fill(m == "on" ? Theme.ac : m == "drift" ? Color(hex: 0xF2EFEA) : Color.clear)
-                    .overlay(RoundedRectangle(cornerRadius: 3, style: .continuous).stroke(m == nil ? Theme.line : Color.clear, lineWidth: 1))
+                    .overlay(RoundedRectangle(cornerRadius: Theme.r(3), style: .continuous).stroke(m == nil ? Theme.line : Color.clear, lineWidth: 1))
                     .frame(width: size, height: size)
             }
         }

@@ -96,7 +96,7 @@ struct HabitSheet: View {
                     } label: {
                         Text("Open timer").font(Theme.ui(16, .medium)).foregroundStyle(Theme.tx)
                             .frame(maxWidth: .infinity).frame(height: 48)
-                            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1))
+                            .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }

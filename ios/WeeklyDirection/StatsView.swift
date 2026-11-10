@@ -59,13 +59,13 @@ struct StatsView: View {
             Button { vision = true } label: {
                 HStack(spacing: 8) { Image(systemName: "book").font(.system(size: 14)).foregroundStyle(Theme.ac); Text("Vision").font(Theme.ui(15)).foregroundStyle(Theme.tx) }
                     .padding(.horizontal, 14).frame(height: 32)
-                    .overlay(Capsule().stroke(Theme.ac.opacity(0.6), lineWidth: 1))
+                    .overlay(Theme.pill.stroke(Theme.ac.opacity(0.6), lineWidth: 1))
             }
             .buttonStyle(.plain)
         }
         .padding(.leading, -12)
         HStack(alignment: .lastTextBaseline) {
-            Text(w.focus).font(Theme.serif(34)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
+            Text(w.focus).title(34).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 bigPct(st.pct)
@@ -157,7 +157,7 @@ struct StatsView: View {
         let a = Logic.allTime(store.weeks, store.settings), s = Logic.streak(store.weeks, store.settings)
         if let first = a.weeks.first {
             Eyebrow(text: "Since \(Fmt.dateYear(first.w.sealedAt)) · \(a.weeks.count) week\(a.weeks.count > 1 ? "s" : "")", color: Theme.mu2, size: 12)
-            Text("All time").font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.top, 4)
+            Text("All time").title(34).foregroundStyle(Theme.tx).padding(.top, 4)
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 bigPct(a.pct)
                 Text("of all habits done").font(Theme.label(13)).tracking(1).foregroundStyle(Theme.tx)
@@ -236,8 +236,8 @@ struct HabitBar: View {
                 }
                 Spacer(minLength: 6)
                 ZStack(alignment: .leading) {
-                    Capsule().fill(Theme.line).frame(width: 40, height: 4)
-                    Capsule().fill(Theme.ac).frame(width: 40 * CGFloat(pct) / 100, height: 4)
+                    Theme.pill.fill(Theme.line).frame(width: 40, height: 4)
+                    Theme.pill.fill(Theme.ac).frame(width: 40 * CGFloat(pct) / 100, height: 4)
                 }
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
                     Text("\(pct)").font(Theme.num(18)).foregroundStyle(Theme.tx)

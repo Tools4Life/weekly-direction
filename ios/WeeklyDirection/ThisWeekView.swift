@@ -31,7 +31,7 @@ struct ThisWeekView: View {
         let resume = (store.draft?["step"] as? String) == "plan" && store.draft?["replan"] as? String == nil
         let first = store.weeks.isEmpty
         return VStack(alignment: .leading, spacing: 14) {
-            HStack { Text("This week").font(Theme.serif(34)).foregroundStyle(Theme.tx); Spacer(); gear }
+            HStack { Text("This week").title(34).foregroundStyle(Theme.tx); Spacer(); gear }
             Eyebrow(text: first ? "Weekly Direction" : "No week in progress").padding(.top, 40)
             Text(resume ? "Your plan is waiting." : first ? "Plan your first week." : "Plan the next week.")
                 .font(Theme.serif(26)).foregroundStyle(Theme.tx)
@@ -41,7 +41,7 @@ struct ThisWeekView: View {
                 Text(resume ? "Resume planning" : first ? "Plan your first week" : "Plan the week")
                     .font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
                     .padding(.horizontal, 22).frame(height: 50)
-                    .background(Theme.ac, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
             }
             .buttonStyle(.plain).padding(.top, 8)
         }
@@ -72,7 +72,7 @@ struct ThisWeekView: View {
     @ViewBuilder private func week(_ w: Week) -> some View {
         let x = ctx(w)
         HStack(alignment: .center) {
-            Text(w.focus).font(Theme.serif(40)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
+            Text(w.focus).title(40).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
                 .onTapGesture { router.cover = .vision(w.id) }
             Spacer()
             gear
@@ -156,8 +156,8 @@ struct ThisWeekView: View {
                 Image(systemName: "chevron.right").font(.system(size: 15, weight: .medium)).foregroundStyle(Theme.mu)
             }
             .padding(.horizontal, 17).padding(.vertical, 16)
-            .background(Theme.card2, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Theme.line, lineWidth: 1))
+            .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous).stroke(Theme.line, lineWidth: 1))
         }
         .buttonStyle(.plain)
     }
@@ -335,13 +335,13 @@ struct HabitCardShell: View {
     let onBody: () -> Void, onCheck: () -> Void
 
     var body: some View {
-        let shape = RoundedRectangle(cornerRadius: 13, style: .continuous)
+        let shape = RoundedRectangle(cornerRadius: Theme.r(13), style: .continuous)
         HStack(spacing: 0) {
             Button(action: onBody) {
                 HStack(spacing: 13) {
                     Ico(name: icon, size: 19).foregroundStyle(done || running > 0 ? Theme.ac : Theme.mu)
                     VStack(alignment: .leading, spacing: 1) {
-                        Text(name).font(Theme.ui(16.5)).foregroundStyle(Theme.tx).lineLimit(1)
+                        Text(name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
                             .strikethrough(strike, color: Theme.tx.opacity(0.35))
                         if !meta.isEmpty {
                             Text(meta).font(Theme.label(12)).tracking(0.8).monospacedDigit()
@@ -377,22 +377,22 @@ struct HabitCardShell: View {
         switch c {
         case .done:
             ZStack {
-                Circle().fill(Color.white.opacity(0.14)).frame(width: 38, height: 38)
-                Circle().fill(Color(hex: 0xF2EFEA)).frame(width: 30, height: 30)
+                Theme.dot.fill(Color.white.opacity(0.14)).frame(width: 38, height: 38)
+                Theme.dot.fill(Color(hex: 0xF2EFEA)).frame(width: 30, height: 30)
                 Image(systemName: "checkmark").font(.system(size: 13, weight: .bold)).foregroundStyle(Color(hex: 0x0B0B0C))
             }
         case .x:
             ZStack {
-                Circle().stroke(Theme.mu2, style: StrokeStyle(lineWidth: 1, dash: [3, 3])).frame(width: 28, height: 28)
+                Theme.dot.stroke(Theme.mu2, style: StrokeStyle(lineWidth: 1, dash: [3, 3])).frame(width: 28, height: 28)
                 Image(systemName: "xmark").font(.system(size: 11, weight: .regular)).foregroundStyle(Theme.mu)
             }
         case .timer:
             ZStack {
-                Circle().stroke(Theme.mu, lineWidth: 1).frame(width: 28, height: 28)
+                Theme.dot.stroke(Theme.mu, lineWidth: 1).frame(width: 28, height: 28)
                 Image(systemName: "timer").font(.system(size: 13, weight: .regular)).foregroundStyle(Theme.mu)
             }
         case .open:
-            Circle().stroke(Theme.mu, lineWidth: 1).frame(width: 28, height: 28)
+            Theme.dot.stroke(Theme.mu, lineWidth: 1).frame(width: 28, height: 28)
         }
     }
 }
@@ -422,12 +422,12 @@ struct StreakCard: View {
                     VStack(alignment: .trailing, spacing: 7) {
                         GeometryReader { g in
                             ZStack(alignment: .leading) {
-                                Capsule().fill(Theme.line)
-                                Capsule().fill(Theme.ac).frame(width: g.size.width * f)
+                                Theme.pill.fill(Theme.line)
+                                Theme.pill.fill(Theme.ac).frame(width: g.size.width * f)
                             }
                         }
                         .frame(height: 5)
-                        .overlay { if m == next { Capsule().stroke(Theme.ac.opacity(0.45), lineWidth: 1).padding(-1) } }
+                        .overlay { if m == next { Theme.pill.stroke(Theme.ac.opacity(0.45), lineWidth: 1).padding(-1) } }
                         Text("\(m)").font(Theme.label(13)).tracking(0.8).foregroundStyle(cur >= m ? Theme.ac : Theme.mu2)
                     }
                 }

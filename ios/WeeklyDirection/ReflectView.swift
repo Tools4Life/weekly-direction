@@ -83,8 +83,8 @@ private struct JournalCard: View {
             if active { activeBody(ents) } else { pastBody(ents, text) }
         }
         .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 18)
-        .background(Theme.card, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(Theme.ac.opacity(0.22), lineWidth: 1))
+        .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(22), style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Theme.r(22), style: .continuous).stroke(Theme.ac.opacity(0.22), lineWidth: 1))
         .contentShape(Rectangle())
         .gesture(DragGesture(minimumDistance: 30).onEnded { g in
             if abs(g.translation.width) > 55, abs(g.translation.width) > abs(g.translation.height) * 1.5 { go(g.translation.width > 0 ? 1 : -1) }
@@ -201,7 +201,7 @@ struct WeekPage: View {
                     Text(picked.isEmpty ? "Delete" : "Delete \(picked.count) \(picked.count == 1 ? "entry" : "entries")")
                         .font(Theme.ui(16, .semibold)).foregroundStyle(.white)
                         .frame(maxWidth: .infinity).frame(height: 54)
-                        .background(Theme.danger.opacity(picked.isEmpty ? 0.4 : 1), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        .background(Theme.danger.opacity(picked.isEmpty ? 0.4 : 1), in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
                 }
                 .buttonStyle(.plain).disabled(picked.isEmpty)
                 .padding(.horizontal, 24).padding(.bottom, 12)
@@ -353,10 +353,10 @@ struct EntryMenu: ViewModifier {
                                 Button("Delete") { target = i; confirm = true }
                                     .font(Theme.ui(17)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity).frame(height: 58)
                             }
-                            .background(Theme.card2, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                            .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
                             Button("Cancel") { router.entryMenu = nil }
                                 .font(Theme.ui(17, .semibold)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 58)
-                                .background(Theme.card2, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                                .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
                         }
                         .buttonStyle(.plain)
                         .padding(.horizontal, 10).padding(.bottom, 8)

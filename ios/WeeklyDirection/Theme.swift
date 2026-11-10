@@ -7,9 +7,15 @@ enum Theme {
     /// "Not now" palette preview (-MockPalette focus, sample-data mode only): a design finding, not an approved theme.
     /// bg, tx and ac are sampled from the /focus page screenshot; the other tones are derived from them.
     private static let focus = Mock.enabled && UserDefaults.standard.string(forKey: "MockPalette") == "focus"
+    /// Flat style preview (-MockStyle 1 or 2, sample-data mode only): a design finding, not an approved look.
+    /// 1 = square, outlined shapes; 2 = the same plus heavy condensed caps for titles and habit names.
+    static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
+    static func r(_ x: CGFloat) -> CGFloat { style > 0 ? 0 : x }
+    static var pill: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Capsule()) }
+    static var dot: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Circle()) }
     static let bg = dyn(focus ? 0x0F1115 : 0x0B0B0C, 0xF6F5F2)
-    static let card = dyn(focus ? 0x171A20 : 0x151517, 0xFFFFFF)
-    static let card2 = dyn(focus ? 0x1D2028 : 0x1C1C1F, 0xF0EEE9)
+    static let card = style > 0 ? dyn(0x0B0B0C, 0xF6F5F2) : dyn(focus ? 0x171A20 : 0x151517, 0xFFFFFF)
+    static let card2 = style > 0 ? dyn(0x101012, 0xF1EFEA) : dyn(focus ? 0x1D2028 : 0x1C1C1F, 0xF0EEE9)
     static let tx = dyn(focus ? 0xF2EFE9 : 0xF7F4EF, 0x1B1917)
     static let mu = dyn(focus ? 0xA9A8A4 : 0xABA69F, 0x6F6A63)
     static let mu2 = dyn(focus ? 0x83858B : 0x8A857F, 0x8D877F)
@@ -104,15 +110,16 @@ struct Seg: View {
                 } label: {
                     Text(o.1.uppercased())
                         .font(Theme.label(13)).tracking(1.6)
-                        .foregroundStyle(value == o.0 ? Theme.tx : Theme.mu)
+                        .foregroundStyle(value == o.0 ? (Theme.style > 0 ? Theme.bg : Theme.tx) : Theme.mu)
                         .padding(.horizontal, 14).frame(height: 30)
-                        .background(value == o.0 ? Theme.card2 : .clear, in: Capsule())
+                        .background(value == o.0 ? (Theme.style > 0 ? Theme.tx : Theme.card2) : .clear, in: Theme.pill)
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding(2)
-        .background(Theme.card, in: Capsule())
+        .background(Theme.card, in: Theme.pill)
+        .overlay { if Theme.style > 0 { Rectangle().stroke(Theme.line, lineWidth: 1) } }
     }
 }
 
@@ -123,7 +130,18 @@ enum Haptic {
 
 extension View {
     func card(_ radius: CGFloat = 20) -> some View {
-        background(Theme.card, in: RoundedRectangle(cornerRadius: radius, style: .continuous))
+        background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(radius), style: .continuous))
+            .overlay { if Theme.style > 0 { Rectangle().stroke(Theme.line, lineWidth: 1) } }
+    }
+    /// screen title: Fraunces, or heavy condensed caps in flat style 2 (preview only)
+    @ViewBuilder func title(_ size: CGFloat) -> some View {
+        if Theme.style == 2 { font(.custom("BarlowCondensed-SemiBold", size: size * 1.12)).textCase(.uppercase).tracking(size * 0.03) }
+        else { font(Theme.serif(size)) }
+    }
+    /// habit name: the web's Barlow Regular 16.5, or condensed caps in flat style 2 (preview only)
+    @ViewBuilder func rowTitle() -> some View {
+        if Theme.style == 2 { font(.custom("BarlowCondensed-SemiBold", size: 17)).textCase(.uppercase).tracking(2.2) }
+        else { font(Theme.ui(16.5)) }
     }
     /// full-width, leading-aligned content: nothing in the app is centered in a narrow column
     func fullWidth() -> some View { frame(maxWidth: .infinity, alignment: .leading) }

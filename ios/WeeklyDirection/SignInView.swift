@@ -23,7 +23,7 @@ struct SignInView: View {
                     .textContentType(.password)
             }
             .padding(16)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 16))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(16)))
             .foregroundStyle(Theme.tx)
 
             if let e = store.error {
@@ -38,7 +38,7 @@ struct SignInView: View {
                     .font(.headline)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 15)
-                    .background(Theme.ac, in: RoundedRectangle(cornerRadius: 14))
+                    .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(14)))
                     .foregroundStyle(Theme.onAc)
             }
             .disabled(busy || email.isEmpty || password.isEmpty)

@@ -52,7 +52,7 @@ struct SettingsView: View {
     }
 
     @ViewBuilder private var content: some View {
-        Text("Settings").font(Theme.serif(34)).foregroundStyle(Theme.tx)
+        Text("Settings").title(34).foregroundStyle(Theme.tx)
         label("Account")
         group {
             row { VStack(alignment: .leading, spacing: 3) {
@@ -80,8 +80,8 @@ struct SettingsView: View {
                     Button(t.1) { Haptic.tick(); store.setSettings(["theme": t.0]) }
                         .font(Theme.ui(16)).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
                         .frame(maxWidth: .infinity).frame(height: 40)
-                        .background(on ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
-                        .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).stroke(on ? Color.clear : Theme.line, lineWidth: 1))
+                        .background(on ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Theme.r(11), style: .continuous).stroke(on ? Color.clear : Theme.line, lineWidth: 1))
                 }
             }
             .buttonStyle(.plain).padding(16)
@@ -101,7 +101,7 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 8) {
                 Eyebrow(text: "Anchor · asked every week", color: Theme.mu, size: 12)
                 TextField("Anchor question", text: $anchor).font(Theme.ui(16)).foregroundStyle(Theme.tx).focused($focus, equals: .anchor).submitLabel(.done)
-                    .padding(13).overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1))
+                    .padding(13).overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, lineWidth: 1))
             }
             .padding(16)
             divider
@@ -109,7 +109,7 @@ struct SettingsView: View {
                 Eyebrow(text: "Question library", color: Theme.mu, size: 12)
                 TextEditor(text: $library).font(Theme.serif(16)).lineSpacing(5).foregroundStyle(Theme.tx).scrollContentBackground(.hidden)
                     .focused($focus, equals: .library).frame(height: 230)
-                    .padding(8).overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1))
+                    .padding(8).overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, lineWidth: 1))
             }
             .padding(16)
         }
@@ -126,7 +126,7 @@ struct SettingsView: View {
                 Spacer()
                 Button("Export") { exportURL = export() }
                     .font(Theme.ui(16, .semibold)).foregroundStyle(Theme.tx).padding(.horizontal, 16).frame(height: 40)
-                    .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1)).buttonStyle(.plain)
+                    .overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, lineWidth: 1)).buttonStyle(.plain)
             }
             .padding(16)
         }

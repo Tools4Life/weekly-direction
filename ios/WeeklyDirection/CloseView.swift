@@ -58,7 +58,7 @@ struct CloseSheet: View {
                     Button { close() } label: {
                         Text("Close the week").font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
                             .frame(maxWidth: .infinity).frame(height: 54)
-                            .background(Theme.ac, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
                     }
                     .buttonStyle(.plain).padding(.top, 26)
                     .accessibilityIdentifier("closeWeek")
@@ -82,8 +82,8 @@ struct CloseSheet: View {
             .font(Theme.serif(17)).lineSpacing(6).foregroundStyle(Theme.tx)
             .frame(minHeight: minHeight, alignment: .topLeading)
             .padding(.horizontal, 16).padding(.vertical, 14)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1))
+            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1))
     }
 
     /// joinRef: each answered question as "question\nanswer", then the reflection, separated by blank lines
@@ -169,7 +169,7 @@ struct ClosedMoment: View {
             Button { router.cover = .plan(replan: nil) } label: {
                 Text("Plan the next week").font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
                     .frame(maxWidth: .infinity).frame(height: 54)
-                    .background(Theme.ac, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
             }
             .buttonStyle(.plain)
             Button("Later") { router.cover = nil }.font(Theme.ui(16)).foregroundStyle(Theme.mu).padding(.top, 18).padding(.bottom, 24)

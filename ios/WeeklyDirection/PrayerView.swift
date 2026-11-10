@@ -25,8 +25,8 @@ struct PrayerList: View {
                             .multilineTextAlignment(.leading)
                     }
                     .fullWidth().padding(.horizontal, 19).padding(.vertical, 18)
-                    .background(life == nil ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .background(life == nil ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(20), style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: Theme.r(20), style: .continuous)
                         .stroke(Theme.line, style: StrokeStyle(lineWidth: 1, dash: life == nil ? [4, 4] : [])))
                 }
                 .buttonStyle(.plain).padding(.top, 18).padding(.bottom, 12)
@@ -140,7 +140,7 @@ struct PrayerSheet: View {
                                 HStack(spacing: 6) { Ico(name: t.0, size: 15); Text(t.1).font(Theme.ui(14)) }
                                     .foregroundStyle(icon == t.0 ? Theme.onAc : Theme.mu)
                                     .padding(.leading, 6).padding(.trailing, 12).frame(height: 36)
-                                    .background(icon == t.0 ? Theme.ac : Theme.card, in: Capsule())
+                                    .background(icon == t.0 ? Theme.ac : Theme.card, in: Theme.pill)
                             }
                             .buttonStyle(.plain)
                         }
