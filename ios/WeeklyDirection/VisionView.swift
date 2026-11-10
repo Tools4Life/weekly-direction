@@ -184,8 +184,6 @@ struct VisionView: View {
         return HStack {
             if let pv { Button("‹ \(pv.focus)") { step(-1) }.foregroundStyle(Theme.mu) }
             Spacer()
-            Text("swipe for other weeks").font(Theme.ui(12)).foregroundStyle(Theme.mu2)
-            Spacer()
             if let nx { Button("\(nx.focus) ›") { step(1) }.foregroundStyle(Theme.mu) }
         }
         .font(Theme.ui(14))

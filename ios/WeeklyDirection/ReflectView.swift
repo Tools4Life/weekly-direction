@@ -160,7 +160,7 @@ struct WeekPage: View {
                     HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").caps(16) }.foregroundStyle(Theme.ac)
                 }
             } else {
-                Button("Open week") { vision = true }.foregroundStyle(Theme.mu)
+                Button("Week summary") { vision = true }.caps(15).foregroundStyle(Theme.mu)
             }
         }
         .font(Theme.ui(15)).buttonStyle(.plain).padding(.top, 34)

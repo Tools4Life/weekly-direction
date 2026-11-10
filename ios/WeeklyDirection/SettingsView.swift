@@ -129,8 +129,6 @@ struct SettingsView: View {
 
     @ViewBuilder private var questions: some View {
         Text("Saturday questions").title(30).foregroundStyle(Theme.tx)
-        Text("Asked when you close a week. The anchor is always asked; you pick two more from the library when you plan.")
-            .font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 8)
         label("Anchor · every week")
         group {
             TextField("Anchor question", text: $anchor, axis: .vertical)
@@ -212,9 +210,7 @@ struct SettingsView: View {
 
     @ViewBuilder private var caffeine: some View {
         let s = store.settings
-        Text("Caffeine wean").title(30).foregroundStyle(Theme.tx)
-        Text("A morning and an afternoon dose that step down to zero. While it is on, both doses are part of a kept day.")
-            .font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 8).padding(.bottom, 22)
+        Text("Caffeine wean").title(30).foregroundStyle(Theme.tx).padding(.bottom, 22)
         group {
             toggle("Track caffeine wean", nil, Binding(get: { store.settings.cafOn }, set: { on in
                 Haptic.tick()

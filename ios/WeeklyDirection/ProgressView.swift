@@ -103,7 +103,7 @@ struct ProgressScreen: View {
                         VStack(alignment: .leading, spacing: 3) {
                             Text(r.c.name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
                             Text("\(r.kept)/\(r.tot) days" + (ot.map { " · \($0)% on time" } ?? "") + (r.gr > 0 ? " · \(r.gr) grace" : "") + (r.rs > 0 ? " · \(r.rs) resched." : ""))
-                                .font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1)
+                                .font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1).minimumScaleFactor(0.7)
                         }
                         Spacer(minLength: 4)
                         HStack(spacing: 4) {

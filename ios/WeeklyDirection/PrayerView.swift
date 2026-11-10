@@ -161,7 +161,7 @@ struct PrayerSheet: View {
                     if bodyText.isEmpty { Text("Go as deep as you want.").font(Theme.serifItalic(18)).foregroundStyle(Theme.mu2).padding(.top, 8).allowsHitTesting(false) }
                 }
             if existing != nil, !pinned {
-                Button("Remove from list") { confirmRemove = true }.font(Theme.ui(15)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity)
+                Button("Remove from list") { confirmRemove = true }.caps(15).foregroundStyle(Theme.danger).frame(maxWidth: .infinity)
             }
         }
         .padding(.top, 20)

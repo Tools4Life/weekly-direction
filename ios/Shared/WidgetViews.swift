@@ -76,7 +76,7 @@ struct WeekWidgetBody: View {
         let off = h.state == "miss" || h.state == "fail"
         return HStack(spacing: 9) {
             Image(systemName: h.symbol).font(.system(size: size - 1, weight: .light)).foregroundStyle(h.state == "done" ? p.tx : p.mu).frame(width: size + 6)
-            Text(h.name.uppercased()).font(caps(size)).tracking(size * 0.1).foregroundStyle(off ? p.mu2 : p.tx).lineLimit(1)
+            Text(h.name.uppercased()).font(caps(size)).tracking(size * 0.1).foregroundStyle(off ? p.mu2 : p.tx).lineLimit(1).minimumScaleFactor(0.75)
                 .strikethrough(off, color: p.mu2)
             Spacer(minLength: 4)
             if time, !h.meta.isEmpty, h.state == "open" { Text(h.meta).font(label(size - 2)).foregroundStyle(p.mu2).lineLimit(1) }

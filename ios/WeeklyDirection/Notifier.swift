@@ -8,7 +8,7 @@ import UserNotifications
 @MainActor
 final class Notifier: ObservableObject {
     @Published var on = UserDefaults.standard.bool(forKey: "notifyOn")
-    @Published var note = "Reminders from your week, even when the app is closed."
+    @Published var note = ""
     private let center = UNUserNotificationCenter.current()
     private var token = 0
 
@@ -18,7 +18,7 @@ final class Notifier: ObservableObject {
                 let denied = s.authorizationStatus == .denied
                 if denied { self.on = false }
                 self.note = denied ? "Notifications are blocked: iPhone Settings › Notifications › Weekly Direction."
-                    : "Reminders from your week, even when the app is closed."
+                    : ""
             }
         }
     }

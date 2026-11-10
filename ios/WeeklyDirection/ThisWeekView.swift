@@ -83,7 +83,7 @@ struct ThisWeekView: View {
         HStack(alignment: .firstTextBaseline) {
             Eyebrow(text: "This week · " + Fmt.range(w.sealedAt, x.end), color: Theme.ac)
             Spacer()
-            if x.due { Text("Review due").font(Theme.serifItalic(17)).foregroundStyle(Theme.ac) } else { Eyebrow(text: dayCount(w, x.end)) }
+            if x.due { Eyebrow(text: "Review due", color: Theme.ac) }
         }
         .padding(.top, 6)
         strip(x).padding(.top, 16).rise(0)
@@ -135,12 +135,6 @@ struct ThisWeekView: View {
         Rules.weekday(now) == store.settings.closeDay && Rules.ymd(w.sealedAt) != x.todayK
     }
 
-    private func dayCount(_ w: Week, _ end: Date) -> String {
-        let d0 = Logic.midnight(w.sealedAt), d1 = Logic.midnight(end)
-        let total = Logic.dayDiff(d0, d1) + 1
-        let n = min(total, Int(floor(Logic.midnight(now).timeIntervalSince(d0) / 86400)) + 1)
-        return "Day \(n) of \(total)"
-    }
 
     // MARK: day strip
 
@@ -486,7 +480,6 @@ struct StreakCard: View {
                 Text("\(cur)").font(Theme.num(24)).foregroundStyle(Theme.tx)
                 Text("\(cur == 1 ? "day" : "days") in a row").font(Theme.ui(14)).foregroundStyle(Theme.mu)
                 Spacer()
-                Text(next.map { "\($0 - cur) to \($0)" } ?? "All milestones").font(Theme.label(14)).tracking(1).foregroundStyle(Theme.ac)
             }
             .padding(.top, 6)
             HStack(alignment: .top, spacing: 4) {

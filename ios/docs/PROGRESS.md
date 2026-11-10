@@ -2,6 +2,14 @@
 
 **Current: 0.2 (7) uploaded to TestFlight Nov 10 (through commit bb3cac9). After it, not yet uploaded: the debugging-run fixes and Eddie's four picks below. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Next: Eddie says "upload" for 0.2 (8), tests it on the phone, then the app is frozen. Nothing pushed (no git credentials in the Claude shell).
 
+## Label batch before the freeze (Nov 10, Eddie agreed to the list)
+- This Week: "Day N of M" removed; "Review due" is the caps label; the streak card's "N to M" removed.
+- Past week's journal page: "Open week" is now "Week summary". Vision page: "swipe for other weeks" removed.
+- Settings: intro lines removed from Saturday questions and Caffeine wean; Reminders shows a line only when notifications are blocked.
+- Prayer: "Remove from list" in caps. Widget habit names and the Progress habits detail line shrink instead of cutting off.
+- Checked: the widget preview's ticked Work Review is the preview's own sample; `WidgetBridge` sends missed as missed.
+- Left on purpose: two past-week pages, two pill styles, prayer column width, the "Reflect" naming, X versus chevron.
+
 ## The four picks before the freeze (Nov 10, after the debugging run)
 - Review: Next / Close the week is a fixed footer; the week's journal is read-only there (edited in the journal); the line being typed stays above the keyboard; nothing scrolls under the grabber.
 - Review reflection is kept on the phone (`ReviewDraft`, UserDefaults, never Firestore) until the week closes: survives swipe-down, a widget recording, leaving the app.
