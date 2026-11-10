@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: growth from reflections BUILT (option A), not on the phone; Nov 10 batch below is all built and unverified on device. `tidy` function (clean-up + rating proposals) NOT deployed: `firebase deploy --only functions:tidy`. Next TestFlight upload is 0.2 (1).** Open: prayer icon pick. Nothing pushed.
+**Current: 0.2 (1) uploaded to TestFlight Nov 10 (everything through commit 03ed4a0); waiting on Eddie's device test. `tidy` function (clean-up + rating proposals) NOT deployed: `firebase deploy --only functions:tidy`.** Open: prayer icon pick. Nothing pushed (no git credentials in the Claude shell).
 
 ## Prayers without a full page (Nov 10)
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
