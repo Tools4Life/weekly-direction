@@ -6,6 +6,12 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Edit / plan the week restyle (Nov 10)
+- Layout only; the draft, seal and field-level writes are untouched. Serif page title ("Edit the week" / "Plan the week") under an accent eyebrow. Order is now word, verse, vision, habits, Saturday questions, week started (vision used to be last).
+- Verse is one card: the words in italic, the reference under them. Habit rows show the time under the name (it was cut off). Library chips use the caps font. Questions are one card. Week started is one row.
+- Seal is an accent button in a fixed footer ("Seal the changes" when editing), with the missing-piece hint above it; the footer hides while the keyboard is up.
+- Verified: simulator shot `plan` (top of the page only), 13 tests. Not verified: the lower half of the page, typing with the keyboard, sealing, on the phone.
+
 ## Timer restyle (Nov 10)
 - The kitchen-timer face (own colours, overlapping numbers, plain-text Stop) is replaced: accent eyebrow "Timer · N min", the habit name as a serif page title, one accent ring that empties on a quiet track with the time and "ends h:mm" inside, and Stop timer as the app's outlined row. Uses the theme colours, so it follows light mode. The ring draws in on open. Timer rules and writes are unchanged.
 - Verified: simulator shots `focus`, `focus-light`. Not verified: on the phone; the finish moment; habits longer than 60 min (the ring is now always the habit's own length, the old face was out of 60).

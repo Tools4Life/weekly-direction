@@ -28,6 +28,7 @@ struct PlanView: View {
     @State private var chipSheet: ChipEdit?
     @State private var pickQs = false
     @State private var blocked = false
+    @State private var typing = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -47,8 +48,12 @@ struct PlanView: View {
             }
             .scrollIndicators(.hidden)
             .scrollDismissesKeyboard(.interactively)
+            // out of the way while typing, so the field being written in keeps the room
+            if !typing { footer }
         }
         .background(Theme.bg.ignoresSafeArea())
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in typing = true }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in typing = false }
         .onAppear(perform: load)
         .sheet(item: $chipSheet) { e in
             ChipSheet(edit: e, onTray: applyTray, onAdd: addHabit)
@@ -62,10 +67,12 @@ struct PlanView: View {
         .alert("A week is already in progress. Close it before sealing a new one.", isPresented: $blocked) { Button("OK", role: .cancel) {} }
     }
 
+    /// Order (Nov 10 2026): what the week is about first (word, verse, vision), then what you will do (habits), then the
+    /// rarely-touched parts (questions, start). Sealing stays in a footer so it is always in reach.
     @ViewBuilder private var form: some View {
-        Text(replan != nil ? "Re-plan this week" : first ? "Plan your first week" : "Plan the next week")
-            .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu)
-        Eyebrow(text: "Focus word", color: Theme.mu, size: 12).padding(.top, 20)
+        Eyebrow(text: replan != nil ? "This week" : first ? "Your first week" : "Next week", color: Theme.ac)
+        Text(replan != nil ? "Edit the week" : "Plan the week").title(30).foregroundStyle(Theme.tx).padding(.top, 4)
+        Eyebrow(text: "Focus word", color: Theme.mu, size: 12).padding(.top, 26)
         TextField("One word", text: $focus)
             .font(Theme.serif(40)).foregroundStyle(Theme.tx).autocorrectionDisabled()
             .onChange(of: focus) { _, v in
@@ -74,67 +81,78 @@ struct PlanView: View {
             }
             .accessibilityIdentifier("planFocus")
         Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 4)
-        HStack(spacing: 8) {
-            Eyebrow(text: "Focus verse", color: Theme.mu, size: 12)
-            Text("OPTIONAL").font(Theme.label(13)).tracking(2.8).italic().foregroundStyle(Theme.mu)
-        }
-        .padding(.top, 22)
-        field { TextField("Reference, e.g. Daniel 1:8", text: $verseRef).font(Theme.ui(16)).onChange(of: verseRef) { _, _ in saveDraft() } }.padding(.top, 10)
-        field { TextField("The verse", text: $verse, axis: .vertical).font(Theme.serif(17)).lineSpacing(5).onChange(of: verse) { _, _ in saveDraft() } }.padding(.top, 8)
-        if first || replan != nil {
-            field {
-                VStack(alignment: .leading, spacing: 6) {
-                    Eyebrow(text: "Week started", color: Theme.mu, size: 12)
-                    DatePicker("", selection: Binding(get: { start ?? Now.date }, set: { start = $0; saveDraft() }), displayedComponents: [.date, .hourAndMinute])
-                        .labelsHidden().tint(Theme.ac)
-                }
+        // the verse the way the week page shows it: the words, then the reference under them
+        Eyebrow(text: "Verse · optional", color: Theme.mu, size: 12).padding(.top, 26)
+        field {
+            VStack(alignment: .leading, spacing: 10) {
+                TextField("The verse", text: $verse, axis: .vertical).font(Theme.serifItalic(18)).lineSpacing(5).onChange(of: verse) { _, _ in saveDraft() }
+                Rectangle().fill(Theme.rule).frame(height: 1)
+                TextField("Reference, e.g. Daniel 1:8", text: $verseRef).font(Theme.label(14)).tracking(1.6).foregroundStyle(Theme.mu)
+                    .onChange(of: verseRef) { _, _ in saveDraft() }
             }
-            .padding(.top, 24)
         }
+        .padding(.top, 10)
+        Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.top, 26)
+        field {
+            TextField("What do you want this week to be?", text: $thoughts, axis: .vertical)
+                .font(Theme.serif(17)).lineSpacing(6).frame(minHeight: 96, alignment: .topLeading)
+                .onChange(of: thoughts) { _, _ in saveDraft() }
+        }
+        .padding(.top, 10)
         HStack {
             let cd = store.settings.closeDay
             Eyebrow(text: "Daily habits · \(Fmt.dowl[(cd + 1) % 7].prefix(3)) – \(Fmt.dowl[cd].prefix(3))", color: Theme.mu, size: 12)
             Spacer()
             Text("\(tray.count)").font(Theme.label(13)).foregroundStyle(Theme.mu)
         }
-        .padding(.top, 30)
+        .padding(.top, 34)
         trayCard.padding(.top, 10)
-        chips.padding(.top, 14)
+        Eyebrow(text: "Add from your library · hold to edit", color: Theme.mu2, size: 11).padding(.top, 18)
+        chips.padding(.top, 10)
         HStack {
             Eyebrow(text: "Saturday questions", color: Theme.mu, size: 12)
             Spacer()
-            Button("Change") { pickQs = true }.font(Theme.ui(15)).foregroundStyle(Theme.ac)
+            Button("Change") { pickQs = true }.caps(14).foregroundStyle(Theme.ac)
         }
         .padding(.top, 34)
-        ForEach(qs, id: \.self) { q in
-            let anchor = q == store.settings.anchorQ
-            field(stroke: anchor ? Theme.ac.opacity(0.35) : Theme.line) {
+        VStack(alignment: .leading, spacing: 0) {
+            ForEach(Array(qs.enumerated()), id: \.element) { n, q in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(q).font(Theme.serif(17)).lineSpacing(5).foregroundStyle(Theme.tx)
-                    if anchor { Eyebrow(text: "Anchor · every week", color: Theme.mu, size: 12) }
+                    if q == store.settings.anchorQ { Eyebrow(text: "Anchor · every week", color: Theme.ac, size: 11) }
                 }
+                .fullWidth().padding(.horizontal, 15).padding(.vertical, 14)
+                if n < qs.count - 1 { Rectangle().fill(Theme.rule).frame(height: 1).padding(.leading, 15) }
             }
-            .padding(.top, 8)
         }
-        Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.top, 34)
-        field {
-            TextField("What do you want this week to be?", text: $thoughts, axis: .vertical)
-                .font(Theme.serif(17)).lineSpacing(6).frame(minHeight: 120, alignment: .topLeading)
-                .onChange(of: thoughts) { _, _ in saveDraft() }
+        .card(16).padding(.top, 10)
+        if first || replan != nil {
+            DatePicker(selection: Binding(get: { start ?? Now.date }, set: { start = $0; saveDraft() }), displayedComponents: [.date, .hourAndMinute]) {
+                Text("Week started").caps(16).foregroundStyle(Theme.tx)
+            }
+            .tint(Theme.ac).padding(.horizontal, 15).frame(minHeight: 56).card(16).padding(.top, 34)
         }
-        .padding(.top, 10)
+    }
+
+    /// always in reach: says what is missing, or seals
+    private var footer: some View {
         let ok = !focus.isEmpty && !tray.isEmpty
-        Button { seal() } label: {
-            Text("Seal the week").font(Theme.serif(19)).foregroundStyle(Color(hex: 0x0B0B0C))
-                .frame(maxWidth: .infinity).frame(height: 54)
-                .background(Color(hex: 0xF7F4EF).opacity(ok ? 1 : 0.35), in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
+        return VStack(spacing: 8) {
+            if !ok {
+                Text(focus.isEmpty && tray.isEmpty ? "Choose a focus word and at least one habit." : focus.isEmpty ? "Choose a focus word." : "Add at least one habit.")
+                    .font(Theme.ui(14)).foregroundStyle(Theme.mu)
+            }
+            Button { seal() } label: {
+                Text(replan != nil ? "Seal the changes" : "Seal the week").caps(17).foregroundStyle(ok ? Theme.onAc : Theme.mu2)
+                    .frame(maxWidth: .infinity).frame(height: 52)
+                    .background(ok ? Theme.ac : Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
+            }
+            .buttonStyle(.plain).disabled(!ok)
+            .accessibilityIdentifier("sealWeek")
         }
-        .buttonStyle(.plain).disabled(!ok).padding(.top, 34)
-        .accessibilityIdentifier("sealWeek")
-        if !ok {
-            Text(focus.isEmpty && tray.isEmpty ? "Choose a focus word and at least one habit." : focus.isEmpty ? "Choose a focus word." : "Add at least one habit.")
-                .font(Theme.ui(13)).foregroundStyle(Theme.mu2).frame(maxWidth: .infinity).padding(.top, 10)
-        }
+        .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 10)
+        .background(Theme.bg.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
     }
 
     private func field<V: View>(stroke: Color = Theme.line, @ViewBuilder _ content: () -> V) -> some View {
@@ -152,15 +170,17 @@ struct PlanView: View {
                 if let c = Commitment(raw) {
                     HStack(spacing: 12) {
                         Ico(name: c.icon, size: 17).foregroundStyle(Theme.mu)
-                        Text(c.name).caps(16).foregroundStyle(Theme.tx).lineLimit(1).layoutPriority(1)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(c.name).caps(16).foregroundStyle(Theme.tx).lineLimit(1)
+                            if !c.timeLabel().isEmpty { Text(c.timeLabel()).font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1) }
+                        }
                         Spacer(minLength: 6)
-                        Text(c.timeLabel()).font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1)
                         Button { tray.remove(at: i); saveDraft() } label: {
                             Image(systemName: "xmark").font(.system(size: 13)).foregroundStyle(Theme.mu).frame(width: 34, height: 40)
                         }
                         .buttonStyle(.plain).accessibilityLabel("Remove \(c.name)")
                     }
-                    .padding(.vertical, 6)
+                    .padding(.vertical, 8)
                     .contentShape(Rectangle())
                     .onTapGesture { chipSheet = ChipEdit(mode: .tray, source: raw) }
                     if i < tray.count - 1 { Rectangle().fill(Theme.rule).frame(height: 1) }
@@ -189,9 +209,9 @@ struct PlanView: View {
     private func chip(icon: String, text: String, serif: Bool, dashed: Bool = false) -> some View {
         HStack(spacing: 9) {
             Image(systemName: icon).font(.system(size: 14, weight: .light)).foregroundStyle(Theme.mu)
-            Text(text).font(serif ? Theme.serif(17) : Theme.ui(16)).foregroundStyle(dashed ? Theme.mu : Theme.tx)
+            Text(text).caps(14).foregroundStyle(dashed ? Theme.mu : Theme.tx)
         }
-        .padding(.horizontal, 13).frame(height: 42)
+        .padding(.horizontal, 13).frame(height: 40)
         .background(dashed ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous))
         .overlay(RoundedRectangle(cornerRadius: Theme.r(12), style: .continuous).stroke(Theme.line, style: StrokeStyle(lineWidth: 1, dash: dashed ? [4, 3] : [])))
         .contentShape(Rectangle())
