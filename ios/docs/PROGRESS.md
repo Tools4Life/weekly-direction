@@ -6,6 +6,11 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Dictation screen and growth by sphere (Nov 10, late)
+- Recording screen: live words in Georgia 17 from the top of the page down (auto-scrolls once full), wave, elapsed time as the one number, smaller orb. "Tap to finish" and the header timer are gone. The dictation card in plan / review shows up to 10 lines.
+- Growth is by sphere, not by exact question (questions change week to week): each rating is saved with `s`, the question's group in the library ("Anchor" for the anchor question, "Other" if it is in no group). A sphere's week is the balance of its questions. The rating step shows the sphere above each question.
+- Verified: 14 tests, shots `recording`, `progress-growth`, `close-rate`. Not verified: live words scrolling on a real recording, on the phone.
+
 ## Growth from reflections (Nov 10)
 - Eddie picked option A (one colour; green / red rejected because red and orange both read as alerts) and past weeks stay empty.
 - Review is two steps: reflect, then "How did it go?" with Worse / Same / Better per question. The `tidy` function (mode `rate`) proposes each rating with the sentence it rests on; he confirms or changes it; tap again clears it. Without the function the buttons start empty and work by hand.

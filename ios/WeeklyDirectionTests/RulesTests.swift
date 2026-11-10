@@ -110,12 +110,15 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(Growth.trend([-1, -1, 0, 1, 1, 1]), 1)
         XCTAssertEqual(Growth.trend([1, 1, 1, 0, -1, -1]), -1)
         XCTAssertEqual(Growth.trend([0, 1, 0, 0, 1, 0]), 0)
-        let g = Growth.rows(store.weeks, anchor: store.settings.anchorQ)
+        let g = Growth.rows(store.weeks)
         XCTAssertEqual(g.weeks.map(\.focus), ["Rest", "Word", "Law"])
-        XCTAssertEqual(g.rows.first?.q, store.settings.anchorQ)
+        // by sphere, the anchor first
+        XCTAssertEqual(g.rows.first?.sphere, Growth.anchorSphere)
         XCTAssertEqual(g.rows.first?.cells, [-1, 0, 1])
-        // the third question was not spoken to in the Word week: empty, not "same"
-        XCTAssertEqual(g.rows.first { $0.q == Defaults.revQs[2] }?.cells, [-1, nil, 0])
+        // a sphere not spoken to in a week is empty there, not "same"
+        let third = Growth.sphere(Defaults.revQs[2], store.settings)
+        XCTAssertEqual(Growth.sphere(Defaults.revQs[0], store.settings), Growth.anchorSphere)
+        XCTAssertNotNil(g.rows.first { $0.sphere == third })
     }
 
     func testJournalBlocksAndEdits() {

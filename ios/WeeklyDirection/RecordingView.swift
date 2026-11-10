@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// The recording space (web: vcFocus): Cancel and the timer, the words as you say them, the voice level as a
-/// scrolling bar waveform, and the orb with a stop square. Tap the orb to finish.
+/// The recording space (web: vcFocus). Nov 10 2026 (Eddie: a stream of consciousness, so show a lot of it): the words
+/// in small journal type from the top of the page down, then the voice level, the elapsed time and the orb. Cancel is
+/// the only other thing on screen; tapping the orb finishes.
 struct RecordingView: View {
     @EnvironmentObject var recorder: Recorder
     @EnvironmentObject var router: Router
@@ -10,32 +11,35 @@ struct RecordingView: View {
     @State private var demo: Timer?
     @State private var demoWords = 0
 
-    private static let demoText = "This is a preview of live words. As you talk, what you say shows up here a few words at a time"
+    private static let demoText = "This is a preview of live words. As you talk, what you say shows up here a few words at a time, starting at the top of the page and working its way down. It was a long day on site and I did not get to devotion until after lunch, which I think is the real pattern this week. When the morning goes, the rest of the day runs me instead of the other way around. Tonight I want to be home by six and actually put the phone down at the door"
 
     var body: some View {
         VStack(spacing: 0) {
-            ZStack {
-                HStack {
-                    Button("Cancel") { recorder.cancel(); router.endRecording() }.caps(16).foregroundStyle(Theme.mu)
-                    Spacer()
-                }
-                Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.label(15)).tracking(1.5).monospacedDigit().foregroundStyle(Theme.mu)
+            HStack {
+                Button("Cancel") { recorder.cancel(); router.endRecording() }.caps(16).foregroundStyle(Theme.mu)
+                Spacer()
             }
             .frame(height: 52)
             ScrollViewReader { proxy in
                 ScrollView {
-                    Text(recorder.liveText).font(Theme.serif(24)).lineSpacing(9).foregroundStyle(Theme.tx)
-                        .fullWidth().padding(.top, 20).id("end")
+                    // top of the page down; once it fills the space the newest line stays in view
+                    Text(recorder.liveText).font(Theme.jserif(17)).lineSpacing(7).foregroundStyle(Theme.tx)
+                        .fullWidth().padding(.top, 8).padding(.bottom, 12)
+                    Color.clear.frame(height: 1).id("end")
                 }
-                .defaultScrollAnchor(.bottom)
-                .onChange(of: recorder.liveText) { _, _ in proxy.scrollTo("end", anchor: .bottom) }
+                .scrollIndicators(.hidden)
+                .onChange(of: recorder.liveText) { _, _ in withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("end", anchor: .bottom) } }
+                .mask(LinearGradient(stops: [.init(color: .black, location: 0), .init(color: .black, location: 0.9), .init(color: .clear, location: 1)],
+                                     startPoint: .top, endPoint: .bottom))
             }
-            Wave(levels: recorder.levels).frame(height: 60).padding(.top, 26)
+            Wave(levels: recorder.levels).frame(height: 40).padding(.top, 14)
+            Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.num(22)).monospacedDigit().foregroundStyle(Theme.tx)
+                .contentTransition(.numericText()).padding(.top, 16)
             Button {
                 if store.isMock { router.endRecording() } else { recorder.stop(); router.endRecording() }
             } label: {
                 ZStack {
-                    Circle().fill(Theme.ac).frame(width: 105, height: 105)
+                    Circle().fill(Theme.ac).frame(width: 88, height: 88)
                     RoundedRectangle(cornerRadius: Theme.r(3)).fill(Theme.onAc).frame(width: 14, height: 14)
                 }
                 .scaleEffect(1 + 0.08 * (recorder.levels.last ?? 0))
@@ -43,10 +47,10 @@ struct RecordingView: View {
             }
             .buttonStyle(.plain)
             .accessibilityLabel("Finish recording")
-            .padding(.top, 38)
+            .padding(.top, 16)
             // the orb grows out of the tab bar mic
-            .scaleEffect(risen ? 1 : 0.57).offset(y: risen ? 0 : 96)
-            Text("Tap to finish").font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 16).padding(.bottom, 30)
+            .scaleEffect(risen ? 1 : 0.68).offset(y: risen ? 0 : 60)
+            .padding(.bottom, 34)
         }
         .padding(.horizontal, 24)
         .background(Theme.bg.ignoresSafeArea())

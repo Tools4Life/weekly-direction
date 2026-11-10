@@ -55,7 +55,7 @@ enum Mock {
             var w: [String: Any] = ["id": id, "status": "closed", "focus": focus, "sealedAt": ms(id, "17:30"),
                                     "closedAt": ms(id, "17:30") + 7 * 864e5, "percentage": pct, "commitments": habits, "reflection": refl]
             if let summary { w["summary"] = summary }
-            let rated = zip(Defaults.revQs, growth).compactMap { q, v in v.map { ["q": q, "v": $0] as [String: Any] } }
+            let rated = zip(Defaults.revQs, growth).compactMap { q, v in v.map { ["q": q, "v": $0, "s": Growth.sphere(q, Settings()) ] as [String: Any] } }
             if !rated.isEmpty { w["growth"] = rated }
             return w
         }

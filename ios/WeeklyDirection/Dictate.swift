@@ -45,7 +45,7 @@ struct DictateCard: View {
                         .caps(14).foregroundStyle(Theme.mu).buttonStyle(.plain)
                 }
                 Text(recorder.liveText.isEmpty ? "Listening…" : recorder.liveText)
-                    .font(Theme.jitalic(16)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(4, reservesSpace: false)
+                    .font(Theme.jserif(15)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(10, reservesSpace: false)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 Button { Task { await finish() } } label: {
                     Text("Done").caps(16).foregroundStyle(Theme.onAc).frame(maxWidth: .infinity).frame(height: 46)

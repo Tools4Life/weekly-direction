@@ -50,6 +50,7 @@ struct CloseSheet: View {
         }
         ForEach(Array(questions.enumerated()), id: \.offset) { i, q in
             VStack(alignment: .leading, spacing: 10) {
+                Eyebrow(text: Growth.sphere(q, store.settings), color: Theme.ac, size: 11)
                 Text(q).font(Theme.serif(18)).lineSpacing(3).foregroundStyle(Theme.tx)
                 if i < quotes.count, !quotes[i].isEmpty {
                     Text("“\(quotes[i])”").font(Theme.serifItalic(15)).lineSpacing(3).foregroundStyle(Theme.mu)
@@ -179,7 +180,7 @@ struct CloseSheet: View {
         let st = Logic.weekStats(cur, store.settings), text = joined()
         var fields: [String: Any] = ["status": "closed", "closedAt": Now.ms, "percentage": st.pct, "reflection": text]
         // only the questions he rated; a week with none gets no `growth` field at all
-        let rated = zip(questions, ratings).compactMap { q, v in v.map { ["q": q, "v": $0] as [String: Any] } }
+        let rated = zip(questions, ratings).compactMap { q, v in v.map { ["q": q, "v": $0, "s": Growth.sphere(q, store.settings)] as [String: Any] } }
         if !rated.isEmpty { fields["growth"] = rated }
         store.patchWeek(cur, fields)
         Haptic.success()
