@@ -83,12 +83,16 @@ final class Recorder: NSObject, ObservableObject {
         guard state == .idle else { return false }
         say(nil)
         guard await AVAudioApplication.requestRecordPermission() else { say("Mic blocked: allow it in iPhone Settings"); return false }
+        // the knock and the tone come first, on the tap, before the microphone opens (so the tone is not in the recording)
+        Haptic.micOn()
         let url0 = dir
         let made: Rec = await withCheckedContinuation { c in
             audioQ.async {
                 do {
                     let s = AVAudioSession.sharedInstance()
                     try s.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+                    // iOS mutes haptics while a recording session is active unless asked not to
+                    try? s.setAllowHapticsAndSystemSoundsDuringRecording(true)
                     try s.setActive(true)
                     let t0 = Date()
                     let url = url0.appendingPathComponent("rec-\(Int(t0.timeIntervalSince1970 * 1000)).m4a")
@@ -114,7 +118,6 @@ final class Recorder: NSObject, ObservableObject {
         liveText = ""
         levels = [Double](repeating: 0, count: levels.count)
         state = .rec
-        Haptic.tick()
         meter = Timer.scheduledTimer(withTimeInterval: 0.035, repeats: true) { [weak self] _ in Task { @MainActor in self?.tick() } }
         // live words start once the screen has finished opening, so the animation never waits on the speech engine
         Task { @MainActor [weak self] in
@@ -148,7 +151,7 @@ final class Recorder: NSObject, ObservableObject {
         r.stop()
         recorder = nil
         audioQ.async { try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation) }
-        Haptic.tick()
+        if cancelled { Haptic.tick() } else { Haptic.micOff() }
         let heard = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
         let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
         if cancelled { try? FileManager.default.removeItem(at: url); state = .idle; say(nil); return }

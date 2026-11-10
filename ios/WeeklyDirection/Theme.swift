@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import AudioToolbox
 
 // The web app's palette (dark first, light from html[data-theme=light]) and type: Fraunces for titles, focus word and
 // entries; Barlow for UI text; Barlow Condensed, letter-spaced and uppercase, for labels and dates.
@@ -141,6 +142,10 @@ struct Seg: View {
 enum Haptic {
     static func tick() { UIImpactFeedbackGenerator(style: .light).impactOccurred() }
     static func success() { UINotificationFeedbackGenerator().notificationOccurred(.success) }
+    /// the mic opening and closing (Eddie, Nov 10 2026: the light tick was too soft): a firm knock plus the system's
+    /// own record tones. The tones follow the ring / silent switch.
+    static func micOn() { UIImpactFeedbackGenerator(style: .heavy).impactOccurred(intensity: 1); AudioServicesPlaySystemSound(1113) }
+    static func micOff() { UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 1); AudioServicesPlaySystemSound(1114) }
 }
 
 extension View {

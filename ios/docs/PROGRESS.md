@@ -3,8 +3,12 @@
 **Current: a past day of the open week can be changed to failed from the habit sheet (Nov 10) BUILT, not on the phone yet; next TestFlight upload is 0.2 (1).** Open: prayer icon pick, device check of dictation. Nothing pushed (no git credentials in the Claude shell).
 
 ## Prayers without a full page (Nov 10)
-- A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list shows one muted line of a prayer's text under its name.
+- A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
+
+## Mic feedback (Nov 10)
+- Starting a recording: heavy knock + system begin-record tone (1113) on the tap, before the microphone opens. Stopping: rigid knock + end-record tone (1114). Cancel keeps the light tick. Haptics are now allowed while the recording session is active (iOS mutes them by default, which is likely why it felt soft).
+- Not verified: any of it. The simulator has no haptics and the tones were not heard; needs the phone.
 
 ## Past-day correction (Nov 10)
 - Habit sheet on a past day of the open week: "Change <day> to failed" plus a confirm that names the day and what is recorded. Works for a done or a missed habit; a failure stays final; a past day still cannot be checked off. Writes what a same-day failure writes (`id: false`, `id@fail: true`, mark `drift`). Closed weeks stay read-only.
