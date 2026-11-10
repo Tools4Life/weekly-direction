@@ -10,14 +10,15 @@ struct WidgetPreview: View {
     var body: some View {
         let light = UserDefaults.standard.string(forKey: "MockTheme") == "light"
         var s = WidgetSnapshot.sample; s.light = light; s.day = Rules.ymd(Date())
+        let word = UserDefaults.standard.string(forKey: "MockMicWord")
         return ScrollView {
             VStack(spacing: 18) {
                 HStack(spacing: 18) {
                     tile(158, 158, WeekWidgetBody(snap: s, date: Date(), size: .small), light: light)
                     Spacer(minLength: 0)
                 }
-                tile(338, 158, WeekWidgetBody(snap: s, date: Date(), size: .medium), light: light)
-                tile(338, 354, WeekWidgetBody(snap: s, date: Date(), size: .large), light: light)
+                tile(338, 158, WeekWidgetBody(snap: s, date: Date(), size: .medium, micWord: word), light: light)
+                tile(338, 354, WeekWidgetBody(snap: s, date: Date(), size: .large, micWord: word), light: light)
             }
             .padding(.horizontal, 26).padding(.top, 20).padding(.bottom, 40)
         }

@@ -21,6 +21,9 @@ struct WeekWidgetBody: View {
     let snap: WidgetSnapshot?
     let date: Date
     let size: Size
+    /// a word beside the mic. Not used by the real widgets (Eddie agreed to no word, Nov 10 2026); the app passes one in
+    /// sample-data mode (`-OpenScreen widgets -MockMicWord Reflect`) to show what it would look like.
+    var micWord: String? = nil
 
     private var p: WPalette { WPalette.of(light: snap?.light ?? false) }
     private func serif(_ s: CGFloat) -> Font { .custom("Fraunces-Regular", size: s) }
@@ -92,6 +95,19 @@ struct WeekWidgetBody: View {
         }
     }
 
+    @ViewBuilder private func mic(icon: CGFloat, side: CGFloat, word: CGFloat) -> some View {
+        if let micWord {
+            HStack(spacing: 8) {
+                Image(systemName: "mic").font(.system(size: icon - 2, weight: .medium))
+                Text(micWord.uppercased()).font(caps(word)).tracking(word * 0.12)
+            }
+            .foregroundStyle(p.onAc).padding(.horizontal, side * 0.36).frame(height: side - 6).background(p.ac, in: Capsule())
+        } else {
+            Image(systemName: "mic").font(.system(size: icon, weight: .medium)).foregroundStyle(p.onAc)
+                .frame(width: side, height: side).background(p.ac, in: Circle())
+        }
+    }
+
     private func small(_ s: WidgetSnapshot, _ hs: [WidgetSnapshot.Habit]) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(s.reviewDue ? "REVIEW DUE" : "THIS WEEK").font(label(11)).tracking(2.2).foregroundStyle(p.ac)
@@ -112,8 +128,7 @@ struct WeekWidgetBody: View {
                 Spacer(minLength: 6)
                 Link(destination: Shared.dictateURL) {
                     // the mic alone, like the one in the app's tab bar: no word on it
-                    Image(systemName: "mic").font(.system(size: 17, weight: .medium)).foregroundStyle(p.onAc)
-                        .frame(width: 40, height: 40).background(p.ac, in: Circle())
+                    mic(icon: 17, side: 40, word: 13)
                 }
             }
             .frame(width: 118, alignment: .leading)
@@ -146,8 +161,7 @@ struct WeekWidgetBody: View {
                 Spacer()
                 // the one thing this widget does besides show the week: straight into dictation
                 Link(destination: Shared.dictateURL) {
-                    Image(systemName: "mic").font(.system(size: 20, weight: .medium)).foregroundStyle(p.onAc)
-                        .frame(width: 48, height: 48).background(p.ac, in: Circle())
+                    mic(icon: 20, side: 48, word: 15)
                 }
             }
         }
