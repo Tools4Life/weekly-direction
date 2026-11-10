@@ -10,7 +10,9 @@ enum HabitState: String {
 /// The current time. Fixed only by the snapshot mode (sample data rendered at the spec's "today"); otherwise the real clock.
 enum Now {
     static var fixed: Date?
-    static var date: Date { fixed ?? Date() }
+    /// practice mode: the clock is moved, not stopped, so timers still run
+    static var offset: TimeInterval?
+    static var date: Date { fixed ?? offset.map { Date().addingTimeInterval($0) } ?? Date() }
     static var ms: Double { date.timeIntervalSince1970 * 1000 }
 }
 

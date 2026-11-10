@@ -83,7 +83,10 @@ struct SettingsView: View {
             }
             .padding(.horizontal, 16).frame(minHeight: 54)
             divider
-            toggle("Sounds", nil, Binding(get: { store.settings.sounds }, set: { store.setSettings(["sounds": $0]) }))
+            toggle("Sounds", nil, Binding(get: { store.settings.sounds }, set: { on in
+                store.setSettings(["sounds": on])
+                if on { var s = store.settings.raw; s["sounds"] = true; Sound.play(.done, Settings(s)) }
+            }))
             divider
             // the note is only worth the space when reminders are off or blocked
             toggle("Reminders", notifier.on ? nil : notifier.note, Binding(get: { notifier.on }, set: { want in Task { await notifier.set(want, store: store) } }))
@@ -101,12 +104,22 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
         }
+        if store.practice || !store.isMock {
+            group {
+                Button {
+                    Haptic.tick()
+                    if store.practice { store.exitPractice() } else { store.enterPractice() }
+                    dismiss()
+                } label: { line(store.practice ? "Leave practice mode" : "Practice mode", value: store.practice ? nil : "Sample week", chevron: !store.practice) }
+                .buttonStyle(.plain)
+            }
+        }
         group {
             Button { exportURL = export() } label: { line("Export my data", value: nil, chevron: true) }.buttonStyle(.plain)
             divider
             Button { confirmSignOut = true } label: { line("Sign out", value: nil, chevron: false) }.buttonStyle(.plain)
         }
-        Text("\(store.email ?? "Not signed in") · \(store.isMock ? "preview data" : "synced to your account")")
+        Text("\(store.email ?? "Not signed in") · \(store.practice ? "practice mode, nothing is saved" : store.isMock ? "preview data" : "synced to your account")")
             .font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 14).padding(.horizontal, 4)
     }
 

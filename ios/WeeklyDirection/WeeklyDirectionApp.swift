@@ -35,6 +35,7 @@ struct WeeklyDirectionApp: App {
                 .onChange(of: store.weeks) { _, _ in notifier.schedule(store: store); WidgetBridge.sync(store) }
                 .onChange(of: store.settings) { _, _ in notifier.schedule(store: store); WidgetBridge.sync(store) }
                 .onChange(of: store.signedIn) { _, on in if !on, !store.isMock { WidgetBridge.clear() } }
+                .onChange(of: store.practice) { was, on in if was, !on { recorder.dropPractice(since: store.practiceSince) } }
                 // widget links: weeklydirection://dictate starts recording, anything else just opens the week
                 .onOpenURL { url in
                     router.tab = "week"
@@ -72,6 +73,20 @@ struct RootView: View {
                 ProgressView().tint(Theme.mu)
             } else {
                 MainTabs()
+            }
+        }
+        // practice mode is always visible on the main pages, with the way out
+        .safeAreaInset(edge: .top, spacing: 0) {
+            if store.practice {
+                Button { Haptic.tick(); store.exitPractice() } label: {
+                    HStack(spacing: 8) {
+                        Text("Practice").caps(13)
+                        Text("nothing is saved").font(Theme.ui(13))
+                        Text("Exit").caps(13).padding(.leading, 6)
+                    }
+                    .foregroundStyle(Theme.onAc).padding(.horizontal, 14).frame(height: 30).background(Theme.ac, in: Capsule())
+                }
+                .buttonStyle(.plain).padding(.top, 2).padding(.bottom, 4).frame(maxWidth: .infinity).background(Theme.bg)
             }
         }
         .preferredColorScheme(scheme)

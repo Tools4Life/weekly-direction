@@ -36,7 +36,7 @@ struct RecordingView: View {
             Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.num(22)).monospacedDigit().foregroundStyle(Theme.tx)
                 .contentTransition(.numericText()).padding(.top, 16)
             Button {
-                if store.isMock { router.endRecording() } else { recorder.stop(); router.endRecording() }
+                if !store.online { router.endRecording() } else { recorder.stop(); router.endRecording() }
             } label: {
                 ZStack {
                     Circle().fill(Theme.ac).frame(width: 88, height: 88)
@@ -56,7 +56,7 @@ struct RecordingView: View {
         .background(Theme.bg.ignoresSafeArea())
         .onAppear {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) { risen = true }
-            if store.isMock { startDemo(); return }
+            if !store.online { startDemo(); return }
             Task { if !(await recorder.start()) { router.endRecording() } }
         }
         .onDisappear { demo?.invalidate(); if recorder.state == .rec { recorder.cancel() } }

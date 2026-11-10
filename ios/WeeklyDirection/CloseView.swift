@@ -184,6 +184,7 @@ struct CloseSheet: View {
         if !rated.isEmpty { fields["growth"] = rated }
         store.patchWeek(cur, fields)
         Haptic.success()
+        Sound.play(.day, store.settings)
         router.sheet = nil
         router.selK = nil
         let store = store, id = weekId, focus = cur.focus
@@ -198,7 +199,7 @@ enum Summary {
 
     @MainActor static func write(store: Store, weekId: String, focus: String, text: String) async {
         let t = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !store.isMock, t.count >= 20, store.week(weekId)?.summary == nil else { return }
+        guard store.online, t.count >= 20, store.week(weekId)?.summary == nil else { return }
         do {
             var req = URLRequest(url: url)
             req.httpMethod = "POST"

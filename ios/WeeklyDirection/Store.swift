@@ -20,8 +20,41 @@ final class Store: ObservableObject {
     @Published var ready = false
     @Published var error: String?
 
-    /// sample data, no Firebase: only for simulator screenshots (see Mock.swift)
-    let isMock: Bool
+    /// sample data, no Firebase: simulator screenshots (see Mock.swift) and practice mode. While it is true every write
+    /// below stays in memory.
+    private(set) var isMock: Bool
+    /// Practice mode (Eddie, Nov 10 2026): the app runs on sample data so the weekly review, planning and anything else
+    /// can be tried freely. The account's listeners are detached and nothing is written to it; leaving reloads the real data.
+    @Published private(set) var practice = false
+    /// the voice and AI functions can be called: the real account, or practice mode (they only return text)
+    var online: Bool { !isMock || practice }
+    /// when practice mode was last entered: recordings made after this belong to practice, never to the real journal
+    private(set) var practiceSince: Date?
+
+    func enterPractice() {
+        guard !isMock, user != nil else { return }
+        listeners.forEach { $0.remove() }
+        listeners = []
+        isMock = true
+        draft = nil
+        practiceSince = Date()
+        // the sample week and journal, but his own settings (theme, questions, close time)
+        let own = settings
+        Mock.load(into: self)
+        settings = own
+        // a Saturday evening in the sample week: the review is due, the clock keeps running
+        Now.fixed = nil
+        Now.offset = Rules.localDate("2026-11-14", "18:30")!.timeIntervalSince(Date())
+        practice = true
+    }
+
+    func exitPractice() {
+        guard practice else { return }
+        Now.offset = nil
+        isMock = false
+        practice = false
+        attach(Auth.auth().currentUser)
+    }
 
     private var listeners: [ListenerRegistration] = []
     private var seen = Set<String>()
@@ -56,7 +89,7 @@ final class Store: ObservableObject {
     func signOut() { if !isMock { try? Auth.auth().signOut() } }
 
     func token() async throws -> String {
-        if isMock { throw URLError(.userAuthenticationRequired) }
+        if !online { throw URLError(.userAuthenticationRequired) }
         guard let u = Auth.auth().currentUser else { throw URLError(.userAuthenticationRequired) }
         return try await u.getIDToken()
     }
@@ -67,6 +100,8 @@ final class Store: ObservableObject {
     }
 
     private func attach(_ u: User?) {
+        // an account event during practice must not bring the real data back under the in-memory writes
+        if practice { return }
         listeners.forEach { $0.remove() }
         listeners = []
         user = u
@@ -206,6 +241,7 @@ final class Store: ObservableObject {
         self.library = library.map { Chip(id: $0["id"] as? String ?? "", $0) }.sorted { $0.order < $1.order }
         email = "demo@example.com"
         ready = true
+        if UserDefaults.standard.bool(forKey: "MockPractice") { practice = true }      // screenshots of the practice banner
     }
 
     private func deepMerge(_ a: [String: Any], _ b: [String: Any]) -> [String: Any] {

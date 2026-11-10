@@ -95,7 +95,7 @@ enum Tidy {
     static let url = URL(string: "https://us-central1-ops-hub-9bebc.cloudfunctions.net/tidy")!
 
     @MainActor private static func call(_ store: Store, _ body: [String: Any]) async -> [String: Any]? {
-        guard !store.isMock else { return nil }
+        guard store.online else { return nil }
         do {
             var req = URLRequest(url: url)
             req.httpMethod = "POST"

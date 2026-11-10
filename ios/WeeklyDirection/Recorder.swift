@@ -15,7 +15,7 @@ final class Recorder: NSObject, ObservableObject {
     static let voiceURL = URL(string: "https://us-central1-ops-hub-9bebc.cloudfunctions.net/transcribe")!
     static let maxSeconds: TimeInterval = 10 * 60
 
-    @Published var state: State = .idle
+    @Published var state: State = .idle { didSet { Sound.hold = state == .rec } }
     @Published var message: String?
     @Published var pending = 0
     @Published var elapsed: TimeInterval = 0
@@ -178,7 +178,7 @@ final class Recorder: NSObject, ObservableObject {
         if cancel { Haptic.tick(); return nil }
         Haptic.micOff()
         if dur < 1.5 { say("Too short"); return nil }
-        guard let store, !store.isMock else { return heard.isEmpty ? nil : heard }
+        guard let store, store.online else { return heard.isEmpty ? nil : heard }
         do {
             var req = URLRequest(url: Self.voiceURL)
             req.httpMethod = "POST"
@@ -288,14 +288,32 @@ final class Recorder: NSObject, ObservableObject {
         guard !sending else { return }
         sending = true
         defer { sending = false; draftText = nil }
-        guard store?.isMock == false else { return }
+        guard store?.online == true else { return }
         var failed = Set<String>()
-        while let f = queue().first(where: { !failed.contains($0.lastPathComponent) }) {
+        // In practice mode only recordings made during practice are sent (into the sample week). Real ones still
+        // waiting on the phone are left alone until practice is over.
+        let since = store?.practice == true ? store?.practiceSince : nil
+        while let f = queue().first(where: { !failed.contains($0.lastPathComponent) && (since == nil || Self.madeAt($0) >= since!) }) {
             if !(await send(f)) { failed.insert(f.lastPathComponent); break }
         }
     }
 
     var isOnline: Bool { online }
+
+    private static func madeAt(_ f: URL) -> Date {
+        let ms = Double(f.deletingPathExtension().lastPathComponent.dropFirst().split(separator: "_").first ?? "") ?? 0
+        return Date(timeIntervalSince1970: ms / 1000)
+    }
+
+    /// leaving practice mode: recordings made during it that never got sent are deleted, so they can't reach the real journal
+    func dropPractice(since: Date?) {
+        guard let since else { return }
+        for f in queue() where Self.madeAt(f) >= since {
+            try? FileManager.default.removeItem(at: f)
+            try? FileManager.default.removeItem(at: f.deletingPathExtension().appendingPathExtension("txt"))
+        }
+        refreshPending()
+    }
 
     /// retry everything still waiting (network back, app opened, Retry tapped)
     func flush() async {

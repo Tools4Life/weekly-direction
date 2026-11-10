@@ -6,6 +6,12 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## After 0.2 (2) (Nov 10)
+- Sounds (`Sound.swift`, the web's tones as short sine notes): a rising note when a timer starts, a two-note chime when a habit is finished, four rising notes when the day is kept or a week is closed. Follows the Sounds setting and the silent switch; never plays while the mic is open.
+- Practice mode (Settings → Practice mode): the app switches to the sample week on a Saturday evening so the review, rating, planning and sealing can be tried. The account's listeners are detached, every write stays in memory (`Store.isMock`), widgets and reminders are left alone, and leaving reloads the real data. Voice and AI functions still work in it. Recordings made in practice never reach the real journal, and real ones waiting on the phone are not sent during practice. His own settings (theme, questions) stay.
+- Widgets: true black background. Habit sheet: icon, name and Done on one centre line.
+- Verified: 15 tests, shots `week-practice` (banner via `-MockPractice 1`), `habit`. Not verified: the sounds (not heard), entering / leaving practice with a real account, on the phone.
+
 ## After 0.2 (1): Eddie's first device pass "looks good" (Nov 10)
 - Small fixes: tab-bar mic 60 → 72; a finished habit's icon is white; habit sheet shows when / start-by / timer as one quiet line each; a plain habit (no start-by, no timer) can be unchecked the same day, timed ones stay final.
 - Offline dictation: a recording made offline stays on the phone with the words the phone itself heard (sidecar `.txt`), shows in Journal and on This Week as a "waiting to send" placeholder, and becomes a normal entry when the server has it. On-device live words already work offline where the phone supports them.

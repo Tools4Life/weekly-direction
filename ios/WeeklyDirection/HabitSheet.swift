@@ -19,8 +19,10 @@ struct HabitSheet: View {
         ScrollView {
             if let w = week, let c = habit {
                 VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .top, spacing: 10) {
-                        Ico(name: c.icon, size: 22).foregroundStyle(Theme.ac).padding(.top, 4)
+                    // the icon, the name and Done share one centre line (the icon used to hang from the top, which only
+                    // lined up while a second line sat under the name)
+                    HStack(alignment: .center, spacing: 10) {
+                        Ico(name: c.icon, size: 22).foregroundStyle(Theme.ac)
                         VStack(alignment: .leading, spacing: 6) {
                             Text(c.name).font(Theme.serif(24)).foregroundStyle(Theme.tx)
                         }

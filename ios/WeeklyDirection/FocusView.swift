@@ -89,6 +89,8 @@ struct FocusView: View {
         guard !fin else { return }
         fin = true
         Haptic.success()
+        let k = day, items = Logic.dayItems(w, Logic.noon(k), store.settings)
+        Sound.play(items.allSatisfy { $0 == c.id || w.flag(k, $0) } ? .day : .done, store.settings)
         if !w.flag(day, c.id), !w.flag(day, c.id + "@fail") { store.setItem(w, day, c.id, true) }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) { if case .focus = router.cover { router.cover = nil } }
     }

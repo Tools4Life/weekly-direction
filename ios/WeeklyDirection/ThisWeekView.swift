@@ -277,13 +277,16 @@ struct ThisWeekView: View {
         if st == .done || st == .fail || st == .miss { bump(c.id); return }
         if c.min != nil {
             Haptic.tick()
-            if st == .open || st == .late || st == .grace { store.setRun(w, k, c.id, Now.ms) }
+            if st == .open || st == .late || st == .grace { store.setRun(w, k, c.id, Now.ms); Sound.play(.start, store.settings) }
             router.cover = .focus(week: w.id, habit: c.id, day: k)
             return
         }
         Haptic.tick()
         store.setItem(w, k, c.id, true)
-        if Logic.dayItems(w, x.selDay ?? Now.date, store.settings).allSatisfy({ $0 == c.id || w.flag(k, $0) }) { Haptic.success() }
+        // the last one of the day gets the longer chime
+        if Logic.dayItems(w, x.selDay ?? Now.date, store.settings).allSatisfy({ $0 == c.id || w.flag(k, $0) }) {
+            Haptic.success(); Sound.play(.day, store.settings)
+        } else { Sound.play(.done, store.settings) }
     }
 
     /// a timer that ran out while its screen was closed completes the habit (web: the 'fin' pass in renderWeek)
