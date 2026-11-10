@@ -102,8 +102,9 @@ struct JournalList: View {
                 }
                 RecorderStatus().padding(.top, 10)
                 if let w = store.activeWeek {
-                    (Text("This week · \(Fmt.weekRange(w, store.settings)) · ").foregroundColor(Theme.mu2) + Text(w.focus).foregroundColor(Theme.ac))
-                        .font(Theme.label(12)).tracking(2.4).textCase(.uppercase).padding(.top, 18)
+                    // this week's focus word leads the page, as large as the earlier weeks' names are small
+                    Eyebrow(text: "This week · \(Fmt.weekRange(w, store.settings))", color: Theme.ac).padding(.top, 20)
+                    Text(w.focus).font(Theme.jserif(30)).foregroundStyle(Theme.tx).padding(.top, 4).padding(.bottom, 4)
                     let ents = Array(Journal.entries(w.liveRefl).reversed())
                     if ents.isEmpty {
                         Text("Nothing yet this week.").font(Theme.jitalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
