@@ -10,7 +10,7 @@ struct CloseSheet: View {
     /// the reflection spoken or typed on this page
     @State private var review = ""
     @State private var questions: [String] = []
-    @State private var reflection = ""
+    @FocusState private var writing: Bool
     @State private var loaded = false
     /// step 2 of the review: a rating per question (1 better, 0 same, -1 worse, nil not said), proposed by the `tidy`
     /// function from what he wrote and confirmed or changed by him before closing
@@ -20,13 +20,12 @@ struct CloseSheet: View {
     /// what was proposed for each question: the sentence is only kept with a rating he left as proposed
     @State private var proposed: [Int?] = []
     @State private var asked = false
-    /// the journal as it was when the review opened: a thought that arrives afterwards must not be dropped at close
-    @State private var journal0 = ""
     @State private var reading = false
 
     private func toRatings() {
         guard !questions.isEmpty else { close(); return }
         Haptic.tick()
+        writing = false
         withAnimation(.easeOut(duration: 0.2)) { rating = true }
         guard !asked, !reading else { return }
         let text = joined()
@@ -64,13 +63,21 @@ struct CloseSheet: View {
             }
             .padding(.top, 26)
         }
-        Button { close() } label: {
-            Text("Close the week").caps(16).foregroundStyle(Theme.onAc)
-                .frame(maxWidth: .infinity).frame(height: 54)
-                .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
+    }
+
+    /// always in reach, like sealing on the plan page: Next, then Close the week
+    private var footer: some View {
+        let last = rating || questions.isEmpty
+        return Button { if rating { close() } else { toRatings() } } label: {
+            Text(last ? "Close the week" : "Next").caps(16).foregroundStyle(Theme.onAc)
+                .frame(maxWidth: .infinity).frame(height: 52)
+                .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
         }
-        .buttonStyle(.plain).padding(.top, 34)
-        .accessibilityIdentifier("closeWeek")
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(rating ? "closeWeek" : "reviewNext")
+        .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 10)
+        .background(Theme.bg.ignoresSafeArea(edges: .bottom))
+        .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
     }
 
     /// tap to choose, tap again to clear (not said); one colour: only Better carries the accent
@@ -95,6 +102,7 @@ struct CloseSheet: View {
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             if let w = store.week(weekId) {
                 let st = Logic.weekStats(w, store.settings)
@@ -134,20 +142,26 @@ struct CloseSheet: View {
                     }
                     .padding(.top, 22)
                     Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
-                    line(text: $review, placeholder: "Your reflection").padding(.top, 18)
-                    Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
+                    line(text: $review, placeholder: "Your reflection").focused($writing).padding(.top, 18)
+                    // the line being written stays above the keyboard
+                    Color.clear.frame(height: 22).id("reviewEnd")
+                    Rectangle().fill(Theme.rule).frame(height: 1)
                     Eyebrow(text: "This week’s journal", color: Theme.mu, size: 12).padding(.top, 18)
-                    line(text: $reflection, placeholder: "Nothing written this week.").padding(.top, 8)
-                    Button { toRatings() } label: {
-                        Text(questions.isEmpty ? "Close the week" : "Next").caps(16).foregroundStyle(Theme.onAc)
-                            .frame(maxWidth: .infinity).frame(height: 54)
-                            .background(Theme.ac, in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
+                    // to read while reflecting; entries are edited in the journal, not here
+                    let blocks = Journal.blocks(w.liveRefl)
+                    if blocks.isEmpty {
+                        Text("Nothing written this week.").font(Theme.serifItalic(16)).foregroundStyle(Theme.mu2).padding(.top, 10)
                     }
-                    .buttonStyle(.plain).padding(.top, 26)
-                    .accessibilityIdentifier("reviewNext")
+                    ForEach(blocks) { b in
+                        VStack(alignment: .leading, spacing: 5) {
+                            if let d = b.d { Text(b.t.map { "\(d), \($0)" } ?? d).font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2) }
+                            Text(b.x).font(Theme.serif(17)).lineSpacing(6).foregroundStyle(Theme.tx)
+                        }
+                        .fullWidth().padding(.top, 16)
+                    }
                     }
                 }
-                .fullWidth().padding(.horizontal, 20).padding(.top, 34).padding(.bottom, 30)
+                .fullWidth().padding(.horizontal, 20).padding(.top, 10).padding(.bottom, 30).id("top")
                 .onAppear {
                     guard !loaded else { return }
                     loaded = true
@@ -160,12 +174,23 @@ struct CloseSheet: View {
                         router.rateOnOpen = false; asked = true; rating = true
                         ratings = [1, 0, nil]; quotes = ["I caught it twice before it went anywhere.", "Worship was freer Sunday; midweek my mind was on the job.", ""]
                     }
-                    reflection = w.liveRefl
-                    journal0 = w.liveRefl
+                    review = ReviewDraft.get(store, weekId)
                 }
             }
         }
+        .onChange(of: review) { _, t in
+            ReviewDraft.set(store, weekId, t)
+            if writing { proxy.scrollTo("reviewEnd", anchor: .bottom) }
+        }
+        .onChange(of: writing) { _, on in
+            if on { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo("reviewEnd", anchor: .bottom) } } }
+        }
+        .onChange(of: rating) { _, _ in proxy.scrollTo("top", anchor: .top) }
+        }
         .scrollDismissesKeyboard(.interactively)
+        // nothing scrolls under the sheet's grabber
+        .safeAreaInset(edge: .top, spacing: 0) { Theme.bg.frame(height: 26) }
+        .safeAreaInset(edge: .bottom, spacing: 0) { if store.week(weekId) != nil { footer } }
         .background(Theme.bg)
     }
 
@@ -178,8 +203,7 @@ struct CloseSheet: View {
     /// what is saved as the week's reflection: the journal as it stands, then this reflection as one more stamped entry
     /// (the same shape as a journal entry, so it has no blank lines inside)
     private func joined() -> String {
-        let live = store.week(weekId)?.liveRefl ?? reflection
-        let r = (reflection == journal0 ? live : reflection).trimmingCharacters(in: .whitespacesAndNewlines)
+        let r = (store.week(weekId)?.liveRefl ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         return Journal.appended(r, at: Now.date, text: review) ?? r
     }
 
@@ -197,6 +221,7 @@ struct CloseSheet: View {
         }
         if !rated.isEmpty { fields["growth"] = rated }
         store.patchWeek(cur, fields)
+        ReviewDraft.set(store, weekId, "")
         Haptic.success()
         Sound.play(.day, store.settings)
         router.sheet = nil
@@ -204,6 +229,22 @@ struct CloseSheet: View {
         let store = store, id = weekId, focus = cur.focus
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { router.cover = .closed(id) }
         Task { try? await Task.sleep(nanoseconds: 800_000_000); await Summary.write(store: store, weekId: id, focus: focus, text: text) }
+    }
+}
+
+/// The reflection being written at the review, kept on this phone only (never in Firestore) until the week is closed:
+/// swiping the sheet away, a recording from the widget or leaving the app must not lose it.
+@MainActor enum ReviewDraft {
+    /// sample data and practice mode keep it in memory only
+    private static var mem: [String: String] = [:]
+    static func get(_ store: Store, _ id: String) -> String {
+        store.isMock ? mem[id] ?? "" : UserDefaults.standard.string(forKey: "reviewDraft." + id) ?? ""
+    }
+    static func set(_ store: Store, _ id: String, _ text: String) {
+        let empty = text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if store.isMock { mem[id] = empty ? nil : text }
+        else if empty { UserDefaults.standard.removeObject(forKey: "reviewDraft." + id) }
+        else { UserDefaults.standard.set(text, forKey: "reviewDraft." + id) }
     }
 }
 

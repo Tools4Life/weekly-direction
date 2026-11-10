@@ -24,16 +24,18 @@ struct WeekPage: View {
         ZStack(alignment: .bottom) {
             VStack(spacing: 0) {
                 HStack {
+                    // the app's one top bar: back in muted caps, the action in accent caps (as in Settings)
                     Button { dismiss() } label: {
-                        HStack(spacing: 8) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("Journal") }
+                        HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("Journal") }
+                            .foregroundStyle(Theme.mu)
                     }
                     Spacer()
                     if let w = store.week(weekId), w.isActive, !Journal.entries(w.liveRefl).isEmpty {
-                        Button(selecting ? "Cancel" : "Select") { Haptic.tick(); selecting.toggle(); picked = [] }
+                        Button(selecting ? "Cancel" : "Select") { Haptic.tick(); selecting.toggle(); picked = [] }.foregroundStyle(Theme.ac)
                     }
                 }
-                .jbutton().foregroundStyle(Theme.ac)
-                .padding(.horizontal, 22).frame(height: 52)
+                .caps(16).buttonStyle(.plain)
+                .padding(.horizontal, 24).frame(height: 52)
                 ScrollView {
                     if let w = store.week(weekId) {
                         VStack(alignment: .leading, spacing: 0) { page(w); weekNav }
@@ -288,10 +290,11 @@ struct EntryEditor: View {
                 Button("Cancel") {
                     if entry == nil, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { confirmDiscard = true } else { dismiss() }
                 }
-                .jbutton().foregroundStyle(Theme.jmu)
+                .foregroundStyle(Theme.jmu)
                 Spacer()
-                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.jbutton().foregroundStyle(Theme.jac)
+                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.foregroundStyle(Theme.jac)
             }
+            .caps(16).buttonStyle(.plain)
             .frame(height: 52)
             Text(entry == nil ? Fmt.stamp(opened) : (blk?.d.map { "\($0), \(blk?.t ?? "")" } ?? "Edit entry"))
                 .font(Theme.jitalic(15)).foregroundStyle(Theme.jmu2).padding(.top, 14)

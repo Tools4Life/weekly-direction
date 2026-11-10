@@ -40,7 +40,7 @@ struct VisionView: View {
                 Button { replan = SettingsView.PlanRef(id: w.id) } label: {
                     HStack(spacing: 8) {
                         Image(systemName: "pencil").font(.system(size: 14))
-                        Text(strOf(store.draft?["replan"]) == w.id ? "Resume editing" : "Edit this week")
+                        Text("Edit this week")
                     }
                     .caps(15).foregroundStyle(Theme.mu).frame(height: 44).contentShape(Rectangle())
                 }

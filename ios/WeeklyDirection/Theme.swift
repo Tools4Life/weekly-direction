@@ -207,8 +207,6 @@ extension View {
     func caps(_ size: CGFloat = 16) -> some View {
         font(.custom("BarlowCondensed-SemiBold", size: size)).textCase(.uppercase).tracking(size * 0.11)
     }
-    /// a button inside the journal: plain words, not caps
-    func jbutton(_ size: CGFloat = 16) -> some View { font(Theme.ui(size + 1)) }
     /// habit name
     func rowTitle() -> some View { caps(17) }
     /// full-width, leading-aligned content: nothing in the app is centered in a narrow column

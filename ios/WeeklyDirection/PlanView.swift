@@ -29,12 +29,15 @@ struct PlanView: View {
     @State private var pickQs = false
     @State private var blocked = false
     @State private var typing = false
+    /// editing the open week: what the form held when it opened, to tell a change from a look
+    @State private var opened = ""
+    @State private var confirmDiscard = false
 
     var body: some View {
         VStack(spacing: 0) {
             HStack {
                 Button { leave() } label: {
-                    HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("Later") }
+                    HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text(replan != nil ? "Cancel" : "Later") }
                         .caps(16).foregroundStyle(Theme.mu)
                 }
                 .buttonStyle(.plain)
@@ -65,6 +68,10 @@ struct PlanView: View {
                 .presentationDragIndicator(.visible).presentationCornerRadius(28).presentationBackground(Theme.bg)
         }
         .alert("A week is already in progress. Close it before sealing a new one.", isPresented: $blocked) { Button("OK", role: .cancel) {} }
+        .confirmationDialog("Discard your changes to this week?", isPresented: $confirmDiscard, titleVisibility: .visible) {
+            Button("Discard", role: .destructive) { dismiss() }
+            Button("Keep editing", role: .cancel) {}
+        }
     }
 
     /// Order (Nov 10 2026): what the week is about first (word, verse, vision), then what you will do (habits), then the
@@ -235,9 +242,11 @@ struct PlanView: View {
         loaded = true
         let s = store.settings, rw = replanId.flatMap { store.week($0) }.flatMap { $0.isActive ? $0 : nil }
         var d: [String: Any]? = (store.draft?["step"] as? String) == "plan" ? store.draft : nil
-        if rw == nil, let r = strOf(d?["replan"]), !store.weeks.contains(where: { $0.id == r && $0.isActive }) { d = nil }
+        // a draft of edits to an open week is never resumed: it would put back day marks and habits as they were when
+        // it was saved, over whatever was recorded since. Editing the open week always starts from the week itself.
+        if rw == nil, strOf(d?["replan"]) != nil { d = nil }
         var fresh = false
-        if let rw, strOf(d?["replan"]) != rw.id {
+        if let rw {
             d = ["focus": rw.focus, "verse": rw.verse ?? "", "verseRef": rw.verseRef ?? "", "tray": rw.commitments.map(\.raw),
                  "thoughts": rw.planThoughts, "start": rw.sealedAtMs, "replan": rw.id, "marks": rw.raw["marks"] as? [String: Any] ?? [:]]
             fresh = true
@@ -258,7 +267,11 @@ struct PlanView: View {
         let latest = store.weeks.max { $0.sealedAtMs < $1.sealedAtMs }
         qs = Logic.normQs((d?["qs"] as? [Any])?.compactMap { $0 as? String } ?? rw?.qs ?? Logic.qsOf(latest, s), s)
         saved = d != nil && !fresh ? "DRAFT RESUMED" : ""
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { ready = true }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { ready = true; opened = sig() }
+    }
+    private func sig() -> String {
+        let o: [String: Any] = ["f": focus, "v": verse, "r": verseRef, "t": thoughts, "h": tray, "q": qs, "s": start?.timeIntervalSince1970 ?? 0]
+        return (try? JSONSerialization.data(withJSONObject: o, options: .sortedKeys)).flatMap { String(data: $0, encoding: .utf8) } ?? ""
     }
 
     /// tmg: only the timing fields that are set (weekend time only if different and not weekdays-only)
@@ -285,7 +298,8 @@ struct PlanView: View {
          "marks": marks ?? NSNull() as Any, "updatedAt": Now.ms]
     }
     private func saveDraft() {
-        guard ready, !sealed else { return }
+        // only a new week's plan is drafted; edits to the open week are sealed or dropped
+        guard ready, !sealed, replan == nil else { return }
         saveToken += 1
         let token = saveToken
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -296,6 +310,12 @@ struct PlanView: View {
     }
     private func leave() {
         saveToken += 1
+        if replan != nil {
+            // an older build (or the web app) may have left a draft of edits to this week: it must not come back
+            if strOf(store.draft?["replan"]) == replan { store.delDraft() }
+            if ready, sig() != opened { confirmDiscard = true } else { dismiss() }
+            return
+        }
         if !sealed, !focus.isEmpty || !tray.isEmpty || !thoughts.isEmpty { store.putDraft(draftOf()) }
         dismiss()
     }
@@ -341,7 +361,8 @@ struct PlanView: View {
         sealed = true
         saveToken += 1
         if let old { store.patchWeek(old, week) } else { store.putWeek(id: id, week) }
-        store.delDraft()
+        // sealing edits to the open week leaves a plan for the next week alone
+        if replan == nil || strOf(store.draft?["replan"]) == replan { store.delDraft() }
         Haptic.success()
         router.selK = nil
         router.tab = "week"

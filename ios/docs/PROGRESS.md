@@ -1,6 +1,13 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (7) uploaded to TestFlight Nov 10 (through commit bb3cac9: "Reflection" heading). After it, not yet uploaded: the fixes from the debugging run below. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Open: Eddie's picks from the debugging-run report (review page Next button, nav label style, draft on Later). Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (7) uploaded to TestFlight Nov 10 (through commit bb3cac9). After it, not yet uploaded: the debugging-run fixes and Eddie's four picks below. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Next: Eddie says "upload" for 0.2 (8), tests it on the phone, then the app is frozen. Nothing pushed (no git credentials in the Claude shell).
+
+## The four picks before the freeze (Nov 10, after the debugging run)
+- Review: Next / Close the week is a fixed footer; the week's journal is read-only there (edited in the journal); the line being typed stays above the keyboard; nothing scrolls under the grabber.
+- Review reflection is kept on the phone (`ReviewDraft`, UserDefaults, never Firestore) until the week closes: survives swipe-down, a widget recording, leaving the app.
+- Edit the week: back is Cancel, asks before discarding a change, never writes or resumes a draft (a resumed draft put back old day marks and habits). New-week planning still drafts ("Later").
+- Journal week page and entry editor use the app's caps top bar.
+- Checked on the simulator with sample data: all four. Not checked: the phone, the real account, the UserDefaults path of the review draft (sample mode keeps it in memory).
 
 ## Debugging run on iOS 27, iPhone 14 Pro simulator (Nov 10, after 0.2 (7))
 - Every `-OpenScreen` screen shot in dark, eight in light; then by hand in sample data: check / uncheck / fail a habit, About note, day strip, vision, edit the week, habit editor, journal add / menu / delete, earlier weeks and swiping, recording screen (preview words only), prayer add / open / edit, the Saturday review, rating, closing, planning and sealing the next week. Plus a read-only code audit.
