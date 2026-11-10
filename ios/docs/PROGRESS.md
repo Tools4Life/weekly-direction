@@ -6,6 +6,10 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Timer restyle (Nov 10)
+- The kitchen-timer face (own colours, overlapping numbers, plain-text Stop) is replaced: accent eyebrow "Timer · N min", the habit name as a serif page title, one accent ring that empties on a quiet track with the time and "ends h:mm" inside, and Stop timer as the app's outlined row. Uses the theme colours, so it follows light mode. The ring draws in on open. Timer rules and writes are unchanged.
+- Verified: simulator shots `focus`, `focus-light`. Not verified: on the phone; the finish moment; habits longer than 60 min (the ring is now always the habit's own length, the old face was out of 60).
+
 ## Week swiping and motion (Nov 10)
 - Week page (Journal → a week): swipe sideways for the week before / after, or tap the older / newer focus words at the bottom. Slides in from the side swiped. Off while selecting entries.
 - Motion ported from the web (`rise`, `wordland`, `sqpop` / `ckpop`), in `Theme.swift`: This Week (focus word settles out of a blur; day strip, habits, latest thought, streak rise in a stagger; check and day square pop when they change), Journal entries, Prayer rows, Progress hero. Entrances and tap responses only, nothing loops; skipped with Reduce Motion.
