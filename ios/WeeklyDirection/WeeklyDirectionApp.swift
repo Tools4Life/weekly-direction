@@ -173,8 +173,7 @@ struct TabBar: View {
                     bounce = t.0
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { bounce = nil }
                 } label: {
-                    Image(systemName: t.1)
-                        .font(.system(size: 25, weight: .regular))
+                    TabIcon(name: t.0, size: 30)
                         .foregroundStyle(router.tab == t.0 ? Theme.tx : Theme.mu2)
                         .frame(maxWidth: .infinity).frame(height: 52)
                         .scaleEffect(bounce == t.0 ? 1.16 : 1)
