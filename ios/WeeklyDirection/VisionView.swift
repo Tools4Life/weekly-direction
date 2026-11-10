@@ -24,6 +24,10 @@ struct VisionView: View {
                 }
             }
             .scrollIndicators(.hidden)
+            // the page scrolls under Edit and Close: a strip of the page colour keeps them readable
+            LinearGradient(stops: [.init(color: Theme.bg, location: 0), .init(color: Theme.bg, location: 0.72), .init(color: Theme.bg.opacity(0), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+                .frame(height: 70).frame(maxWidth: .infinity).ignoresSafeArea(edges: .top).allowsHitTesting(false)
             Button { dismiss() } label: {
                 Image(systemName: "xmark").font(.system(size: 20, weight: .medium)).foregroundStyle(Theme.mu).frame(width: 44, height: 44)
             }

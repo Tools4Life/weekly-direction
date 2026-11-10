@@ -15,7 +15,13 @@ final class Recorder: NSObject, ObservableObject {
     static let voiceURL = URL(string: "https://us-central1-ops-hub-9bebc.cloudfunctions.net/transcribe")!
     static let maxSeconds: TimeInterval = 10 * 60
 
-    @Published var state: State = .idle { didSet { Sound.hold = state == .rec } }
+    @Published var state: State = .idle {
+        didSet {
+            Sound.hold = state == .rec
+            // the phone must not auto-lock in the middle of a long thought: locking suspends the app and cuts the recording
+            if (state == .rec) != (oldValue == .rec) { UIApplication.shared.isIdleTimerDisabled = state == .rec }
+        }
+    }
     @Published var message: String?
     @Published var pending = 0
     @Published var elapsed: TimeInterval = 0
@@ -84,7 +90,9 @@ final class Recorder: NSObject, ObservableObject {
 
     /// returns false when the mic is blocked or recording can't start
     func start() async -> Bool {
-        guard state == .idle else { return false }
+        guard state == .idle, !starting else { return false }
+        starting = true; abortStart = false
+        defer { starting = false }
         say(nil)
         guard await AVAudioApplication.requestRecordPermission() else { say("Mic blocked: allow it in iPhone Settings"); return false }
         // the knock and the tone come first, on the tap, before the microphone opens (so the tone is not in the recording)
@@ -110,8 +118,9 @@ final class Recorder: NSObject, ObservableObject {
             }
         }
         // cancelled or started twice while the microphone was opening
-        guard state == .idle, let r = made.r else {
+        guard state == .idle, !abortStart, let r = made.r else {
             made.r?.stop(); if let u = made.r?.url { try? FileManager.default.removeItem(at: u) }
+            if abortStart { audioQ.async { try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation) } }
             if made.r == nil { say("This phone can’t record audio right now") }
             return false
         }
@@ -147,6 +156,12 @@ final class Recorder: NSObject, ObservableObject {
         stop()
     }
 
+    /// the microphone is still opening (permission, audio session): a stop or cancel now must end it, or it would go on
+    /// recording with no screen
+    private var starting = false
+    private var abortStart = false
+    func abortIfStarting() { if starting, state == .idle { abortStart = true } }
+
     // MARK: dictation into a screen (plan, review)
 
     /// the recording in progress belongs to a screen, not the journal
@@ -164,7 +179,7 @@ final class Recorder: NSObject, ObservableObject {
     /// if that fails, the words recognised on the phone are returned instead.
     func finishDictation(cancel: Bool = false) async -> String? {
         guard dictating else { return nil }
-        guard state == .rec, let r = recorder else { dictating = false; return nil }
+        guard state == .rec, let r = recorder else { abortIfStarting(); dictating = false; return nil }
         meter?.invalidate(); meter = nil
         stopLive()
         let dur = Date().timeIntervalSince(startedAt), url = r.url
@@ -198,7 +213,7 @@ final class Recorder: NSObject, ObservableObject {
     func stop() {
         // a dictation is ended by its own screen (`finishDictation`), never queued for the journal
         guard !dictating else { return }
-        guard state == .rec, let r = recorder else { return }
+        guard state == .rec, let r = recorder else { abortIfStarting(); return }
         meter?.invalidate(); meter = nil
         stopLive()
         let dur = Date().timeIntervalSince(startedAt), url = r.url
@@ -250,6 +265,8 @@ final class Recorder: NSObject, ObservableObject {
         let at = Double(name.first ?? "") ?? Date().timeIntervalSince1970 * 1000
         do {
             guard let store else { throw URLError(.cancelled) }
+            // with no week in progress there is nowhere to write it: it stays on the phone, unsent, until a week is sealed
+            guard store.activeWeek != nil else { say("No week in progress · saved"); refreshPending(); return false }
             let token = try await store.token()
             var req = URLRequest(url: Self.voiceURL)
             req.httpMethod = "POST"
@@ -261,9 +278,10 @@ final class Recorder: NSObject, ObservableObject {
             let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
             guard (200..<300).contains(code) else { throw VoiceError(status: code, detail: "\(j["detail"] ?? j["error"] ?? "")") }
             let text = (j["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            if !text.isEmpty, let w = store.activeWeek,
-               let t = Journal.appended(w.liveRefl, at: Date(timeIntervalSince1970: at / 1000), text: text) {
-                store.patchWeek(w, ["liveRefl": t])
+            if !text.isEmpty {
+                // the week was closed while this was uploading: keep the recording rather than lose the words
+                guard let w = store.activeWeek else { say("No week in progress · saved"); refreshPending(); return false }
+                if let t = Journal.appended(w.liveRefl, at: Date(timeIntervalSince1970: at / 1000), text: text) { store.patchWeek(w, ["liveRefl": t]) }
             }
             try? FileManager.default.removeItem(at: file)
             try? FileManager.default.removeItem(at: file.deletingPathExtension().appendingPathExtension("txt"))

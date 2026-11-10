@@ -59,7 +59,7 @@ struct RecordingView: View {
             if !store.online { startDemo(); return }
             Task { if !(await recorder.start()) { router.endRecording() } }
         }
-        .onDisappear { demo?.invalidate(); if recorder.state == .rec { recorder.cancel() } }
+        .onDisappear { demo?.invalidate(); if recorder.state == .rec { recorder.cancel() } else { recorder.abortIfStarting() } }
         // stopped by the 10 minute limit: close; the status line says what happened next
         .onChange(of: recorder.state) { old, new in if old == .rec && new == .idle { router.endRecording() } }
     }

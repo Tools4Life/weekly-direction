@@ -434,7 +434,7 @@ struct ChipSheet: View {
             name = s["name"] as? String ?? ""; icon = strOf(s["icon"]) ?? "sun"; days = s["days"] as? String ?? ""
             by = strOf(s["by"]).flatMap(Self.time); byWe = strOf(s["byWe"]).flatMap(Self.time)
             minutes = intOf(s["min"]).map(String.init) ?? ""; about = s["about"] as? String ?? ""
-            if edit.mode != .edit { nameFocus = true }
+            if name.isEmpty { nameFocus = true }
         }
         .confirmationDialog("Remove “\(name)” from your library? Past weeks keep their own copy.", isPresented: $confirmRemove, titleVisibility: .visible) {
             Button("Remove", role: .destructive) { if let id = edit.source["id"] as? String { store.delChip(id) }; dismiss() }

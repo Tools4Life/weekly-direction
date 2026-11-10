@@ -20,21 +20,24 @@ struct CloseSheet: View {
     /// what was proposed for each question: the sentence is only kept with a rating he left as proposed
     @State private var proposed: [Int?] = []
     @State private var asked = false
+    /// the journal as it was when the review opened: a thought that arrives afterwards must not be dropped at close
+    @State private var journal0 = ""
     @State private var reading = false
 
     private func toRatings() {
         guard !questions.isEmpty else { close(); return }
         Haptic.tick()
         withAnimation(.easeOut(duration: 0.2)) { rating = true }
-        guard !asked else { return }
-        asked = true
+        guard !asked, !reading else { return }
         let text = joined()
         guard text.count >= 8 else { return }
         reading = true
         Task {
             let r = await Tidy.rate(store, text, questions)
             reading = false
+            // nothing came back (offline, function down): ask again the next time he comes to this step
             guard let r else { return }
+            asked = true
             // a rating he already tapped while it was reading stays his
             for i in ratings.indices where ratings[i] == nil { ratings[i] = r[i].v; quotes[i] = r[i].quote; proposed[i] = r[i].v }
         }
@@ -158,6 +161,7 @@ struct CloseSheet: View {
                         ratings = [1, 0, nil]; quotes = ["I caught it twice before it went anywhere.", "Worship was freer Sunday; midweek my mind was on the job.", ""]
                     }
                     reflection = w.liveRefl
+                    journal0 = w.liveRefl
                 }
             }
         }
@@ -174,7 +178,8 @@ struct CloseSheet: View {
     /// what is saved as the week's reflection: the journal as it stands, then this reflection as one more stamped entry
     /// (the same shape as a journal entry, so it has no blank lines inside)
     private func joined() -> String {
-        let r = reflection.trimmingCharacters(in: .whitespacesAndNewlines)
+        let live = store.week(weekId)?.liveRefl ?? reflection
+        let r = (reflection == journal0 ? live : reflection).trimmingCharacters(in: .whitespacesAndNewlines)
         return Journal.appended(r, at: Now.date, text: review) ?? r
     }
 

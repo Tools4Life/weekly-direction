@@ -71,7 +71,7 @@ struct DictateCard: View {
             // after the sheet has finished rising
             Task { try? await Task.sleep(nanoseconds: 450_000_000); if phase == .idle { await begin() } }
         }
-        .onDisappear { if phase == .rec { Task { _ = await recorder.finishDictation(cancel: true) } } }
+        .onDisappear { if phase != .working { Task { _ = await recorder.finishDictation(cancel: true) } } }
     }
 
     private func begin() async {

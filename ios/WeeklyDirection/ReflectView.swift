@@ -251,6 +251,7 @@ struct EntryMenu: ViewModifier {
                                 .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
                         }
                         .buttonStyle(.plain)
+                        .background(Theme.bg, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
                         .padding(.horizontal, 10).padding(.bottom, 8)
                     }
                     .transition(.opacity)

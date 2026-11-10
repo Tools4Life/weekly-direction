@@ -1,6 +1,11 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (6) uploaded to TestFlight Nov 10 (through commit 0198e73: "Reflect" beside the widget mic). After it, not yet uploaded: the week page heading for unstamped entries is "Reflection" (was "Notes"). `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Open: prayer icon pick. Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (7) uploaded to TestFlight Nov 10 (through commit bb3cac9: "Reflection" heading). After it, not yet uploaded: the fixes from the debugging run below. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Open: Eddie's picks from the debugging-run report (review page Next button, nav label style, draft on Later). Nothing pushed (no git credentials in the Claude shell).
+
+## Debugging run on iOS 27, iPhone 14 Pro simulator (Nov 10, after 0.2 (7))
+- Every `-OpenScreen` screen shot in dark, eight in light; then by hand in sample data: check / uncheck / fail a habit, About note, day strip, vision, edit the week, habit editor, journal add / menu / delete, earlier weeks and swiping, recording screen (preview words only), prayer add / open / edit, the Saturday review, rating, closing, planning and sealing the next week. Plus a read-only code audit.
+- Fixed: a recording whose week closed before it was sent is kept instead of deleted; Stop / Cancel while the mic is still opening no longer leaves a hidden recording or a stuck mic; the phone stays awake while recording; a thought that arrives after the review opens is included when the week closes; rating proposals are asked again if the first request failed; the habit editor only raises the keyboard for a new habit; text no longer runs under Edit / Close on the vision page; the entry menu no longer shows the mic through its gap; a not-kept day is dark in the light theme (was invisible); VoiceOver says "Journal" and plain habit states.
+- Verified: 15 tests, device build, shots of the vision page, entry menu and the light week. Not verified: every recorder fix (the simulator's sample mode never opens the microphone), anything on the phone.
 
 ## Prayers without a full page (Nov 10)
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).

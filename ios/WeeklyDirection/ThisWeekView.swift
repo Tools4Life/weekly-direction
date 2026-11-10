@@ -163,7 +163,7 @@ struct ThisWeekView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(fut)
-                .accessibilityLabel("\(Fmt.dowl[Rules.weekday(d)]): \(m == "on" ? "kept" : m == "drift" ? "missed" : "not marked")")
+                .accessibilityLabel("\(Fmt.dowl[Rules.weekday(d)]): \(m == "on" ? "kept" : m == "drift" ? "not kept" : "not marked")")
             }
         }
     }
@@ -323,7 +323,7 @@ struct DaySquare: View {
         let shape = RoundedRectangle(cornerRadius: Theme.r(radius), style: .continuous)
         ZStack {
             if mark == "on" { shape.fill(Theme.ac) }
-            else if mark == "drift" { shape.fill(Color(hex: 0xF2EFEA)) }
+            else if mark == "drift" { shape.fill(Theme.tx) }
             else if fraction > 0 && fraction < 1 {
                 GeometryReader { g in
                     VStack(spacing: 0) { Spacer(minLength: 0); Theme.ac.opacity(0.55).frame(height: g.size.height * fraction) }
@@ -351,6 +351,8 @@ struct HabitCard: View {
     let now: Date
     let onBody: () -> Void
     let onCheck: () -> Void
+    private static let spoken: [HabitState: String] = [.done: "done", .fail: "failed", .run: "timer running", .fin: "timer finished", .open: "not done",
+                                                       .grace: "in the grace window", .miss: "missed", .late: "late"]
 
     var body: some View {
         if let k = day {
@@ -365,7 +367,7 @@ struct HabitCard: View {
                            check: st == .done ? .done : st == .miss || st == .fail ? .x : timerIcon ? .timer : .open,
                            onBody: onBody, onCheck: onCheck)
                 .accessibilityElement(children: .combine)
-                .accessibilityLabel("\(c.name): \(st.rawValue)")
+                .accessibilityLabel("\(c.name): \(Self.spoken[st] ?? st.rawValue)")
         } else {
             HabitCardShell(done: false, dim: false, running: 0, icon: c.icon, name: c.name, meta: c.timeLabel(), metaAccent: false,
                            strike: false, check: nil, onBody: onBody, onCheck: {})

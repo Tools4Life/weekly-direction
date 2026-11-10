@@ -229,7 +229,7 @@ struct TabBar: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel(t.0 == "week" ? "This week" : t.0 == "reflect" ? "Reflect" : t.0 == "prayer" ? "Prayer" : "Progress")
+                .accessibilityLabel(t.0 == "week" ? "This week" : t.0 == "reflect" ? "Journal" : t.0 == "prayer" ? "Prayer" : "Progress")
                 }
             }
         }
