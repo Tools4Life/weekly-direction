@@ -42,12 +42,18 @@ struct WeekPage: View {
             if selecting {
                 Button { confirmDelete = true } label: {
                     Text(picked.isEmpty ? "Delete" : "Delete \(picked.count) \(picked.count == 1 ? "entry" : "entries")")
-                        .jbutton().foregroundStyle(.white)
-                        .frame(maxWidth: .infinity).frame(height: 54)
-                        .background(Theme.danger.opacity(picked.isEmpty ? 0.4 : 1), in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
+                        // the app's own button shape: a quiet outlined row, red only in the words (no filled red slab)
+                        .caps(16).foregroundStyle(picked.isEmpty ? Theme.mu2 : Theme.danger)
+                        .frame(maxWidth: .infinity).frame(height: 50)
+                        .background(Theme.card2, in: RoundedRectangle(cornerRadius: Theme.r(13), style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: Theme.r(13), style: .continuous)
+                            .stroke(picked.isEmpty ? Theme.line : Theme.danger.opacity(0.55), lineWidth: 1))
                 }
                 .buttonStyle(.plain).disabled(picked.isEmpty)
-                .padding(.horizontal, 24).padding(.bottom, 12)
+                .padding(.horizontal, 24).padding(.top, 12).padding(.bottom, 12)
+                // a solid footer: entries scroll behind it, never past it
+                .background(Theme.bg.ignoresSafeArea(edges: .bottom))
+                .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
             }
         }
         .background(Theme.bg.ignoresSafeArea())
