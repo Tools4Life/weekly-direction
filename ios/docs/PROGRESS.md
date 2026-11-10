@@ -13,7 +13,7 @@
 
 ## Review on the main page (Nov 10)
 - This Week on review day / when due: a block under the day strip with "Reflect on this week" (the mic opens the review and starts listening; the row opens it to read or type) and "Plan next week" (muted until the week is closed; opens the review). Replaces the old "Weekly review" card.
-- When every habit of today is done, failed or missed, the habit list tucks away under one row ("Daily habits · done for today", tap to open again).
+- Timing (Eddie, later Nov 10): the block shows from the close hour on, or earlier on review day once every habit of the day is done, failed or missed; before that the page is just the week. Whenever the block shows, the habit list is tucked under one row ("Daily habits · done for today" or "· N still open", tap to open).
 - Review page: no boxes, no standing subtext.
 - Verified: shots `week-review`, `week-due` (habits still open, so not tucked), 13 tests. Not verified: the tucked state, the mic auto-start, on the phone.
 

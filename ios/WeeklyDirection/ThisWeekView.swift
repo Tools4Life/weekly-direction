@@ -87,9 +87,11 @@ struct ThisWeekView: View {
         }
         .padding(.top, 6)
         strip(x).padding(.top, 16).rise(0)
-        // review time: Reflect and Plan take the page; once today's habits are settled they tuck away under one row
-        let review = x.due || reviewDay(w, x)
-        let tucked = review && !showHabits && settled(w, x)
+        // Review time (Eddie, Nov 10 2026): from the close hour on, or earlier on review day once every habit of the day
+        // is settled. Until then the page is just the week. When it is review time the habits tuck away under one row.
+        let open = openToday(w, x)
+        let review = x.due || (reviewDay(w, x) && open == 0)
+        let tucked = review && !showHabits
         if review { reviewBlock(w, due: x.due).padding(.top, 18).rise(1) }
         if x.selKey == nil, !x.due, reviewDay(w, x) {
             Text("\(Fmt.dowl[store.settings.closeDay]) · review and plan from \(Fmt.hourLabel(store.settings.closeHour))")
@@ -98,7 +100,7 @@ struct ThisWeekView: View {
         if tucked {
             Button { Haptic.tick(); withAnimation(.spring(response: 0.4, dampingFraction: 0.85)) { showHabits = true } } label: {
                 HStack(spacing: 8) {
-                    Eyebrow(text: "Daily habits · done for today", color: Theme.mu, size: 12)
+                    Eyebrow(text: open > 0 ? "Daily habits · \(open) still open" : "Daily habits · done for today", color: open > 0 ? Theme.ac : Theme.mu, size: 12)
                     Image(systemName: "chevron.down").font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.mu)
                     Spacer()
                 }
@@ -170,16 +172,15 @@ struct ThisWeekView: View {
 
     // MARK: review block, habits header, doses
 
-    /// nothing left to do today: every habit of the day is done, failed or missed, and the doses are taken
-    private func settled(_ w: Week, _ x: Ctx) -> Bool {
-        guard x.habitToday, let d = x.days.first(where: { Rules.ymd($0) == x.todayK }) else { return true }
-        guard x.selKey == x.todayK else { return false }      // looking at another day: leave the list alone
-        let open = w.commitments.filter { Rules.onDay($0, d) }.contains { c in
+    /// how many of today's habits and doses are still open (not done, failed or missed); 0 when today is not a habit day
+    private func openToday(_ w: Week, _ x: Ctx) -> Int {
+        guard x.habitToday, let d = x.days.first(where: { Rules.ymd($0) == x.todayK }) else { return 0 }
+        let habits = w.commitments.filter { Rules.onDay($0, d) }.filter { c in
             let st = Rules.state(w, x.todayK, c)
             return !(st == .done || st == .fail || st == .miss)
         }
-        let doses = Logic.dayItems(w, d, store.settings).filter { $0 == "am" || $0 == "pm" }
-        return !open && doses.allSatisfy { w.flag(x.todayK, $0) }
+        let doses = Logic.dayItems(w, d, store.settings).filter { ($0 == "am" || $0 == "pm") && !w.flag(x.todayK, $0) }
+        return habits.count + doses.count
     }
 
     /// Review time on the main page (Eddie, Nov 10 2026): 1 Reflect on this week (the mic starts it talking, the row
