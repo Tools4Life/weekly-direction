@@ -12,17 +12,17 @@ enum Theme {
     static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
     /// Calmer stats preview (-MockStats 1, sample data only): a design finding, not approved.
     static let statsV2: Bool = Mock.enabled && UserDefaults.standard.integer(forKey: "MockStats") == 1
-    /// Journal feel preview (-MockJournal paper | warm, sample data only): a design finding, not approved.
-    /// paper = the web app's cream paper page (use with -MockTheme light); warm = brown-black page set in Georgia.
-    static let journal: String? = Mock.enabled ? UserDefaults.standard.string(forKey: "MockJournal") : nil
-    static var jbg: Color { journal == "paper" ? Color(hex: 0xF3EEE4) : journal == "warm" ? Color(hex: 0x17130F) : bg }
-    static var jtx: Color { journal == "paper" ? Color(hex: 0x1F1B16) : journal == "warm" ? Color(hex: 0xEFE6D8) : tx }
-    static var jmu: Color { journal == "paper" ? Color(hex: 0x6B6257) : journal == "warm" ? Color(hex: 0xA99D8D) : mu }
-    static var jmu2: Color { journal == "paper" ? Color(hex: 0x8C8273) : journal == "warm" ? Color(hex: 0x877C6E) : mu2 }
-    static var jrule: Color { journal == "paper" ? Color(hex: 0xE0D7C7) : journal == "warm" ? Color(hex: 0x2B251E) : rule }
-    static var jac: Color { journal == "paper" ? Color(hex: 0x8A2E22) : ac }
-    static func jserif(_ size: CGFloat) -> Font { journal == "warm" ? .custom("Georgia", size: size) : serif(size) }
-    static func jitalic(_ size: CGFloat) -> Font { journal == "warm" ? .custom("Georgia-Italic", size: size) : serifItalic(size) }
+    /// The journal's own page (Eddie, Nov 9 2026): a warm brown-black page in dark mode, the web app's cream paper in
+    /// light mode, set in Georgia with plain-word buttons and italic stamps. Used by the journal list, the week page
+    /// and the editor only.
+    static let jbg = dyn(0x17130F, 0xF3EEE4)
+    static let jtx = dyn(0xEFE6D8, 0x1F1B16)
+    static let jmu = dyn(0xA99D8D, 0x6B6257)
+    static let jmu2 = dyn(0x877C6E, 0x8C8273)
+    static let jrule = dyn(0x2B251E, 0xE0D7C7)
+    static let jac = dyn(0xE8743B, 0x8A2E22)
+    static func jserif(_ size: CGFloat) -> Font { .custom("Georgia", size: size) }
+    static func jitalic(_ size: CGFloat) -> Font { .custom("Georgia-Italic", size: size) }
     static func r(_ x: CGFloat) -> CGFloat { style > 0 ? 0 : x }
     static var pill: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Capsule()) }
     static var dot: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Circle()) }
@@ -160,10 +160,8 @@ extension View {
     func caps(_ size: CGFloat = 16) -> some View {
         font(.custom("BarlowCondensed-SemiBold", size: size)).textCase(.uppercase).tracking(size * 0.11)
     }
-    /// a button inside the journal: plain words when a journal feel is being previewed, caps otherwise
-    @ViewBuilder func jbutton(_ size: CGFloat = 16) -> some View {
-        if Theme.journal != nil { font(Theme.ui(size + 1)) } else { caps(size) }
-    }
+    /// a button inside the journal: plain words, not caps
+    func jbutton(_ size: CGFloat = 16) -> some View { font(Theme.ui(size + 1)) }
     /// habit name
     func rowTitle() -> some View { caps(17) }
     /// full-width, leading-aligned content: nothing in the app is centered in a narrow column

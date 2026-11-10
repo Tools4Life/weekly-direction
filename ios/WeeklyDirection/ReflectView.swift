@@ -29,7 +29,7 @@ struct WeekPage: View {
                         Button(selecting ? "Cancel" : "Select") { Haptic.tick(); selecting.toggle(); picked = [] }
                     }
                 }
-                .caps(16).foregroundStyle(Theme.ac)
+                .jbutton().foregroundStyle(Theme.jac)
                 .padding(.horizontal, 22).frame(height: 52)
                 ScrollView {
                     if let w = store.week(weekId) {
@@ -42,7 +42,7 @@ struct WeekPage: View {
             if selecting {
                 Button { confirmDelete = true } label: {
                     Text(picked.isEmpty ? "Delete" : "Delete \(picked.count) \(picked.count == 1 ? "entry" : "entries")")
-                        .caps(16).foregroundStyle(.white)
+                        .jbutton().foregroundStyle(.white)
                         .frame(maxWidth: .infinity).frame(height: 54)
                         .background(Theme.danger.opacity(picked.isEmpty ? 0.4 : 1), in: RoundedRectangle(cornerRadius: Theme.r(16), style: .continuous))
                 }
@@ -50,7 +50,7 @@ struct WeekPage: View {
                 .padding(.horizontal, 24).padding(.bottom, 12)
             }
         }
-        .background(Theme.bg.ignoresSafeArea())
+        .background(Theme.jbg.ignoresSafeArea())
         .onAppear { if router.selectMode { selecting = true; router.selectMode = false; if store.isMock { picked = [1] } } }
         .alert("Delete \(picked.count) \(picked.count == 1 ? "entry" : "entries")? This can’t be undone.", isPresented: $confirmDelete) {
             Button("Delete", role: .destructive) {
@@ -70,19 +70,19 @@ struct WeekPage: View {
         let active = w.isActive
         let all = Journal.blocks(active ? w.liveRefl : (w.reflection.isEmpty ? w.liveRefl : w.reflection))
         let ents = all.filter { $0.q == nil }, qa = all.filter { $0.q != nil }
-        Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
-        Text(w.focus).font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.top, 6)
+        Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.jmu2, size: 12)
+        Text(w.focus).font(Theme.jserif(34)).foregroundStyle(Theme.jtx).padding(.top, 6)
         if let s = w.summary {
             VStack(alignment: .leading, spacing: 6) {
-                Eyebrow(text: "AI summary", color: Theme.mu2)
-                Text(s).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
+                Eyebrow(text: "AI summary", color: Theme.jmu2)
+                Text(s).font(Theme.jserif(18)).lineSpacing(6).foregroundStyle(Theme.jtx)
             }
             .padding(.top, 16)
         }
         if w.verse != nil || w.verseRef != nil {
             VStack(alignment: .leading, spacing: 8) {
-                if let v = w.verse { Text(v).font(Theme.serifItalic(16)).lineSpacing(5).foregroundStyle(Theme.mu) }
-                if let r = w.verseRef { Eyebrow(text: r, color: Theme.mu2) }
+                if let v = w.verse { Text(v).font(Theme.jitalic(16)).lineSpacing(5).foregroundStyle(Theme.jmu) }
+                if let r = w.verseRef { Eyebrow(text: r, color: Theme.jmu2) }
             }
             .padding(.top, 16)
         }
@@ -91,26 +91,26 @@ struct WeekPage: View {
             ForEach(g) { e in entry(e, active: active) }
         }
         if !qa.isEmpty {
-            Text("Saturday review").font(Theme.serif(20)).foregroundStyle(Theme.tx).padding(.top, 36).padding(.bottom, 8)
+            Text("Saturday review").font(Theme.jserif(20)).foregroundStyle(Theme.jtx).padding(.top, 36).padding(.bottom, 8)
             ForEach(qa) { e in
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(e.q ?? "").font(Theme.serifItalic(17)).foregroundStyle(Theme.mu)
-                    Text(e.x).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
+                    Text(e.q ?? "").font(Theme.jitalic(17)).foregroundStyle(Theme.jmu)
+                    Text(e.x).font(Theme.jserif(18)).lineSpacing(6).foregroundStyle(Theme.jtx)
                 }
                 .padding(.top, 14)
             }
         }
         if ents.isEmpty && qa.isEmpty {
-            Text(active ? "Nothing yet this week." : "Nothing written this week.").font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2).padding(.top, 30)
+            Text(active ? "Nothing yet this week." : "Nothing written this week.").font(Theme.jitalic(17)).foregroundStyle(Theme.jmu2).padding(.top, 30)
         }
         HStack {
             Spacer()
             if active {
                 Button { router.cover = .write } label: {
-                    HStack(spacing: 7) { Image(systemName: "pencil.line").font(.system(size: 15)); Text("Write") }.foregroundStyle(Theme.ac)
+                    HStack(spacing: 7) { Image(systemName: "pencil.line").font(.system(size: 15)); Text("Write") }.foregroundStyle(Theme.jac)
                 }
             } else {
-                Button("Open week") { vision = true }.foregroundStyle(Theme.mu)
+                Button("Open week") { vision = true }.foregroundStyle(Theme.jmu)
             }
         }
         .font(Theme.ui(15)).buttonStyle(.plain).padding(.top, 34)
@@ -132,9 +132,9 @@ struct WeekPage: View {
         for i in 0..<7 { let x = s0.addingTimeInterval(Double(i) * 86400); dates[Fmt.dowl[Rules.weekday(x)]] = x }
         let today = active && d == Fmt.dowl[Rules.weekday(Now.date)]
         return HStack(alignment: .firstTextBaseline) {
-            Text(today ? "Today" : d ?? "Notes").font(Theme.serif(20)).foregroundStyle(Theme.tx)
+            Text(today ? "Today" : d ?? "Notes").font(Theme.jserif(20)).foregroundStyle(Theme.jtx)
             Spacer()
-            if let d, let x = dates[d] { Eyebrow(text: (today ? d + " · " : "") + Fmt.date(x), color: Theme.mu2, size: 12) }
+            if let d, let x = dates[d] { Eyebrow(text: (today ? d + " · " : "") + Fmt.date(x), color: Theme.jmu2, size: 12) }
         }
         .padding(.top, 36)
     }
@@ -143,17 +143,17 @@ struct WeekPage: View {
         HStack(alignment: .top, spacing: 14) {
             if selecting {
                 ZStack {
-                    Circle().stroke(picked.contains(e.i) ? Theme.ac : Theme.mu2, lineWidth: 1.5)
+                    Circle().stroke(picked.contains(e.i) ? Theme.jac : Theme.jmu2, lineWidth: 1.5)
                     if picked.contains(e.i) {
-                        Circle().fill(Theme.ac)
+                        Circle().fill(Theme.jac)
                         Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(Theme.onAc)
                     }
                 }
                 .frame(width: 22, height: 22).padding(.top, 2)
             }
             VStack(alignment: .leading, spacing: 6) {
-                if let t = e.t { Text(t).font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2) }
-                Text(e.x).font(Theme.serif(18)).lineSpacing(8).foregroundStyle(Theme.tx)
+                if let t = e.t { Text(t).font(Theme.jitalic(13)).foregroundStyle(Theme.jmu2) }
+                Text(e.x).font(Theme.jserif(18)).lineSpacing(8).foregroundStyle(Theme.jtx)
             }
         }
         .fullWidth()
@@ -243,13 +243,8 @@ struct EntryEditor: View {
                 Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.jbutton().foregroundStyle(Theme.jac)
             }
             .frame(height: 52)
-            if Theme.journal != nil {
-                Text(entry == nil ? Fmt.stamp(opened) : (blk?.d.map { "\($0), \(blk?.t ?? "")" } ?? "Edit entry"))
-                    .font(Theme.jitalic(15)).foregroundStyle(Theme.jmu2).padding(.top, 14)
-            } else {
-            Eyebrow(text: entry == nil ? "New entry · \(Fmt.stamp(opened))" : "Edit entry" + (blk?.d.map { " · \($0), \(blk?.t ?? "")" } ?? ""),
-                    color: Theme.jmu, size: 14).padding(.top, 8)
-            }
+            Text(entry == nil ? Fmt.stamp(opened) : (blk?.d.map { "\($0), \(blk?.t ?? "")" } ?? "Edit entry"))
+                .font(Theme.jitalic(15)).foregroundStyle(Theme.jmu2).padding(.top, 14)
             Text(w?.focus ?? "").font(Theme.jserif(20)).foregroundStyle(Theme.jtx).padding(.top, 12)
             if entry == nil, !prompts.isEmpty {
                 ScrollView(.horizontal) {
@@ -265,7 +260,7 @@ struct EntryEditor: View {
                 .accessibilityLabel("This week's questions")
             }
             TextEditor(text: $text)
-                .font(Theme.jserif(19)).lineSpacing(Theme.journal != nil ? 10 : 8).foregroundStyle(Theme.jtx)
+                .font(Theme.jserif(19)).lineSpacing(10).foregroundStyle(Theme.jtx)
                 .scrollContentBackground(.hidden)
                 .focused($focused)
                 .padding(.horizontal, -5).padding(.top, 6)
