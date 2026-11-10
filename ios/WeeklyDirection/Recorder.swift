@@ -26,6 +26,10 @@ final class Recorder: NSObject, ObservableObject {
     @Published var sending = false
     /// the on-device words of the recording being transcribed: shown as a placeholder until the real text arrives
     @Published var draftText: String?
+    /// Recordings still on the phone (offline, or the server could not be reached), oldest first. Each shows in the
+    /// journal as a placeholder entry until its transcript arrives; `text` is what the phone itself heard, if anything.
+    struct Waiting: Identifiable, Equatable { let at: Date; let seconds: Int; let text: String?; var id: Double { at.timeIntervalSince1970 } }
+    @Published var waiting: [Waiting] = []
 
     weak var store: Store?
     private var recorder: AVAudioRecorder?
@@ -210,10 +214,14 @@ final class Recorder: NSObject, ObservableObject {
         let at = Int(startedAt.timeIntervalSince1970 * 1000)
         let queued = dir.appendingPathComponent("v\(at)_\(Int(dur.rounded())).m4a")
         try? FileManager.default.moveItem(at: url, to: queued)
+        // what the phone heard, kept beside the recording: the placeholder shown until the real transcript arrives
+        if !heard.isEmpty { try? heard.write(to: queued.deletingPathExtension().appendingPathExtension("txt"), atomically: true, encoding: .utf8) }
         // the screen closes now; transcription carries on behind it
         state = .idle
         if !cancelled { draftText = heard.isEmpty ? nil : heard }
         refreshPending()
+        // offline: it stays on the phone and is sent by itself when the network is back
+        if !online { say("Offline · saved, will be written down later"); return }
         Task { await drain() }
     }
 
@@ -224,7 +232,17 @@ final class Recorder: NSObject, ObservableObject {
             .filter { $0.lastPathComponent.hasPrefix("v") && $0.pathExtension == "m4a" }
             .sorted { $0.lastPathComponent < $1.lastPathComponent }
     }
-    func refreshPending() { pending = queue().count }
+    func refreshPending() {
+        let q = queue()
+        pending = q.count
+        waiting = q.map { f in
+            let name = f.deletingPathExtension().lastPathComponent.dropFirst().split(separator: "_")
+            let text = (try? String(contentsOf: f.deletingPathExtension().appendingPathExtension("txt"), encoding: .utf8))?
+                .trimmingCharacters(in: .whitespacesAndNewlines)
+            return Waiting(at: Date(timeIntervalSince1970: (Double(name.first ?? "") ?? 0) / 1000), seconds: Int(name.count > 1 ? name[1] : "0") ?? 0,
+                           text: text?.isEmpty == false ? text : nil)
+        }
+    }
 
     private func send(_ file: URL) async -> Bool {
         var ok = false
@@ -248,6 +266,7 @@ final class Recorder: NSObject, ObservableObject {
                 store.patchWeek(w, ["liveRefl": t])
             }
             try? FileManager.default.removeItem(at: file)
+            try? FileManager.default.removeItem(at: file.deletingPathExtension().appendingPathExtension("txt"))
             ok = true
             say(text.isEmpty ? "Nothing heard" : "Added to this week")
             if !text.isEmpty { Haptic.success() }
@@ -275,6 +294,8 @@ final class Recorder: NSObject, ObservableObject {
             if !(await send(f)) { failed.insert(f.lastPathComponent); break }
         }
     }
+
+    var isOnline: Bool { online }
 
     /// retry everything still waiting (network back, app opened, Retry tapped)
     func flush() async {

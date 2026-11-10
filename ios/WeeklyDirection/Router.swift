@@ -77,6 +77,7 @@ final class Router: ObservableObject {
             settingsPage = "caffeine"; cover = .settings
         case "plan": cover = .plan(replan: aw?.id)
         case "reflect": tab = "reflect"
+        case "reflect-offline": tab = "reflect"
         case "week-page": tab = "reflect"; if let aw { cover = .weekPage(aw.id) }
         case "week-page-past": tab = "reflect"; if let w = store.weeks.first(where: { !$0.isActive && $0.summary != nil }) { cover = .weekPage(w.id) }
         case "week-page-select": tab = "reflect"; selectMode = true; if let aw { cover = .weekPage(aw.id) }

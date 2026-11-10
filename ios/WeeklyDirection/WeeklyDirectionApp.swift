@@ -24,7 +24,14 @@ struct WeeklyDirectionApp: App {
                 .environmentObject(router)
                 .environmentObject(recorder)
                 .environmentObject(notifier)
-                .onAppear { recorder.attach(store) }
+                .onAppear {
+                    recorder.attach(store)
+                    // screenshots: two recordings waiting on the phone, one with on-phone words and one without
+                    if store.isMock, UserDefaults.standard.string(forKey: "OpenScreen") == "reflect-offline" {
+                        recorder.waiting = [.init(at: Now.date.addingTimeInterval(-3000), seconds: 42, text: nil),
+                                            .init(at: Now.date.addingTimeInterval(-600), seconds: 75, text: "Long day on site and I did not get to devotion until after lunch, which I think is the real pattern this week")]
+                    }
+                }
                 .onChange(of: store.weeks) { _, _ in notifier.schedule(store: store) }
                 .onChange(of: store.settings) { _, _ in notifier.schedule(store: store) }
         }

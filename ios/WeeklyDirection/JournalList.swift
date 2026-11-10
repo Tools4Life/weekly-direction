@@ -38,6 +38,10 @@ struct LatestThought: View {
                     if recorder.sending, let heard = recorder.draftText {
                         Eyebrow(text: "Just now · transcribing", color: Theme.ac)
                         Text(heard).font(Theme.serif(16)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(2).multilineTextAlignment(.leading)
+                    } else if !recorder.sending, let p = recorder.waiting.last {
+                        Eyebrow(text: "\(Fmt.clock(p.at)) · waiting to send", color: Theme.ac)
+                        Text(p.text ?? "Voice note, \(Fmt.mmss(Double(p.seconds)))").font(Theme.serif(16)).lineSpacing(4).foregroundStyle(Theme.mu)
+                            .lineLimit(2).multilineTextAlignment(.leading)
                     } else if let e, let d = e.d, let t = e.t {
                         Eyebrow(text: "Latest thought · \(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d) \(t)", color: Theme.mu2)
                         Text(e.x).font(Theme.serif(16)).lineSpacing(4).foregroundStyle(Theme.tx).lineLimit(2).multilineTextAlignment(.leading)
@@ -81,6 +85,7 @@ struct SummaryBlock: View {
 
 /// Reflect as a plain reading list: this week's entries, newest first, then earlier weeks
 struct JournalList: View {
+    @EnvironmentObject var recorder: Recorder
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
 
@@ -106,7 +111,20 @@ struct JournalList: View {
                     Eyebrow(text: "This week · \(Fmt.weekRange(w, store.settings))", color: Theme.ac).padding(.top, 20)
                     Text(w.focus).font(Theme.jserif(22)).foregroundStyle(Theme.tx).padding(.top, 4).padding(.bottom, 4)
                     let ents = Array(Journal.entries(w.liveRefl).reversed())
-                    if ents.isEmpty {
+                    // recordings still on the phone hold their place here until they are written down
+                    ForEach(recorder.waiting.reversed()) { p in
+                        VStack(alignment: .leading, spacing: 6) {
+                            HStack(spacing: 7) {
+                                Image(systemName: "arrow.up.circle").font(.system(size: 12)).foregroundStyle(Theme.ac)
+                                Text("\(Fmt.dowl[Rules.weekday(p.at)] == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : Fmt.dowl[Rules.weekday(p.at)]), \(Fmt.clock(p.at)) · waiting to send")
+                                    .font(Theme.jitalic(13)).foregroundStyle(Theme.ac)
+                            }
+                            Text(p.text ?? "Voice note, \(Fmt.mmss(Double(p.seconds)))").font(Theme.jserif(17)).lineSpacing(7).foregroundStyle(Theme.mu)
+                        }
+                        .fullWidth().padding(.vertical, 16)
+                        Rectangle().fill(Theme.rule).frame(height: 1)
+                    }
+                    if ents.isEmpty, recorder.waiting.isEmpty {
                         Text("Nothing yet this week.").font(Theme.jitalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
                     }
                     ForEach(Array(ents.enumerated()), id: \.element.i) { n, e in
