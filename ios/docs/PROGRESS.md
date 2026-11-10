@@ -6,6 +6,15 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## After 0.2 (1): Eddie's first device pass "looks good" (Nov 10)
+- Small fixes: tab-bar mic 60 → 72; a finished habit's icon is white; habit sheet shows when / start-by / timer as one quiet line each; a plain habit (no start-by, no timer) can be unchecked the same day, timed ones stay final.
+- Offline dictation: a recording made offline stays on the phone with the words the phone itself heard (sidecar `.txt`), shows in Journal and on This Week as a "waiting to send" placeholder, and becomes a normal entry when the server has it. On-device live words already work offline where the phone supports them.
+- Widget extension `WeeklyDirectionWidgets` (new target, App Group `group.com.redeemedtools.WeeklyDirection`, URL scheme `weeklydirection://`):
+  - Live Activity / Dynamic Island for the running habit timer (`TimerLiveActivity`), kept in step by `WidgetBridge.sync` whenever the weeks change or the app comes forward / goes back.
+  - This Week widget in small, medium, large and Lock Screen rectangular; large shows range, focus word, verse, today's habits and a Dictate button. Read-only: habits cannot be checked from a widget.
+  - Dictate: round Lock Screen widget, an iOS 18 control (Lock Screen buttons, Control Center, Action button), and a Shortcuts / Siri action (`DictateIntent`).
+- Verified: 15 tests, the Home Screen widget layouts via `-OpenScreen widgets` (same views, drawn in the app), simulator build of both targets. **Not verified: anything in the extension running for real** (widgets on a Home Screen, the Dynamic Island, the control, the App Group hand-off), offline recording on a device.
+
 ## Dictation screen and growth by sphere (Nov 10, late)
 - Recording screen: live words in Georgia 17 from the top of the page down (auto-scrolls once full), wave, elapsed time as the one number, smaller orb. "Tap to finish" and the header timer are gone. The dictation card in plan / review shows up to 10 lines.
 - Growth is by sphere, not by exact question (questions change week to week): each rating is saved with `s`, the question's group in the library ("Anchor" for the anchor question, "Other" if it is in no group). A sphere's week is the balance of its questions. The rating step shows the sphere above each question.

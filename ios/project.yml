@@ -17,6 +17,11 @@ targets:
         - WeeklyDirectionTests
     sources:
       - path: WeeklyDirection
+      - path: Shared
+    entitlements:
+      path: WeeklyDirection/WeeklyDirection.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.redeemedtools.WeeklyDirection]
     info:
       path: WeeklyDirection/Info.plist
       properties:
@@ -25,6 +30,10 @@ targets:
         CFBundleVersion: $(CURRENT_PROJECT_VERSION)
         UILaunchScreen: {}
         ITSAppUsesNonExemptEncryption: false
+        NSSupportsLiveActivities: true
+        CFBundleURLTypes:
+          - CFBundleURLName: com.redeemedtools.WeeklyDirection
+            CFBundleURLSchemes: [weeklydirection]
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         NSMicrophoneUsageDescription: Weekly Direction records your spoken reflections and turns them into journal entries.
         NSSpeechRecognitionUsageDescription: Weekly Direction shows your words on screen while you record a reflection.
@@ -48,6 +57,7 @@ targets:
         product: FirebaseAuth
       - package: Firebase
         product: FirebaseFirestore
+      - target: WeeklyDirectionWidgets
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.redeemedtools.WeeklyDirection
@@ -62,6 +72,47 @@ targets:
         INFOPLIST_KEY_NSMicrophoneUsageDescription: Weekly Direction records your spoken reflections and turns them into journal entries.
         CODE_SIGN_STYLE: Automatic
         DEVELOPMENT_TEAM: DZJE34VW29
+  # Home / Lock Screen widgets, the timer Live Activity (Dynamic Island) and the Dictate control. Reads the week from the
+  # App Group; no Firebase. Keep its version settings equal to the app's (TestFlight rejects a mismatch).
+  WeeklyDirectionWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: WeeklyDirectionWidgets
+      - path: Shared
+      - path: WeeklyDirection/Fonts
+        buildPhase: resources
+        excludes: ["*.txt"]
+    entitlements:
+      path: WeeklyDirectionWidgets/WeeklyDirectionWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.com.redeemedtools.WeeklyDirection]
+    info:
+      path: WeeklyDirectionWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: Weekly Direction
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+        UIAppFonts:
+          - Fraunces.ttf
+          - Fraunces-Italic.ttf
+          - Barlow-Regular.ttf
+          - Barlow-Medium.ttf
+          - Barlow-SemiBold.ttf
+          - BarlowCondensed-Medium.ttf
+          - BarlowCondensed-SemiBold.ttf
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.redeemedtools.WeeklyDirection.Widgets
+        MARKETING_VERSION: "0.2"
+        CURRENT_PROJECT_VERSION: "1"
+        SWIFT_VERSION: "5.10"
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        DEVELOPMENT_TEAM: DZJE34VW29
+        SKIP_INSTALL: YES
   WeeklyDirectionTests:
     type: bundle.unit-test
     platform: iOS

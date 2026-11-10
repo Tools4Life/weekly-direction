@@ -14,8 +14,12 @@ struct ReflectIntent: AppIntent {
     }
 }
 
+/// "Dictate" (`DictateIntent`, Shared/WidgetShared.swift) is the same action for the Lock Screen / Control Center control
+/// and the Action button; both appear in the Shortcuts app.
 struct WeeklyDirectionShortcuts: AppShortcutsProvider {
     static var appShortcuts: [AppShortcut] {
+        AppShortcut(intent: DictateIntent(), phrases: ["Dictate in \(.applicationName)", "Start dictating in \(.applicationName)"],
+                    shortTitle: "Dictate", systemImageName: "mic.fill")
         AppShortcut(intent: ReflectIntent(), phrases: ["Reflect in \(.applicationName)", "Record a reflection in \(.applicationName)"],
                     shortTitle: "Reflect", systemImageName: "mic")
     }

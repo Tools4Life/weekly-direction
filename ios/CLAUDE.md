@@ -53,6 +53,11 @@ Every report shows the simulator shot next to the reference, says what was not v
 Closing a week on iOS also writes `growth: [{q, v}]` (confirmed ratings; iOS-only field, see `Growth.swift`). It must clean, never summarize. The Saturday questions are prompts on
 the review page, not fields: the review saves the journal plus the reflection as one more stamped entry.
 
+## Widgets, Live Activity, Dictate (Nov 10 2026)
+Target `WeeklyDirectionWidgets` (see project.yml). `Shared/` is compiled into both targets: `WidgetSnapshot` (what the widgets
+show, written by `WidgetBridge` into the App Group), `TimerAttributes`, `DictateIntent`, `WeekWidgetBody` (the layouts; the app
+draws the same views for `-OpenScreen widgets`). The extension never touches Firebase and never writes habit data.
+
 ## Known pitfalls
 - A failing XCTest assertion hangs (XCTest stalls collecting the failure's call stack) instead of printing. `scripts/test.sh`
   caps each test at 60 s; a test that "exceeded execution time allowance" is a failed assertion: print the actual values.

@@ -32,13 +32,20 @@ struct WeeklyDirectionApp: App {
                                             .init(at: Now.date.addingTimeInterval(-600), seconds: 75, text: "Long day on site and I did not get to devotion until after lunch, which I think is the real pattern this week")]
                     }
                 }
-                .onChange(of: store.weeks) { _, _ in notifier.schedule(store: store) }
-                .onChange(of: store.settings) { _, _ in notifier.schedule(store: store) }
+                .onChange(of: store.weeks) { _, _ in notifier.schedule(store: store); WidgetBridge.sync(store) }
+                .onChange(of: store.settings) { _, _ in notifier.schedule(store: store); WidgetBridge.sync(store) }
+                .onChange(of: store.signedIn) { _, on in if !on, !store.isMock { WidgetBridge.clear() } }
+                // widget links: weeklydirection://dictate starts recording, anything else just opens the week
+                .onOpenURL { url in
+                    router.tab = "week"
+                    if url.host == "dictate" { router.pendingRecord = true }
+                }
         }
     }
 }
 
 struct RootView: View {
+    @Environment(\.scenePhase) private var phase
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
     @EnvironmentObject var recorder: Recorder
@@ -57,6 +64,8 @@ struct RootView: View {
             Theme.bg.ignoresSafeArea()
             if Mock.enabled, UserDefaults.standard.string(forKey: "OpenScreen") == "icons" {
                 IconOptions()
+            } else if Mock.enabled, UserDefaults.standard.string(forKey: "OpenScreen") == "widgets" {
+                WidgetPreview()
             } else if !store.signedIn {
                 SignInView()
             } else if !store.ready {
@@ -67,12 +76,26 @@ struct RootView: View {
         }
         .preferredColorScheme(scheme)
         .onChange(of: store.ready) { _, ready in if ready { arrive() } }
+        // back in front: the Dictate control or shortcut may have asked for a recording; the widgets and the timer on
+        // the Lock Screen are brought up to date on the way in and on the way out
+        .onChange(of: phase) { _, ph in
+            if ph == .active, Shared.defaults?.bool(forKey: Shared.pendingDictateKey) == true {
+                Shared.defaults?.set(false, forKey: Shared.pendingDictateKey)
+                router.pendingRecord = true
+            }
+            if ph != .inactive, store.ready { WidgetBridge.sync(store) }
+        }
         .onChange(of: router.pendingRecord) { _, p in if p, store.ready { arrive() } }
         .onAppear { if store.ready { arrive() } }
     }
 
     private func arrive() {
         if store.isMock, let s = UserDefaults.standard.string(forKey: "OpenScreen") { router.open(screen: s, store: store) }
+        if Shared.defaults?.bool(forKey: Shared.pendingDictateKey) == true {
+            Shared.defaults?.set(false, forKey: Shared.pendingDictateKey)
+            router.pendingRecord = true
+        }
+        WidgetBridge.sync(store)
         if router.pendingRecord {
             router.pendingRecord = false
             if store.activeWeek != nil { router.startRecording() }

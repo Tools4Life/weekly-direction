@@ -18,6 +18,17 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.redeemedtools.WeeklyDirection</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>weeklydirection</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
@@ -26,6 +37,8 @@
 	<string>Weekly Direction records your spoken reflections and turns them into journal entries.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
 	<string>Weekly Direction shows your words on screen while you record a reflection.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Fraunces.ttf</string>
