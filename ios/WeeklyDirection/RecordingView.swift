@@ -1,38 +1,5 @@
 import SwiftUI
 
-/// The mic on the Journal view: tap to record a reflection. A status line above it shows the last result and
-/// anything still waiting to upload.
-struct MicDock: View {
-    @EnvironmentObject var recorder: Recorder
-    @EnvironmentObject var router: Router
-
-    var body: some View {
-        VStack(spacing: 12) {
-            HStack(spacing: 10) {
-                if recorder.state == .busy { Text("Transcribing…") }
-                else if let m = recorder.message { Text(m) }
-                if recorder.pending > 0, recorder.state == .idle {
-                    Text("\(recorder.pending) waiting ·")
-                    Button("Retry") { Task { await recorder.flush() } }.foregroundStyle(Theme.ac)
-                }
-            }
-            .font(Theme.ui(14)).foregroundStyle(Theme.mu).frame(height: 20)
-            Button { router.startRecording() } label: {
-                ZStack {
-                    Circle().stroke(Theme.ac.opacity(0.25), lineWidth: 1).frame(width: 100, height: 100)
-                    Circle().fill(Theme.ac.opacity(0.16)).frame(width: 96, height: 96)
-                    Circle().fill(Theme.ac).frame(width: 84, height: 84)
-                    Image(systemName: "mic").font(.system(size: 28, weight: .regular)).foregroundStyle(Theme.onAc)
-                }
-            }
-            .buttonStyle(.plain)
-            .disabled(recorder.state != .idle)
-            .opacity(recorder.state == .busy ? 0.5 : 1)
-            .accessibilityLabel("Speak a reflection")
-        }
-    }
-}
-
 /// The recording space (web: vcFocus): Cancel and the timer, the words as you say them, the voice level as a
 /// scrolling bar waveform, and the orb with a stop square. Tap the orb to finish.
 struct RecordingView: View {

@@ -20,6 +20,11 @@ SPEC section 1 bugs are fixed and every section 3 screen is built (see State).
   Keep `scheme`, `DEVELOPMENT_TEAM` and the `info:` block (UIAppFonts) or Run / signing / fonts break after regenerating.
 - `GoogleService-Info.plist` lives in `WeeklyDirection/` locally and is not committed.
 
+## Layout since Nov 9 2026 (differs from the web on purpose, Eddie's call)
+Tab bar: This Week, Journal (`JournalList.swift`), mic (records from any screen), Prayer, Progress. This Week shows the latest
+thought under the habits. Names, rows and buttons use condensed caps (`.caps()`); page titles and journal text stay serif.
+Rejected design findings stay behind launch arguments in sample-data mode only: `-MockPalette focus`, `-MockStyle 1/2`.
+
 ## Build, test and screenshots
 ```
 cd ios && xcodegen

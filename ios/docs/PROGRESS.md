@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: POLISH-2026-11-09 type and journal pass DONE on the simulator; caps font applied to names, rows and buttons; waiting for Eddie's device test.** Nothing verified on the phone, nothing pushed (no git credentials in the Claude shell).
+**Current: mic-first layout BUILT (Nov 9, Eddie approved the mockup); waiting for Eddie's device test.** Nothing verified on the phone, nothing pushed (no git credentials in the Claude shell).
 
 ## Polish pass (Nov 9, evening)
 - Habit names now match the web: Barlow Regular 16.5, no extra tracking (was Medium 18 + tracking); meta Barlow Condensed 13.
@@ -9,6 +9,8 @@
 - Not verified: anything on the phone; the kept-draft path (sample-data mode skips it); older entries on the card clamp to one line in the simulator although two are allowed.
 - Flat style: Eddie tried the idea and said "keep original" (Nov 9). The Settings switch is removed; the preview stays behind `-MockStyle 1/2` in sample-data mode only.
 - Caps font (Eddie, Nov 9): habit names, row titles, buttons and controls use Barlow Condensed SemiBold caps (`.caps()` in Theme.swift). Page titles and journal text keep the serif; sentences, descriptions, typed text and the account email keep Barlow.
+- Mic-first layout (Eddie, Nov 9): tab bar is This Week, Journal, mic (raised, records from any screen), Prayer, Progress. This Week shows the latest thought under the habits. Reflect is `JournalList.swift`: this week's entries newest first, then earlier weeks, Write at the top. The old journal card, the Journal | Prayer switch and the mic dock are removed; `-OpenScreen reflect-past` is gone. Layout only: entries are read and written as before. Starting a recording no longer switches tabs.
+- Not verified: recording from the centre mic on a device; the "Transcribing… / N waiting · Retry" line in its new places (This Week above the latest thought, top of Journal).
 - Previous state: run DAY-2026-11-09 DONE.
 
 ## Run DAY-2026-11-09 (see docs/runs/DAY-2026-11-09.md)
@@ -22,7 +24,7 @@
 | 3.2 Habit sheet | Built | habit.png vs spec 03 |
 | 3.3 Timer focus | Built | focus.png (no reference image) |
 | 3.4 Vision | Built | vision.png vs spec 05 |
-| 3.5 Journal | Built | reflect, reflect-past, week-page, week-page-select, entry-menu, edit, write vs spec 10–16 |
+| 3.5 Journal | Built | reflect, week-page, week-page-select, entry-menu, edit, write vs spec 10–16 |
 | 3.6 Recording | Built; audio, live words, upload, queue, intent NOT exercised (simulator shows sample words only) | recording.png vs spec 17 |
 | 3.7 Prayer | Built | prayer, prayer-open vs spec 18, 19 |
 | 3.8 Progress | Built | progress, progress-habits vs spec 20, 21 |

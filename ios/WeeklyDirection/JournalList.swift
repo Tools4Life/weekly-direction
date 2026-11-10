@@ -1,6 +1,25 @@
 import SwiftUI
 
-// Mic-first layout preview (-MockLayout 1, sample data only). Not the approved layout: see docs/design/findings.
+// Mic-first layout (Eddie, Nov 9 2026): the mic lives in the tab bar, This Week shows the latest thought, and Reflect
+// is a plain list of the journal. Layout only: entries are read and written exactly as before.
+
+/// what the recorder is doing, and anything still waiting to upload (was the line above the old mic)
+struct RecorderStatus: View {
+    @EnvironmentObject var recorder: Recorder
+    var body: some View {
+        if recorder.state == .busy || recorder.message != nil || (recorder.pending > 0 && recorder.state == .idle) {
+            HStack(spacing: 10) {
+                if recorder.state == .busy { Text("Transcribing…") }
+                else if let m = recorder.message { Text(m) }
+                if recorder.pending > 0, recorder.state == .idle {
+                    Text("\(recorder.pending) waiting ·")
+                    Button("Retry") { Task { await recorder.flush() } }.foregroundStyle(Theme.ac)
+                }
+            }
+            .font(Theme.ui(14)).foregroundStyle(Theme.mu)
+        }
+    }
+}
 
 /// This Week: the most recent thought of the week, one tap from the whole journal
 struct LatestThought: View {
@@ -9,6 +28,8 @@ struct LatestThought: View {
 
     var body: some View {
         let e = Journal.entries(week.liveRefl).last
+        VStack(alignment: .leading, spacing: 8) {
+        RecorderStatus()
         Button { router.cover = .weekPage(week.id) } label: {
             HStack(alignment: .top, spacing: 12) {
                 Rectangle().fill(Theme.ac).frame(width: 2)
@@ -29,6 +50,7 @@ struct LatestThought: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
+        }
     }
 }
 
@@ -53,6 +75,7 @@ struct JournalList: View {
                         .buttonStyle(.plain)
                     }
                 }
+                RecorderStatus().padding(.top, 10)
                 if let w = store.activeWeek {
                     (Text("This week · \(Fmt.weekRange(w, store.settings)) · ").foregroundColor(Theme.mu2) + Text(w.focus).foregroundColor(Theme.ac))
                         .font(Theme.label(12)).tracking(2.4).textCase(.uppercase).padding(.top, 18)
@@ -92,7 +115,7 @@ struct JournalList: View {
                     Rectangle().fill(Theme.rule).frame(height: 1)
                 }
             }
-            .padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 40)
+            .padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 56)
         }
         .scrollIndicators(.hidden)
         .background(Theme.bg)

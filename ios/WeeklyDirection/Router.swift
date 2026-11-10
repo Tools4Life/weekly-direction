@@ -26,8 +26,7 @@ final class Router: ObservableObject {
         var id: String { String(describing: self) }
     }
 
-    @Published var tab = "week"             // week | reflect | progress
-    @Published var reflectView = "j"        // j = journal, p = prayer
+    @Published var tab = "week"             // week | reflect (the journal list) | prayer | progress
     @Published var cover: Cover?
     @Published var sheet: Sheet?
     /// the day the habit list shows (nil = today)
@@ -37,7 +36,6 @@ final class Router: ObservableObject {
 
     func startRecording() {
         sheet = nil
-        tab = "reflect"; reflectView = "j"
         if cover != .recording { cover = .recording }
     }
 
@@ -54,15 +52,14 @@ final class Router: ObservableObject {
         case "settings": cover = .settings
         case "plan": cover = .plan(replan: aw?.id)
         case "reflect": tab = "reflect"
-        case "reflect-past": tab = "reflect"; reflectIndex = 1
         case "week-page": tab = "reflect"; if let aw { cover = .weekPage(aw.id) }
         case "week-page-select": tab = "reflect"; selectMode = true; if let aw { cover = .weekPage(aw.id) }
         case "entry-menu": tab = "reflect"; entryMenu = aw.flatMap { Journal.entries($0.liveRefl).last?.i }
         case "edit": tab = "reflect"; if let i = aw.flatMap({ Journal.entries($0.liveRefl).last?.i }) { cover = .edit(i) }
         case "write": tab = "reflect"; cover = .write
         case "recording": tab = "reflect"; cover = .recording
-        case "prayer": tab = "reflect"; reflectView = "p"
-        case "prayer-open": tab = "reflect"; reflectView = "p"; sheet = .prayer(store.prayers.first { !$0.pinned }?.id, pinned: false)
+        case "prayer": tab = "prayer"
+        case "prayer-open": tab = "prayer"; sheet = .prayer(store.prayers.first { !$0.pinned }?.id, pinned: false)
         case "progress": tab = "progress"
         case "progress-habits": tab = "progress"; progressView = "habits"
         case "stats": tab = "progress"; if let aw { cover = .stats(aw.id) }
@@ -74,7 +71,6 @@ final class Router: ObservableObject {
     }
 
     // small pieces of screen state that screenshots need to reach
-    @Published var reflectIndex = 0
     @Published var selectMode = false
     @Published var entryMenu: Int?
     @Published var progressView = "weeks"

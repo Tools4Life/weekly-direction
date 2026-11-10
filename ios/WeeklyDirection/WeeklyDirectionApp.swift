@@ -82,7 +82,7 @@ struct MainTabs: View {
         VStack(spacing: 0) {
             ZStack {
                 switch router.tab {
-                case "reflect": if Theme.micFirst { JournalList() } else { ReflectView() }
+                case "reflect": JournalList()
                 case "prayer":
                     VStack(alignment: .leading, spacing: 0) {
                         Text("Prayer").font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.horizontal, 24).padding(.top, 20)
@@ -137,14 +137,13 @@ struct MainTabs: View {
     }
 }
 
-/// three square icons: week, reflect, progress
+/// This Week, Journal, the mic (speak a thought from any screen), Prayer, Progress
 struct TabBar: View {
     @EnvironmentObject var router: Router
-    private var tabs: [(String, String)] {
-        Theme.micFirst
-            ? [("week", "calendar.badge.checkmark"), ("reflect", "book"), ("mic", "mic"), ("prayer", "hands.sparkles"), ("progress", "chart.line.uptrend.xyaxis")]
-            : [("week", "calendar.badge.checkmark"), ("reflect", "square.and.pencil"), ("progress", "chart.line.uptrend.xyaxis")]
-    }
+    @EnvironmentObject var recorder: Recorder
+    @EnvironmentObject var store: Store
+    private let tabs = [("week", "calendar.badge.checkmark"), ("reflect", "book"), ("mic", "mic"), ("prayer", "hands.sparkles"),
+                        ("progress", "chart.line.uptrend.xyaxis")]
     @State private var bounce: String?
 
     var body: some View {
@@ -161,6 +160,8 @@ struct TabBar: View {
                         .frame(maxWidth: .infinity).frame(height: 52).offset(y: -16)
                     }
                     .buttonStyle(.plain)
+                    .disabled(recorder.state != .idle || store.activeWeek == nil)
+                    .opacity(recorder.state == .busy || store.activeWeek == nil ? 0.45 : 1)
                     .accessibilityLabel("Speak a reflection")
                 } else {
                 Button {
@@ -183,10 +184,11 @@ struct TabBar: View {
                 }
             }
         }
-        .padding(.horizontal, Theme.micFirst ? 14 : 36)
+        .padding(.horizontal, 14)
         .padding(.top, 6)
+        // the rule sits behind the mic, which rises above the bar
+        .background(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
         .background(Theme.bg)
-        .overlay(alignment: .top) { Rectangle().fill(Theme.rule).frame(height: 1) }
     }
 }
 
