@@ -180,7 +180,8 @@ struct WeekPage: View {
         for i in 0..<7 { let x = s0.addingTimeInterval(Double(i) * 86400); dates[Fmt.dowl[Rules.weekday(x)]] = x }
         let today = active && d == Fmt.dowl[Rules.weekday(Now.date)]
         return HStack(alignment: .firstTextBaseline) {
-            Text(today ? "Today" : d ?? "Notes").font(Theme.jserif(20)).foregroundStyle(Theme.tx)
+            // entries without a day stamp: in a closed week that is what was written at the review; in the open week, loose thoughts
+            Text(today ? "Today" : d ?? (active ? "Thoughts" : "Reflection")).font(Theme.jserif(20)).foregroundStyle(Theme.tx)
             Spacer()
             if let d, let x = dates[d] { Eyebrow(text: (today ? d + " · " : "") + Fmt.date(x), color: Theme.mu2, size: 12) }
         }
