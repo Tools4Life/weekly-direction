@@ -115,5 +115,13 @@ enum Tidy {
         return t?.isEmpty == false ? t : nil
     }
 
+    /// a proposed rating per question (1 better, 0 same, -1 worse, nil not spoken to) with the sentence it rests on;
+    /// nil when the function can't be reached. He confirms or changes each one before anything is saved.
+    @MainActor static func rate(_ store: Store, _ text: String, _ questions: [String]) async -> [(v: Int?, quote: String)]? {
+        guard !questions.isEmpty, let j = await call(store, ["mode": "rate", "text": text, "questions": questions]),
+              let a = j["ratings"] as? [[String: Any]], a.count == questions.count else { return nil }
+        return a.map { (intOf($0["v"]).flatMap { (-1...1).contains($0) ? $0 : nil }, $0["quote"] as? String ?? "") }
+    }
+
     static let asSpoken = "Added as spoken."
 }

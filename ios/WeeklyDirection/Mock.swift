@@ -51,18 +51,20 @@ enum Mock {
             "marks": ["2026-11-08": "on"],
             "liveRefl": live
         ]
-        func closed(_ id: String, _ focus: String, _ pct: Int, _ refl: String = "", _ summary: String? = nil) -> [String: Any] {
+        func closed(_ id: String, _ focus: String, _ pct: Int, _ refl: String = "", _ summary: String? = nil, growth: [Int?] = []) -> [String: Any] {
             var w: [String: Any] = ["id": id, "status": "closed", "focus": focus, "sealedAt": ms(id, "17:30"),
                                     "closedAt": ms(id, "17:30") + 7 * 864e5, "percentage": pct, "commitments": habits, "reflection": refl]
             if let summary { w["summary"] = summary }
+            let rated = zip(Defaults.revQs, growth).compactMap { q, v in v.map { ["q": q, "v": $0] as [String: Any] } }
+            if !rated.isEmpty { w["growth"] = rated }
             return w
         }
         let weeks = [
             active,
             closed("2026-10-31", "Law", 71, "Thursday, 8:10 pm\nTwo very different days this week.",
-                   "I saw two very different days this week: one where I followed my commitments and one where I did not, and the difference was night and day. Morning devotion set the tone."),
-            closed("2026-10-24", "Word", 80),
-            closed("2026-10-17", "Rest", 64)
+                   "I saw two very different days this week: one where I followed my commitments and one where I did not, and the difference was night and day. Morning devotion set the tone.", growth: [1, 1, 0]),
+            closed("2026-10-24", "Word", 80, growth: [0, 1, nil]),
+            closed("2026-10-17", "Rest", 64, growth: [-1, 0, -1])
         ]
         let prayers: [[String: Any]] = [
             ["id": "p1", "text": "Provision", "icon": "money", "body": "Lord, provide for the house and the church.\n\nAmen.", "created": ms("2026-12-31", "09:00")],

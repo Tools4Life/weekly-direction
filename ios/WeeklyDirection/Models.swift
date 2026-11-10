@@ -65,6 +65,9 @@ struct Week: Identifiable, Equatable {
     let liveRefl: String
     let reflection: String
     let summary: String?
+    /// ratings confirmed at the review: one per Saturday question he spoke to (iOS only; older weeks have none)
+    let growth: [Rating]
+    struct Rating: Equatable { let q: String; let v: Int }
     let raw: [String: Any]
 
     var isActive: Bool { status == "active" }
@@ -94,6 +97,10 @@ struct Week: Identifiable, Equatable {
         liveRefl = d["liveRefl"] as? String ?? ""
         reflection = d["reflection"] as? String ?? ""
         summary = strOf(d["summary"])
+        growth = (d["growth"] as? [[String: Any]] ?? []).compactMap { r in
+            guard let q = r["q"] as? String, let v = intOf(r["v"]), (-1...1).contains(v) else { return nil }
+            return Rating(q: q, v: v)
+        }
         raw = d
     }
 

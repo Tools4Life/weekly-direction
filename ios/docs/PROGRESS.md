@@ -1,10 +1,18 @@
 # Weekly Direction iOS — progress log
 
-**Current: growth-from-reflections MOCKUPS sent (docs/design/findings/2026-11-10-growth), waiting for Eddie to pick A (one colour) or B (green / red); nothing built behind them. Nov 10 batch (see sections below) is built, not on the phone. `tidy` function not deployed. Next TestFlight upload is 0.2 (1).** Open: prayer icon pick. Nothing pushed.
+**Current: growth from reflections BUILT (option A), not on the phone; Nov 10 batch below is all built and unverified on device. `tidy` function (clean-up + rating proposals) NOT deployed: `firebase deploy --only functions:tidy`. Next TestFlight upload is 0.2 (1).** Open: prayer icon pick. Nothing pushed.
 
 ## Prayers without a full page (Nov 10)
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
+
+## Growth from reflections (Nov 10)
+- Eddie picked option A (one colour; green / red rejected because red and orange both read as alerts) and past weeks stay empty.
+- Review is two steps: reflect, then "How did it go?" with Worse / Same / Better per question. The `tidy` function (mode `rate`) proposes each rating with the sentence it rests on; he confirms or changes it; tap again clears it. Without the function the buttons start empty and work by hand.
+- Closing saves `growth: [{q, v}]` on the week (v 1 / 0 / -1, only rated questions). **A field the web app does not write or read**, approved by Eddie for this feature.
+- Progress has a third view, Growth (`Growth.swift`): a row per question, a square per closed week (last 8, newest right), and improving / steady / slipping once a question has four rated weeks (last three against the three before).
+- The mockup view is gone (`GrowthMock.swift` removed); its screenshots stay in docs/design/findings/2026-11-10-growth.
+- Verified: 14 tests (rows, empty cell, trend), shots `progress-growth`, `close-rate`. Not verified: the AI's proposals, closing a rated week, on the phone. `tidy` still not deployed.
 
 ## Questions are prompts (Nov 10)
 - Review page: the Saturday questions are shown as prompts only; there is one free reflection (spoken or typed) and this week's journal. Closing saves the journal plus the reflection as one more stamped entry ("Saturday, 5:32 pm" + text, no blank lines inside). iOS no longer writes "question + answer" blocks; weeks closed on the web still have them and still display.

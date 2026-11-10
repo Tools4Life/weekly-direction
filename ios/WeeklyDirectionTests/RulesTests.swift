@@ -105,6 +105,19 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(Rules.state(w, "2026-11-10", habit("ph")), .fail)
     }
 
+    func testGrowthRowsAndTrend() {
+        XCTAssertNil(Growth.trend([1, 1, 1]))
+        XCTAssertEqual(Growth.trend([-1, -1, 0, 1, 1, 1]), 1)
+        XCTAssertEqual(Growth.trend([1, 1, 1, 0, -1, -1]), -1)
+        XCTAssertEqual(Growth.trend([0, 1, 0, 0, 1, 0]), 0)
+        let g = Growth.rows(store.weeks, anchor: store.settings.anchorQ)
+        XCTAssertEqual(g.weeks.map(\.focus), ["Rest", "Word", "Law"])
+        XCTAssertEqual(g.rows.first?.q, store.settings.anchorQ)
+        XCTAssertEqual(g.rows.first?.cells, [-1, 0, 1])
+        // the third question was not spoken to in the Word week: empty, not "same"
+        XCTAssertEqual(g.rows.first { $0.q == Defaults.revQs[2] }?.cells, [-1, nil, 0])
+    }
+
     func testJournalBlocksAndEdits() {
         let ents = Journal.entries(w.liveRefl)
         XCTAssertEqual(ents.map(\.d), ["Sunday", "Monday", "Tuesday", "Wednesday"])

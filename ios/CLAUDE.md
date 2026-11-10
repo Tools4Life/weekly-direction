@@ -49,7 +49,8 @@ Every report shows the simulator shot next to the reference, says what was not v
 
 ## Voice in plan and review (Nov 10 2026)
 `DictateCard` + `Tidy` (Dictate.swift) and `Recorder.startDictation / finishDictation`. Cloud Function `tidy` takes
-`{mode: "vision" | "reflection", text}` → `{text}`. It must clean, never summarize. The Saturday questions are prompts on
+`{mode: "vision" | "reflection", text}` → `{text}`; `{mode: "rate", text, questions}` → `{ratings: [{v, quote}]}` (a proposal).
+Closing a week on iOS also writes `growth: [{q, v}]` (confirmed ratings; iOS-only field, see `Growth.swift`). It must clean, never summarize. The Saturday questions are prompts on
 the review page, not fields: the review saves the journal plus the reflection as one more stamped entry.
 
 ## Known pitfalls

@@ -35,6 +35,8 @@ final class Router: ObservableObject {
             half = false
         }
     }
+    /// `-OpenScreen close-rate`: open the review on its rating step (screenshots)
+    var rateOnOpen = false
     /// the review was opened from the mic: start listening as it opens
     var dictateOnOpen = false
     /// `-OpenScreen settings-…`: the settings page to open on
@@ -87,6 +89,8 @@ final class Router: ObservableObject {
         case "prayer-short": tab = "prayer"; half = true; sheet = .prayer(store.prayers.first { !$0.pinned && $0.body.isEmpty }?.id, pinned: false)
         case "progress": tab = "progress"
         case "progress-habits": tab = "progress"; progressView = "habits"
+        case "progress-growth": tab = "progress"; progressView = "growth"
+        case "close-rate": if let aw { rateOnOpen = true; sheet = .close(aw.id) }
         case "stats": tab = "progress"; if let aw { cover = .stats(aw.id) }
         case "stats-all": tab = "progress"; cover = .stats(nil)
         case "close": if let aw { sheet = .close(aw.id) }
