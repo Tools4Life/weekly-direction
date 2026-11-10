@@ -22,11 +22,11 @@ struct SettingsView: View {
             HStack {
                 Button { commit(); dismiss() } label: {
                     HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("This week") }
-                        .font(Theme.ui(17)).foregroundStyle(Theme.mu)
+                        .font(Theme.ui(16)).foregroundStyle(Theme.mu)
                 }
                 .buttonStyle(.plain)
                 Spacer()
-                if focus != nil { Button("Done") { focus = nil }.font(Theme.ui(17, .semibold)).foregroundStyle(Theme.ac) }
+                if focus != nil { Button("Done") { focus = nil }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac) }
             }
             .padding(.horizontal, 24).frame(height: 52)
             ScrollView {
@@ -52,15 +52,15 @@ struct SettingsView: View {
     }
 
     @ViewBuilder private var content: some View {
-        Text("Settings").font(Theme.serif(40)).foregroundStyle(Theme.tx)
+        Text("Settings").font(Theme.serif(34)).foregroundStyle(Theme.tx)
         label("Account")
         group {
             row { VStack(alignment: .leading, spacing: 3) {
-                Text(store.email ?? "Not signed in").font(Theme.ui(18)).foregroundStyle(Theme.tx)
-                Text(store.isMock ? "Preview data" : "Synced to your account").font(Theme.ui(15)).foregroundStyle(Theme.mu)
+                Text(store.email ?? "Not signed in").font(Theme.ui(16)).foregroundStyle(Theme.tx)
+                Text(store.isMock ? "Preview data" : "Synced to your account").font(Theme.ui(14)).foregroundStyle(Theme.mu)
             } }
             divider
-            Button { confirmSignOut = true } label: { row { Text("Sign out on this device").font(Theme.ui(18)).foregroundStyle(Theme.tx) } }.buttonStyle(.plain)
+            Button { confirmSignOut = true } label: { row { Text("Sign out on this device").font(Theme.ui(16)).foregroundStyle(Theme.tx) } }.buttonStyle(.plain)
         }
         if let aw = store.activeWeek {
             label("This week")
@@ -78,7 +78,7 @@ struct SettingsView: View {
                 ForEach([("dark", "Dark"), ("light", "Light"), ("auto", "Auto")], id: \.0) { t in
                     let on = store.settings.theme == t.0
                     Button(t.1) { Haptic.tick(); store.setSettings(["theme": t.0]) }
-                        .font(Theme.ui(17)).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
+                        .font(Theme.ui(16)).foregroundStyle(on ? Color(hex: 0x0B0B0C) : Theme.tx)
                         .frame(maxWidth: .infinity).frame(height: 40)
                         .background(on ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: 11, style: .continuous))
                         .overlay(RoundedRectangle(cornerRadius: 11, style: .continuous).stroke(on ? Color.clear : Theme.line, lineWidth: 1))
@@ -99,14 +99,14 @@ struct SettingsView: View {
         label("Saturday questions")
         group {
             VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Anchor · asked every week", color: Theme.mu, size: 13)
-                TextField("Anchor question", text: $anchor).font(Theme.ui(18)).foregroundStyle(Theme.tx).focused($focus, equals: .anchor).submitLabel(.done)
+                Eyebrow(text: "Anchor · asked every week", color: Theme.mu, size: 12)
+                TextField("Anchor question", text: $anchor).font(Theme.ui(16)).foregroundStyle(Theme.tx).focused($focus, equals: .anchor).submitLabel(.done)
                     .padding(13).overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1))
             }
             .padding(16)
             divider
             VStack(alignment: .leading, spacing: 8) {
-                Eyebrow(text: "Question library", color: Theme.mu, size: 13)
+                Eyebrow(text: "Question library", color: Theme.mu, size: 12)
                 TextEditor(text: $library).font(Theme.serif(16)).lineSpacing(5).foregroundStyle(Theme.tx).scrollContentBackground(.hidden)
                     .focused($focus, equals: .library).frame(height: 230)
                     .padding(8).overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1))
@@ -114,7 +114,7 @@ struct SettingsView: View {
             .padding(16)
         }
         Text("When you plan a week you pick two from the library; the anchor is always included. One question per line; lines starting with # are group names.")
-            .font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 10).padding(.horizontal, 4)
+            .font(Theme.ui(14)).foregroundStyle(Theme.mu).padding(.top, 10).padding(.horizontal, 4)
         label("Notifications")
         group {
             toggle("Notifications on this phone", notifier.note, Binding(get: { notifier.on }, set: { want in Task { await notifier.set(want, store: store) } }))
@@ -125,21 +125,21 @@ struct SettingsView: View {
                 titled("Export my data", "A copy of every week, habit, reflection, prayer and setting, as one file you can keep.")
                 Spacer()
                 Button("Export") { exportURL = export() }
-                    .font(Theme.ui(17, .semibold)).foregroundStyle(Theme.tx).padding(.horizontal, 16).frame(height: 40)
+                    .font(Theme.ui(16, .semibold)).foregroundStyle(Theme.tx).padding(.horizontal, 16).frame(height: 40)
                     .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1)).buttonStyle(.plain)
             }
             .padding(16)
         }
     }
 
-    private func label(_ t: String) -> some View { Eyebrow(text: t, color: Theme.mu, size: 14).padding(.top, 30).padding(.bottom, 10) }
+    private func label(_ t: String) -> some View { Eyebrow(text: t, color: Theme.mu, size: 12).padding(.top, 30).padding(.bottom, 10) }
     private var divider: some View { Rectangle().fill(Theme.rule).frame(height: 1) }
     private func group<V: View>(@ViewBuilder _ c: () -> V) -> some View { VStack(alignment: .leading, spacing: 0) { c() }.fullWidth().card(18) }
     private func row<V: View>(@ViewBuilder _ c: () -> V) -> some View { c().fullWidth().padding(16).contentShape(Rectangle()) }
     private func titled(_ t: String, _ sub: String) -> some View {
         VStack(alignment: .leading, spacing: 3) {
-            Text(t).font(Theme.ui(18)).foregroundStyle(Theme.tx)
-            Text(sub).font(Theme.ui(15)).foregroundStyle(Theme.mu).multilineTextAlignment(.leading)
+            Text(t).font(Theme.ui(16)).foregroundStyle(Theme.tx)
+            Text(sub).font(Theme.ui(14)).foregroundStyle(Theme.mu).multilineTextAlignment(.leading)
         }
     }
     private func toggle(_ t: String, _ sub: String, _ on: Binding<Bool>) -> some View {

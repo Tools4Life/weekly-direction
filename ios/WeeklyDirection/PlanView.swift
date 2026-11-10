@@ -34,7 +34,7 @@ struct PlanView: View {
             HStack {
                 Button { leave() } label: {
                     HStack(spacing: 10) { Image(systemName: "chevron.left").font(.system(size: 15, weight: .medium)); Text("Later") }
-                        .font(Theme.ui(17)).foregroundStyle(Theme.mu)
+                        .font(Theme.ui(16)).foregroundStyle(Theme.mu)
                 }
                 .buttonStyle(.plain)
                 Spacer()
@@ -65,9 +65,9 @@ struct PlanView: View {
     @ViewBuilder private var form: some View {
         Text(replan != nil ? "Re-plan this week" : first ? "Plan your first week" : "Plan the next week")
             .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu)
-        Eyebrow(text: "Focus word", color: Theme.mu, size: 14).padding(.top, 20)
+        Eyebrow(text: "Focus word", color: Theme.mu, size: 12).padding(.top, 20)
         TextField("One word", text: $focus)
-            .font(Theme.serif(48)).foregroundStyle(Theme.tx).autocorrectionDisabled()
+            .font(Theme.serif(40)).foregroundStyle(Theme.tx).autocorrectionDisabled()
             .onChange(of: focus) { _, v in
                 let t = v.replacingOccurrences(of: "\\s+", with: "", options: .regularExpression)
                 if t != v { focus = t } else { saveDraft() }
@@ -75,16 +75,16 @@ struct PlanView: View {
             .accessibilityIdentifier("planFocus")
         Rectangle().fill(Theme.line).frame(height: 1).padding(.top, 4)
         HStack(spacing: 8) {
-            Eyebrow(text: "Focus verse", color: Theme.mu, size: 14)
-            Text("OPTIONAL").font(Theme.label(14)).tracking(2.8).italic().foregroundStyle(Theme.mu)
+            Eyebrow(text: "Focus verse", color: Theme.mu, size: 12)
+            Text("OPTIONAL").font(Theme.label(13)).tracking(2.8).italic().foregroundStyle(Theme.mu)
         }
         .padding(.top, 22)
-        field { TextField("Reference, e.g. Daniel 1:8", text: $verseRef).font(Theme.ui(18)).onChange(of: verseRef) { _, _ in saveDraft() } }.padding(.top, 10)
+        field { TextField("Reference, e.g. Daniel 1:8", text: $verseRef).font(Theme.ui(16)).onChange(of: verseRef) { _, _ in saveDraft() } }.padding(.top, 10)
         field { TextField("The verse", text: $verse, axis: .vertical).font(Theme.serif(17)).lineSpacing(5).onChange(of: verse) { _, _ in saveDraft() } }.padding(.top, 8)
         if first || replan != nil {
             field {
                 VStack(alignment: .leading, spacing: 6) {
-                    Eyebrow(text: "Week started", color: Theme.mu, size: 14)
+                    Eyebrow(text: "Week started", color: Theme.mu, size: 12)
                     DatePicker("", selection: Binding(get: { start ?? Now.date }, set: { start = $0; saveDraft() }), displayedComponents: [.date, .hourAndMinute])
                         .labelsHidden().tint(Theme.ac)
                 }
@@ -93,17 +93,17 @@ struct PlanView: View {
         }
         HStack {
             let cd = store.settings.closeDay
-            Eyebrow(text: "Daily habits · \(Fmt.dowl[(cd + 1) % 7].prefix(3)) – \(Fmt.dowl[cd].prefix(3))", color: Theme.mu, size: 14)
+            Eyebrow(text: "Daily habits · \(Fmt.dowl[(cd + 1) % 7].prefix(3)) – \(Fmt.dowl[cd].prefix(3))", color: Theme.mu, size: 12)
             Spacer()
-            Text("\(tray.count)").font(Theme.label(14)).foregroundStyle(Theme.mu)
+            Text("\(tray.count)").font(Theme.label(13)).foregroundStyle(Theme.mu)
         }
         .padding(.top, 30)
         trayCard.padding(.top, 10)
         chips.padding(.top, 14)
         HStack {
-            Eyebrow(text: "Saturday questions", color: Theme.mu, size: 14)
+            Eyebrow(text: "Saturday questions", color: Theme.mu, size: 12)
             Spacer()
-            Button("Change") { pickQs = true }.font(Theme.ui(16)).foregroundStyle(Theme.ac)
+            Button("Change") { pickQs = true }.font(Theme.ui(15)).foregroundStyle(Theme.ac)
         }
         .padding(.top, 34)
         ForEach(qs, id: \.self) { q in
@@ -111,12 +111,12 @@ struct PlanView: View {
             field(stroke: anchor ? Theme.ac.opacity(0.35) : Theme.line) {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(q).font(Theme.serif(17)).lineSpacing(5).foregroundStyle(Theme.tx)
-                    if anchor { Eyebrow(text: "Anchor · every week", color: Theme.mu, size: 13) }
+                    if anchor { Eyebrow(text: "Anchor · every week", color: Theme.mu, size: 12) }
                 }
             }
             .padding(.top, 8)
         }
-        Eyebrow(text: "Vision", color: Theme.mu, size: 14).padding(.top, 34)
+        Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.top, 34)
         field {
             TextField("What do you want this week to be?", text: $thoughts, axis: .vertical)
                 .font(Theme.serif(17)).lineSpacing(6).frame(minHeight: 120, alignment: .topLeading)
@@ -125,7 +125,7 @@ struct PlanView: View {
         .padding(.top, 10)
         let ok = !focus.isEmpty && !tray.isEmpty
         Button { seal() } label: {
-            Text("Seal the week").font(Theme.serif(20)).foregroundStyle(Color(hex: 0x0B0B0C))
+            Text("Seal the week").font(Theme.serif(19)).foregroundStyle(Color(hex: 0x0B0B0C))
                 .frame(maxWidth: .infinity).frame(height: 54)
                 .background(Color(hex: 0xF7F4EF).opacity(ok ? 1 : 0.35), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
         }
@@ -133,7 +133,7 @@ struct PlanView: View {
         .accessibilityIdentifier("sealWeek")
         if !ok {
             Text(focus.isEmpty && tray.isEmpty ? "Choose a focus word and at least one habit." : focus.isEmpty ? "Choose a focus word." : "Add at least one habit.")
-                .font(Theme.ui(14)).foregroundStyle(Theme.mu2).frame(maxWidth: .infinity).padding(.top, 10)
+                .font(Theme.ui(13)).foregroundStyle(Theme.mu2).frame(maxWidth: .infinity).padding(.top, 10)
         }
     }
 
@@ -152,9 +152,9 @@ struct PlanView: View {
                 if let c = Commitment(raw) {
                     HStack(spacing: 12) {
                         Ico(name: c.icon, size: 17).foregroundStyle(Theme.mu)
-                        Text(c.name).font(Theme.ui(17)).foregroundStyle(Theme.tx).lineLimit(1).layoutPriority(1)
+                        Text(c.name).font(Theme.ui(16)).foregroundStyle(Theme.tx).lineLimit(1).layoutPriority(1)
                         Spacer(minLength: 6)
-                        Text(c.timeLabel()).font(Theme.label(14)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1)
+                        Text(c.timeLabel()).font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1)
                         Button { tray.remove(at: i); saveDraft() } label: {
                             Image(systemName: "xmark").font(.system(size: 13)).foregroundStyle(Theme.mu).frame(width: 34, height: 40)
                         }
@@ -189,7 +189,7 @@ struct PlanView: View {
     private func chip(icon: String, text: String, serif: Bool, dashed: Bool = false) -> some View {
         HStack(spacing: 9) {
             Image(systemName: icon).font(.system(size: 14, weight: .light)).foregroundStyle(Theme.mu)
-            Text(text).font(serif ? Theme.serif(17) : Theme.ui(17)).foregroundStyle(dashed ? Theme.mu : Theme.tx)
+            Text(text).font(serif ? Theme.serif(17) : Theme.ui(16)).foregroundStyle(dashed ? Theme.mu : Theme.tx)
         }
         .padding(.horizontal, 13).frame(height: 42)
         .background(dashed ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
@@ -352,17 +352,17 @@ struct ChipSheet: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
-                Text(edit.mode == .edit ? "Edit habit" : edit.mode == .tray ? "This week’s habit" : "New habit").font(Theme.serif(26)).foregroundStyle(Theme.tx)
-                TextField("Habit name", text: $name).font(Theme.ui(19)).foregroundStyle(Theme.tx).focused($nameFocus)
+                Text(edit.mode == .edit ? "Edit habit" : edit.mode == .tray ? "This week’s habit" : "New habit").font(Theme.serif(24)).foregroundStyle(Theme.tx)
+                TextField("Habit name", text: $name).font(Theme.ui(17)).foregroundStyle(Theme.tx).focused($nameFocus)
                     .padding(14).background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(needName ? Theme.ac : Theme.line, lineWidth: 1))
                     .onChange(of: name) { _, _ in needName = false }
                     .padding(.top, 16)
-                Eyebrow(text: "Days", color: Theme.mu, size: 14).padding(.top, 22)
+                Eyebrow(text: "Days", color: Theme.mu, size: 12).padding(.top, 22)
                 HStack(spacing: 8) {
                     ForEach([("", "Every day"), ("wd", "Weekdays"), ("we", "Weekends")], id: \.0) { d in
                         Button(d.1) { days = d.0 }
-                            .font(Theme.ui(16)).foregroundStyle(days == d.0 ? Color(hex: 0x0B0B0C) : Theme.tx)
+                            .font(Theme.ui(15)).foregroundStyle(days == d.0 ? Color(hex: 0x0B0B0C) : Theme.tx)
                             .frame(maxWidth: .infinity).frame(height: 40)
                             .background(days == d.0 ? Color(hex: 0xF7F4EF) : Color.clear, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
                             .overlay(RoundedRectangle(cornerRadius: 12, style: .continuous).stroke(Theme.line, lineWidth: 1))
@@ -372,17 +372,17 @@ struct ChipSheet: View {
                 timeRow("Start by", $by).padding(.top, 20)
                 if days != "wd" { timeRow("Weekends", $byWe).padding(.top, 10) }
                 HStack {
-                    Text("Minutes (timed habit)").font(Theme.ui(17)).foregroundStyle(Theme.tx)
+                    Text("Minutes (timed habit)").font(Theme.ui(16)).foregroundStyle(Theme.tx)
                     Spacer()
-                    TextField("0", text: $minutes).keyboardType(.numberPad).multilineTextAlignment(.trailing).font(Theme.ui(17)).foregroundStyle(Theme.tx).frame(width: 70)
+                    TextField("0", text: $minutes).keyboardType(.numberPad).multilineTextAlignment(.trailing).font(Theme.ui(16)).foregroundStyle(Theme.tx).frame(width: 70)
                 }
                 .padding(.top, 14)
-                Eyebrow(text: "About", color: Theme.mu, size: 14).padding(.top, 22)
+                Eyebrow(text: "About", color: Theme.mu, size: 12).padding(.top, 22)
                 TextField("Why it matters, and the verse behind it", text: $about, axis: .vertical)
                     .font(Theme.serif(17)).lineSpacing(5).foregroundStyle(Theme.tx).frame(minHeight: 70, alignment: .topLeading)
                     .padding(14).background(Theme.card, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                     .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1)).padding(.top, 8)
-                Eyebrow(text: "Icon", color: Theme.mu, size: 14).padding(.top, 22)
+                Eyebrow(text: "Icon", color: Theme.mu, size: 12).padding(.top, 22)
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7), spacing: 8) {
                     ForEach(Self.icons, id: \.self) { n in
                         Button { icon = n } label: {
@@ -419,13 +419,13 @@ struct ChipSheet: View {
 
     private func timeRow(_ label: String, _ t: Binding<Date?>) -> some View {
         HStack {
-            Text(label).font(Theme.ui(17)).foregroundStyle(Theme.tx)
+            Text(label).font(Theme.ui(16)).foregroundStyle(Theme.tx)
             Spacer()
             if let v = t.wrappedValue {
                 DatePicker("", selection: Binding(get: { v }, set: { t.wrappedValue = $0 }), displayedComponents: .hourAndMinute).labelsHidden().tint(Theme.ac)
                 Button { t.wrappedValue = nil } label: { Image(systemName: "xmark.circle").foregroundStyle(Theme.mu) }.buttonStyle(.plain).accessibilityLabel("Clear \(label)")
             } else {
-                Button("Set a time") { t.wrappedValue = Self.time("07:00") }.font(Theme.ui(16)).foregroundStyle(Theme.ac)
+                Button("Set a time") { t.wrappedValue = Self.time("07:00") }.font(Theme.ui(15)).foregroundStyle(Theme.ac)
             }
         }
         .frame(minHeight: 36)
@@ -437,10 +437,10 @@ struct ChipSheet: View {
             case .tray: primary("Save for this week") { save("tray") }
             case .edit:
                 primary("Save") { save("save") }
-                Button("Remove from library") { confirmRemove = true }.font(Theme.ui(16)).foregroundStyle(Theme.danger)
+                Button("Remove from library") { confirmRemove = true }.font(Theme.ui(15)).foregroundStyle(Theme.danger)
             case .new:
                 primary("Save to library and add") { save("lib") }
-                Button("This week only") { save("week") }.font(Theme.ui(17)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 48)
+                Button("This week only") { save("week") }.font(Theme.ui(16)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 48)
                     .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1))
             }
         }
@@ -448,7 +448,7 @@ struct ChipSheet: View {
     }
     private func primary(_ t: String, _ action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            Text(t).font(Theme.ui(17, .semibold)).foregroundStyle(Color(hex: 0x0B0B0C)).frame(maxWidth: .infinity).frame(height: 50)
+            Text(t).font(Theme.ui(16, .semibold)).foregroundStyle(Color(hex: 0x0B0B0C)).frame(maxWidth: .infinity).frame(height: 50)
                 .background(Color(hex: 0xF7F4EF), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
         }
     }
@@ -498,14 +498,14 @@ struct QuestionPicker: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Pick two questions · \(picked.count)/2").font(Theme.serif(22)).foregroundStyle(Theme.tx)
+                    Text("Pick two questions · \(picked.count)/2").font(Theme.serif(20)).foregroundStyle(Theme.tx)
                     Spacer()
-                    Button("Done") { dismiss() }.font(Theme.ui(18, .semibold)).foregroundStyle(Theme.ac)
+                    Button("Done") { dismiss() }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
                 }
-                Eyebrow(text: "Anchor · every week", color: Theme.mu, size: 13).padding(.top, 18)
+                Eyebrow(text: "Anchor · every week", color: Theme.mu, size: 12).padding(.top, 18)
                 Text(a).font(Theme.serif(17)).foregroundStyle(Theme.tx).padding(.top, 6)
                 ForEach(Logic.libGroups(store.settings), id: \.title) { g in
-                    Eyebrow(text: g.title, color: Theme.mu, size: 14).padding(.top, 24).padding(.bottom, 4)
+                    Eyebrow(text: g.title, color: Theme.mu, size: 12).padding(.top, 24).padding(.bottom, 4)
                     ForEach(g.qs.filter { $0 != a }, id: \.self) { q in
                         let on = picked.contains(q)
                         Button {

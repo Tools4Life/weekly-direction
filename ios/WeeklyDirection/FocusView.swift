@@ -42,15 +42,15 @@ struct FocusView: View {
                 Spacer()
                 HStack(spacing: 8) {
                     Ico(name: c.icon, size: 18).foregroundStyle(Theme.ac)
-                    Text(c.name).font(Theme.ui(18, .medium)).foregroundStyle(Color(hex: 0xF7F4EF))
+                    Text(c.name).font(Theme.ui(16.5)).foregroundStyle(Color(hex: 0xF7F4EF))
                 }
                 Dial(span: span, minutesLeft: left / 60).frame(width: 300, height: 300)
                 Text(left > 0 ? Fmt.mmss(left) : "Done")
-                    .font(Theme.num(44)).monospacedDigit().foregroundStyle(left > 0 ? Color(hex: 0xF7F4EF) : Theme.ac)
-                Text(fin ? "\(c.name) · done" : "Keeps running if you close").font(Theme.ui(15)).foregroundStyle(Color(hex: 0x8A857F))
+                    .font(Theme.num(38)).monospacedDigit().foregroundStyle(left > 0 ? Color(hex: 0xF7F4EF) : Theme.ac)
+                Text(fin ? "\(c.name) · done" : "Keeps running if you close").font(Theme.ui(14)).foregroundStyle(Color(hex: 0x8A857F))
                 Spacer()
                 if !fin {
-                    Button("Stop timer") { confirmStop = true }.font(Theme.ui(16)).foregroundStyle(Color(hex: 0xABA69F)).padding(.bottom, 20)
+                    Button("Stop timer") { confirmStop = true }.font(Theme.ui(15)).foregroundStyle(Color(hex: 0xABA69F)).padding(.bottom, 20)
                 }
             }
             .padding(.horizontal, 20)

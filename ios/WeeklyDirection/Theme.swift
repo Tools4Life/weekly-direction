@@ -72,7 +72,7 @@ extension Color {
 struct Eyebrow: View {
     let text: String
     var color: Color = Theme.mu2
-    var size: CGFloat = 13
+    var size: CGFloat = 12
     var body: some View {
         Text(text.uppercased())
             .font(Theme.label(size))
@@ -103,7 +103,7 @@ struct Seg: View {
                     if value != o.0 { Haptic.tick(); value = o.0 }
                 } label: {
                     Text(o.1.uppercased())
-                        .font(Theme.label(14)).tracking(1.6)
+                        .font(Theme.label(13)).tracking(1.6)
                         .foregroundStyle(value == o.0 ? Theme.tx : Theme.mu)
                         .padding(.horizontal, 14).frame(height: 30)
                         .background(value == o.0 ? Theme.card2 : .clear, in: Capsule())

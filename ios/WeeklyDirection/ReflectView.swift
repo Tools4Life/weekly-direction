@@ -10,7 +10,7 @@ struct ReflectView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center) {
-                Text("Reflect").font(Theme.serif(44)).foregroundStyle(Theme.tx)
+                Text("Reflect").font(Theme.serif(34)).foregroundStyle(Theme.tx)
                 Spacer()
                 Seg(options: [("j", "Journal"), ("p", "Prayer")], value: $router.reflectView)
             }
@@ -74,12 +74,12 @@ private struct JournalCard: View {
             HStack {
                 arrow("chevron.left", enabled: hasEarlier) { go(1) }.accessibilityLabel("Earlier week")
                 Spacer()
-                Eyebrow(text: (active ? "This week · " : "") + Fmt.weekRange(week, store.settings), color: active ? Theme.ac : Theme.mu2, size: 14)
+                Eyebrow(text: (active ? "This week · " : "") + Fmt.weekRange(week, store.settings), color: active ? Theme.ac : Theme.mu2, size: 12)
                 Spacer()
                 arrow("chevron.right", enabled: hasLater) { go(-1) }.accessibilityLabel("Later week")
             }
             .padding(.horizontal, -8)
-            Text(week.focus).font(Theme.serif(26)).foregroundStyle(Theme.tx).padding(.top, 12)
+            Text(week.focus).font(Theme.serif(24)).foregroundStyle(Theme.tx).padding(.top, 12)
             if active { activeBody(ents) } else { pastBody(ents, text) }
         }
         .padding(.horizontal, 20).padding(.top, 12).padding(.bottom, 18)
@@ -108,17 +108,23 @@ private struct JournalCard: View {
             .padding(.top, 10)
         }
         Rectangle().fill(Theme.rule).frame(height: 1).padding(.vertical, 18)
-        if let e = ents.last {
-            VStack(alignment: .leading, spacing: 6) {
-                if let d = e.d, let t = e.t {
-                    Eyebrow(text: "\(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d) · \(t)", color: Theme.mu2)
+        if let last = ents.last {
+            // the latest entry in full, then the two before it, shortened: the card reads like the open page of a journal
+            ForEach(Array(ents.suffix(3).reversed()), id: \.i) { e in
+                let latest = e.i == last.i
+                VStack(alignment: .leading, spacing: 6) {
+                    if let d = e.d, let t = e.t {
+                        Eyebrow(text: "\(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d) · \(t)", color: Theme.mu2)
+                    }
+                    Text(e.x).font(Theme.serif(latest ? 18 : 16)).lineSpacing(latest ? 7 : 5)
+                        .foregroundStyle(latest ? Theme.tx : Theme.mu).lineLimit(latest ? nil : 2).truncationMode(.tail)
                 }
-                Text(e.x).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx).truncationMode(.tail)
+                .fullWidth()
+                .padding(.top, latest ? 0 : 18)
+                .contentShape(Rectangle())
+                .onTapGesture { Haptic.tick(); router.cover = .weekPage(week.id) }
+                .onLongPressGesture(minimumDuration: 0.5) { Haptic.tick(); router.entryMenu = e.i }
             }
-            .fullWidth()
-            .contentShape(Rectangle())
-            .onTapGesture { Haptic.tick(); router.cover = .weekPage(week.id) }
-            .onLongPressGesture(minimumDuration: 0.5) { Haptic.tick(); router.entryMenu = e.i }
         } else {
             Text("Nothing yet this week.").font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2)
         }
@@ -133,7 +139,7 @@ private struct JournalCard: View {
                 HStack(spacing: 7) { Image(systemName: "pencil.line").font(.system(size: 15)); Text("Write") }.foregroundStyle(Theme.ac)
             }
         }
-        .font(Theme.ui(16)).buttonStyle(.plain)
+        .font(Theme.ui(15)).buttonStyle(.plain)
         .padding(.top, 16)
     }
 
@@ -148,7 +154,7 @@ private struct JournalCard: View {
             Spacer()
             if store.activeWeek != nil { Button("This week") { go(-99) } }
         }
-        .font(Theme.ui(16)).foregroundStyle(Theme.mu).buttonStyle(.plain)
+        .font(Theme.ui(15)).foregroundStyle(Theme.mu).buttonStyle(.plain)
         .padding(.top, 16)
     }
 }
@@ -180,7 +186,7 @@ struct WeekPage: View {
                         Button(selecting ? "Cancel" : "Select") { Haptic.tick(); selecting.toggle(); picked = [] }
                     }
                 }
-                .font(Theme.ui(18)).foregroundStyle(Theme.ac)
+                .font(Theme.ui(16)).foregroundStyle(Theme.ac)
                 .padding(.horizontal, 22).frame(height: 52)
                 ScrollView {
                     if let w = store.week(weekId) {
@@ -193,7 +199,7 @@ struct WeekPage: View {
             if selecting {
                 Button { confirmDelete = true } label: {
                     Text(picked.isEmpty ? "Delete" : "Delete \(picked.count) \(picked.count == 1 ? "entry" : "entries")")
-                        .font(Theme.ui(18, .semibold)).foregroundStyle(.white)
+                        .font(Theme.ui(16, .semibold)).foregroundStyle(.white)
                         .frame(maxWidth: .infinity).frame(height: 54)
                         .background(Theme.danger.opacity(picked.isEmpty ? 0.4 : 1), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                 }
@@ -221,8 +227,8 @@ struct WeekPage: View {
         let active = w.isActive
         let all = Journal.blocks(active ? w.liveRefl : (w.reflection.isEmpty ? w.liveRefl : w.reflection))
         let ents = all.filter { $0.q == nil }, qa = all.filter { $0.q != nil }
-        Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 14)
-        Text(w.focus).font(Theme.serif(40)).foregroundStyle(Theme.tx).padding(.top, 6)
+        Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
+        Text(w.focus).font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.top, 6)
         if let s = w.summary {
             VStack(alignment: .leading, spacing: 6) {
                 Eyebrow(text: "AI summary", color: Theme.mu2)
@@ -242,7 +248,7 @@ struct WeekPage: View {
             ForEach(g) { e in entry(e, active: active) }
         }
         if !qa.isEmpty {
-            Text("Saturday review").font(Theme.serif(24)).foregroundStyle(Theme.tx).padding(.top, 36).padding(.bottom, 8)
+            Text("Saturday review").font(Theme.serif(20)).foregroundStyle(Theme.tx).padding(.top, 36).padding(.bottom, 8)
             ForEach(qa) { e in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(e.q ?? "").font(Theme.serifItalic(17)).foregroundStyle(Theme.mu)
@@ -264,7 +270,7 @@ struct WeekPage: View {
                 Button("Open week") { vision = true }.foregroundStyle(Theme.mu)
             }
         }
-        .font(Theme.ui(16)).buttonStyle(.plain).padding(.top, 34)
+        .font(Theme.ui(15)).buttonStyle(.plain).padding(.top, 34)
     }
 
     /// consecutive entries of the same day, newest day first, newest entry first
@@ -283,9 +289,9 @@ struct WeekPage: View {
         for i in 0..<7 { let x = s0.addingTimeInterval(Double(i) * 86400); dates[Fmt.dowl[Rules.weekday(x)]] = x }
         let today = active && d == Fmt.dowl[Rules.weekday(Now.date)]
         return HStack(alignment: .firstTextBaseline) {
-            Text(today ? "Today" : d ?? "Notes").font(Theme.serif(24)).foregroundStyle(Theme.tx)
+            Text(today ? "Today" : d ?? "Notes").font(Theme.serif(20)).foregroundStyle(Theme.tx)
             Spacer()
-            if let d, let x = dates[d] { Eyebrow(text: (today ? d + " · " : "") + Fmt.date(x), color: Theme.mu2, size: 14) }
+            if let d, let x = dates[d] { Eyebrow(text: (today ? d + " · " : "") + Fmt.date(x), color: Theme.mu2, size: 12) }
         }
         .padding(.top, 36)
     }
@@ -303,8 +309,8 @@ struct WeekPage: View {
                 .frame(width: 22, height: 22).padding(.top, 2)
             }
             VStack(alignment: .leading, spacing: 6) {
-                if let t = e.t { Eyebrow(text: t, color: Theme.mu2) }
-                Text(e.x).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
+                if let t = e.t { Text(t).font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2) }
+                Text(e.x).font(Theme.serif(18)).lineSpacing(8).foregroundStyle(Theme.tx)
             }
         }
         .fullWidth()
@@ -336,20 +342,20 @@ struct EntryMenu: ViewModifier {
                         VStack(spacing: 8) {
                             VStack(spacing: 0) {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Eyebrow(text: b.d.map { "\($0), \(b.t ?? "")" } ?? "Entry", color: Theme.mu2, size: 14)
+                                    Eyebrow(text: b.d.map { "\($0), \(b.t ?? "")" } ?? "Entry", color: Theme.mu2, size: 12)
                                     Text(b.x).font(Theme.serif(17)).lineSpacing(5).foregroundStyle(Theme.mu).lineLimit(3)
                                 }
                                 .fullWidth().padding(.horizontal, 18).padding(.vertical, 16)
                                 Rectangle().fill(Theme.rule).frame(height: 1)
                                 Button("Edit") { router.entryMenu = nil; onEdit(i) }
-                                    .font(Theme.ui(19)).foregroundStyle(Theme.ac).frame(maxWidth: .infinity).frame(height: 58)
+                                    .font(Theme.ui(17)).foregroundStyle(Theme.ac).frame(maxWidth: .infinity).frame(height: 58)
                                 Rectangle().fill(Theme.rule).frame(height: 1)
                                 Button("Delete") { target = i; confirm = true }
-                                    .font(Theme.ui(19)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity).frame(height: 58)
+                                    .font(Theme.ui(17)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity).frame(height: 58)
                             }
                             .background(Theme.card2, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                             Button("Cancel") { router.entryMenu = nil }
-                                .font(Theme.ui(19, .semibold)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 58)
+                                .font(Theme.ui(17, .semibold)).foregroundStyle(Theme.tx).frame(maxWidth: .infinity).frame(height: 58)
                                 .background(Theme.card2, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
                         }
                         .buttonStyle(.plain)
@@ -389,35 +395,70 @@ struct EntryEditor: View {
                 Button("Cancel") {
                     if entry == nil, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { confirmDiscard = true } else { dismiss() }
                 }
-                .font(Theme.ui(18)).foregroundStyle(Theme.mu)
+                .font(Theme.ui(16)).foregroundStyle(Theme.mu)
                 Spacer()
-                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.font(Theme.ui(18, .semibold)).foregroundStyle(Theme.ac)
+                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
             }
             .frame(height: 52)
             Eyebrow(text: entry == nil ? "New entry · \(Fmt.stamp(opened))" : "Edit entry" + (blk?.d.map { " · \($0), \(blk?.t ?? "")" } ?? ""),
                     color: Theme.mu, size: 14).padding(.top, 8)
-            Text(w?.focus ?? "").font(Theme.serif(24)).foregroundStyle(Theme.tx).padding(.top, 12)
+            Text(w?.focus ?? "").font(Theme.serif(20)).foregroundStyle(Theme.tx).padding(.top, 12)
+            if entry == nil, !prompts.isEmpty {
+                ScrollView(.horizontal) {
+                    HStack(alignment: .top, spacing: 18) {
+                        ForEach(prompts, id: \.self) { q in
+                            Text(q).font(Theme.serifItalic(14)).foregroundStyle(Theme.mu2).lineLimit(2)
+                                .frame(width: 230, alignment: .leading)
+                        }
+                    }
+                }
+                .scrollIndicators(.hidden)
+                .padding(.top, 10)
+                .accessibilityLabel("This week's questions")
+            }
             TextEditor(text: $text)
-                .font(Theme.serif(20)).lineSpacing(8).foregroundStyle(Theme.tx)
+                .font(Theme.serif(19)).lineSpacing(8).foregroundStyle(Theme.tx)
                 .scrollContentBackground(.hidden)
                 .focused($focused)
                 .padding(.horizontal, -5).padding(.top, 6)
+                .overlay(alignment: .topLeading) {
+                    if text.isEmpty {
+                        Text("What is on your heart?").font(Theme.serifItalic(19)).foregroundStyle(Theme.mu2)
+                            .padding(.top, 14).allowsHitTesting(false)
+                    }
+                }
+                .onChange(of: text) { _, t in keep(t) }
         }
         .padding(.horizontal, 24)
         .background(Theme.bg.ignoresSafeArea())
         .onAppear {
             guard !loaded else { return }
             loaded = true; opened = Now.date
-            if let blk { text = blk.x }
+            if let blk { text = blk.x } else if let k = draftKey, let t = UserDefaults.standard.string(forKey: k) { text = t }
             focused = true
         }
         .confirmationDialog("Discard this entry?", isPresented: $confirmDiscard, titleVisibility: .visible) {
-            Button("Discard", role: .destructive) { dismiss() }
+            Button("Discard", role: .destructive) { keep(""); dismiss() }
             Button("Keep writing", role: .cancel) {}
         }
     }
 
+    /// this week's Saturday questions, shown as optional prompts for a new entry (never written into it)
+    private var prompts: [String] { Logic.qsOf(store.activeWeek, store.settings).filter { !$0.isEmpty } }
+
+    /// An unfinished new entry is kept on this phone only (never in Firestore) until it is added or discarded.
+    private var draftKey: String? {
+        guard entry == nil, !store.isMock, let w = store.activeWeek else { return nil }
+        return "entryDraft.\(w.id)"
+    }
+    private func keep(_ t: String) {
+        guard loaded, let k = draftKey else { return }
+        if t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { UserDefaults.standard.removeObject(forKey: k) }
+        else { UserDefaults.standard.set(t, forKey: k) }
+    }
+
     private func save() {
+        defer { keep("") }
         guard let w = store.activeWeek else { return }
         if let entry {
             // empty text removes the entry, exactly as the web app does

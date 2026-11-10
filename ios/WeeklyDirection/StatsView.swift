@@ -53,11 +53,11 @@ struct StatsView: View {
         let d = Logic.weekDetail(w, store.weeks, store.settings), st = d.stats
         HStack(spacing: 6) {
             navButton("chevron.left", d.prev)
-            Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 14)
+            Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
             navButton("chevron.right", d.next)
             Spacer()
             Button { vision = true } label: {
-                HStack(spacing: 8) { Image(systemName: "book").font(.system(size: 14)).foregroundStyle(Theme.ac); Text("Vision").font(Theme.ui(16)).foregroundStyle(Theme.tx) }
+                HStack(spacing: 8) { Image(systemName: "book").font(.system(size: 14)).foregroundStyle(Theme.ac); Text("Vision").font(Theme.ui(15)).foregroundStyle(Theme.tx) }
                     .padding(.horizontal, 14).frame(height: 32)
                     .overlay(Capsule().stroke(Theme.ac.opacity(0.6), lineWidth: 1))
             }
@@ -65,12 +65,12 @@ struct StatsView: View {
         }
         .padding(.leading, -12)
         HStack(alignment: .lastTextBaseline) {
-            Text(w.focus).font(Theme.serif(40)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
+            Text(w.focus).font(Theme.serif(34)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
                 bigPct(st.pct)
                 if let pv = d.prev, let pp = d.prevPct {
-                    Text("\(st.pct >= pp ? "▲" : "▼") \(abs(st.pct - pp)) vs \(pv.focus)").font(Theme.label(15)).tracking(1).foregroundStyle(Theme.mu)
+                    Text("\(st.pct >= pp ? "▲" : "▼") \(abs(st.pct - pp)) vs \(pv.focus)").font(Theme.label(13)).tracking(1).foregroundStyle(Theme.mu)
                 }
             }
         }
@@ -104,14 +104,14 @@ struct StatsView: View {
 
     private func bigPct(_ v: Int) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 1) {
-            Text("\(v)").font(Theme.num(42)).foregroundStyle(Theme.tx)
-            Text("%").font(Theme.ui(19)).foregroundStyle(Theme.mu)
+            Text("\(v)").font(Theme.num(36)).foregroundStyle(Theme.tx)
+            Text("%").font(Theme.ui(17)).foregroundStyle(Theme.mu)
         }
     }
 
     private func section<V: View>(_ title: String, @ViewBuilder _ content: () -> V) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Eyebrow(text: title, color: Theme.tx, size: 14)
+            Eyebrow(text: title, color: Theme.tx, size: 12)
             content()
         }
         .fullWidth().padding(15)
@@ -125,7 +125,7 @@ struct StatsView: View {
             HStack(spacing: 6) {
                 Color.clear.frame(width: 30, height: 1)
                 ForEach(d.stats.days, id: \.self) { day in
-                    Text(Fmt.dow[Rules.weekday(day)]).font(Theme.label(13)).tracking(1).foregroundStyle(Theme.mu).frame(maxWidth: .infinity)
+                    Text(Fmt.dow[Rules.weekday(day)]).font(Theme.label(12)).tracking(1).foregroundStyle(Theme.mu).frame(maxWidth: .infinity)
                 }
             }
             ForEach(w.commitments) { c in
@@ -147,7 +147,7 @@ struct StatsView: View {
     private func legend(_ c: Logic.Cell, _ t: String) -> some View {
         HStack(spacing: 7) {
             CellView(cell: c, round: true).frame(width: 14, height: 14)
-            Text(t).font(Theme.ui(14)).foregroundStyle(Theme.mu)
+            Text(t).font(Theme.ui(13)).foregroundStyle(Theme.mu)
         }
     }
 
@@ -156,11 +156,11 @@ struct StatsView: View {
     @ViewBuilder private var allTime: some View {
         let a = Logic.allTime(store.weeks, store.settings), s = Logic.streak(store.weeks, store.settings)
         if let first = a.weeks.first {
-            Eyebrow(text: "Since \(Fmt.dateYear(first.w.sealedAt)) · \(a.weeks.count) week\(a.weeks.count > 1 ? "s" : "")", color: Theme.mu2, size: 14)
-            Text("All time").font(Theme.serif(40)).foregroundStyle(Theme.tx).padding(.top, 4)
+            Eyebrow(text: "Since \(Fmt.dateYear(first.w.sealedAt)) · \(a.weeks.count) week\(a.weeks.count > 1 ? "s" : "")", color: Theme.mu2, size: 12)
+            Text("All time").font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.top, 4)
             HStack(alignment: .firstTextBaseline, spacing: 12) {
                 bigPct(a.pct)
-                Text("of all habits done").font(Theme.label(15)).tracking(1).foregroundStyle(Theme.tx)
+                Text("of all habits done").font(Theme.label(13)).tracking(1).foregroundStyle(Theme.tx)
             }
             TrendChart(title: "Weekly trend",
                        sub: a.avg.map { "avg \($0)%" + (a.best.map { " · best \($0.w.focus) \($0.pct)%" } ?? "") } ?? "",
@@ -211,8 +211,8 @@ struct StatGrid: View {
         LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 14), count: 3), spacing: 0) {
             ForEach(rows, id: \.0) { r in
                 VStack(spacing: 4) {
-                    Text(r.1).font(Theme.ui(19)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.7)
-                    Text(r.0).font(Theme.ui(14)).foregroundStyle(Theme.mu)
+                    Text(r.1).font(Theme.ui(17)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.7)
+                    Text(r.0).font(Theme.ui(13)).foregroundStyle(Theme.mu)
                 }
                 .frame(maxWidth: .infinity).padding(.vertical, 10)
                 .overlay(alignment: .bottom) { Rectangle().fill(Theme.rule).frame(height: 1) }
@@ -231,8 +231,8 @@ struct HabitBar: View {
             HStack(spacing: 10) {
                 Ico(name: c.icon, size: 17).foregroundStyle(Theme.tx)
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(c.name).font(Theme.ui(18, .medium)).foregroundStyle(Theme.tx).lineLimit(1)
-                    Text(sub).font(Theme.label(14)).tracking(0.9).foregroundStyle(Theme.mu2).lineLimit(1)
+                    Text(c.name).font(Theme.ui(16.5)).foregroundStyle(Theme.tx).lineLimit(1)
+                    Text(sub).font(Theme.label(13)).tracking(0.9).foregroundStyle(Theme.mu2).lineLimit(1)
                 }
                 Spacer(minLength: 6)
                 ZStack(alignment: .leading) {
@@ -240,7 +240,7 @@ struct HabitBar: View {
                     Capsule().fill(Theme.ac).frame(width: 40 * CGFloat(pct) / 100, height: 4)
                 }
                 HStack(alignment: .firstTextBaseline, spacing: 1) {
-                    Text("\(pct)").font(Theme.num(20)).foregroundStyle(Theme.tx)
+                    Text("\(pct)").font(Theme.num(18)).foregroundStyle(Theme.tx)
                     Text("%").font(Theme.ui(11)).foregroundStyle(Theme.mu)
                 }
                 .frame(width: 54, alignment: .trailing)
@@ -263,9 +263,9 @@ struct TrendChart: View {
         let shown = points.enumerated().filter { $0.element.value != nil }
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Eyebrow(text: title, color: Theme.mu, size: 14)
+                Eyebrow(text: title, color: Theme.mu, size: 12)
                 Spacer()
-                if !sub.isEmpty { Text(sub).font(Theme.ui(14)).foregroundStyle(Theme.mu).lineLimit(1) }
+                if !sub.isEmpty { Text(sub).font(Theme.ui(13)).foregroundStyle(Theme.mu).lineLimit(1) }
             }
             if shown.isEmpty {
                 Text("Nothing recorded yet.").font(Theme.serifItalic(16)).foregroundStyle(Theme.mu2)

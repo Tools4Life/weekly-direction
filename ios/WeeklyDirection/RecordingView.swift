@@ -16,7 +16,7 @@ struct MicDock: View {
                     Button("Retry") { Task { await recorder.flush() } }.foregroundStyle(Theme.ac)
                 }
             }
-            .font(Theme.ui(15)).foregroundStyle(Theme.mu).frame(height: 20)
+            .font(Theme.ui(14)).foregroundStyle(Theme.mu).frame(height: 20)
             Button { router.startRecording() } label: {
                 ZStack {
                     Circle().stroke(Theme.ac.opacity(0.25), lineWidth: 1).frame(width: 100, height: 100)
@@ -50,15 +50,15 @@ struct RecordingView: View {
         VStack(spacing: 0) {
             ZStack {
                 HStack {
-                    Button("Cancel") { recorder.cancel(); router.cover = nil }.font(Theme.ui(18)).foregroundStyle(Theme.mu)
+                    Button("Cancel") { recorder.cancel(); router.cover = nil }.font(Theme.ui(16)).foregroundStyle(Theme.mu)
                     Spacer()
                 }
-                Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.label(17)).tracking(1.5).monospacedDigit().foregroundStyle(Theme.mu)
+                Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.label(15)).tracking(1.5).monospacedDigit().foregroundStyle(Theme.mu)
             }
             .frame(height: 52)
             ScrollViewReader { proxy in
                 ScrollView {
-                    Text(recorder.liveText).font(Theme.serif(26)).lineSpacing(9).foregroundStyle(Theme.tx)
+                    Text(recorder.liveText).font(Theme.serif(24)).lineSpacing(9).foregroundStyle(Theme.tx)
                         .fullWidth().padding(.top, 20).id("end")
                 }
                 .defaultScrollAnchor(.bottom)
@@ -79,7 +79,7 @@ struct RecordingView: View {
             .accessibilityLabel("Finish recording")
             .padding(.top, 38)
             .offset(y: risen ? 0 : 60)
-            Text(busy ? "Saving…" : "Tap to finish").font(Theme.ui(15)).foregroundStyle(Theme.mu2).padding(.top, 16).padding(.bottom, 30)
+            Text(busy ? "Saving…" : "Tap to finish").font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 16).padding(.bottom, 30)
         }
         .padding(.horizontal, 24)
         .background(Theme.bg.ignoresSafeArea())

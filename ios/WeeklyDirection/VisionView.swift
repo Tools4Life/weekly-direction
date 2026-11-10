@@ -42,18 +42,18 @@ struct VisionView: View {
 
     @ViewBuilder private func page(_ w: Week) -> some View {
         let live = w.isActive
-        Eyebrow(text: Fmt.weekRange(w, store.settings) + (log && live ? " · in progress" : ""), color: Theme.mu2, size: 14)
-        Text(w.focus).font(Theme.serif(54)).foregroundStyle(Theme.tx).padding(.top, 10)
+        Eyebrow(text: Fmt.weekRange(w, store.settings) + (log && live ? " · in progress" : ""), color: Theme.mu2, size: 12)
+        Text(w.focus).font(Theme.serif(44)).foregroundStyle(Theme.tx).padding(.top, 10)
         if w.verse != nil || w.verseRef != nil {
             VStack(alignment: .leading, spacing: 10) {
                 if let v = w.verse { Text(v).font(Theme.serifItalic(19)).lineSpacing(6).foregroundStyle(Theme.tx) }
-                if let r = w.verseRef { Eyebrow(text: r, color: Theme.mu2, size: 14) }
+                if let r = w.verseRef { Eyebrow(text: r, color: Theme.mu2, size: 12) }
             }
             .padding(.top, 12)
         }
         if log { strip(w).padding(.top, 22) }
         Rectangle().fill(Theme.line).frame(width: 44, height: 1).padding(.vertical, 30)
-        if log { Eyebrow(text: "Vision", color: Theme.mu, size: 14).padding(.bottom, 12) }
+        if log { Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.bottom, 12) }
         let paras = w.planThoughts.components(separatedBy: "\n\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         if paras.isEmpty {
             Text(log ? "No vision written." : "No vision written for this week. Add one from Settings → Re-plan this week.")
@@ -61,13 +61,13 @@ struct VisionView: View {
         } else {
             VStack(alignment: .leading, spacing: 14) {
                 ForEach(Array(paras.enumerated()), id: \.offset) { _, p in
-                    Text(p).font(Theme.serif(21)).lineSpacing(7).foregroundStyle(Theme.tx)
+                    Text(p).font(Theme.serif(19)).lineSpacing(7).foregroundStyle(Theme.tx)
                 }
             }
         }
         if log {
             reflection(w)
-            Eyebrow(text: "Habits", color: Theme.mu, size: 14).padding(.top, 34).padding(.bottom, 6)
+            Eyebrow(text: "Habits", color: Theme.mu, size: 12).padding(.top, 34).padding(.bottom, 6)
             ForEach(w.commitments) { c in
                 item(c, [c.days == "wd" ? "weekdays" : c.days == "we" ? "weekends" : "", tally(w, c)].filter { !$0.isEmpty }.joined(separator: " · "))
             }
@@ -77,7 +77,7 @@ struct VisionView: View {
             let groups = [("Every day", w.commitments.filter { $0.days == nil }), ("Weekdays", w.commitments.filter { $0.days == "wd" }),
                           ("Weekends", w.commitments.filter { $0.days == "we" })].filter { !$0.1.isEmpty }
             ForEach(groups, id: \.0) { g in
-                Eyebrow(text: g.0, color: Theme.mu, size: 14).padding(.top, 30).padding(.bottom, 6)
+                Eyebrow(text: g.0, color: Theme.mu, size: 12).padding(.top, 30).padding(.bottom, 6)
                 ForEach(g.1) { c in item(c, c.planMeta) }
             }
         }
@@ -87,8 +87,8 @@ struct VisionView: View {
         HStack(spacing: 14) {
             Ico(name: c.icon, size: 19).foregroundStyle(Theme.tx)
             VStack(alignment: .leading, spacing: 4) {
-                Text(c.name).font(Theme.ui(19, .medium)).foregroundStyle(Theme.tx)
-                if !sub.isEmpty { Text(sub).font(Theme.label(15)).tracking(1.1).foregroundStyle(Theme.mu2) }
+                Text(c.name).font(Theme.ui(16.5)).foregroundStyle(Theme.tx)
+                if !sub.isEmpty { Text(sub).font(Theme.label(13)).tracking(1.1).foregroundStyle(Theme.mu2) }
             }
         }
         .padding(.vertical, 11)
@@ -111,14 +111,14 @@ struct VisionView: View {
     private func stat(_ v: String, _ l: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: 5) {
             Text(v).font(Theme.num(18)).foregroundStyle(Theme.tx)
-            Text(l).font(Theme.ui(15)).foregroundStyle(Theme.mu)
+            Text(l).font(Theme.ui(14)).foregroundStyle(Theme.mu)
         }
     }
 
     @ViewBuilder private func reflection(_ w: Week) -> some View {
         let live = w.isActive
         let closed = w.closedAt.map { " · " + Fmt.date($0) } ?? ""
-        Eyebrow(text: (live ? "Reflection so far" : "Reflection") + closed, color: Theme.mu, size: 14).padding(.top, 34).padding(.bottom, 12)
+        Eyebrow(text: (live ? "Reflection so far" : "Reflection") + closed, color: Theme.mu, size: 12).padding(.top, 34).padding(.bottom, 12)
         if !live, let s = w.summary {
             VStack(alignment: .leading, spacing: 6) {
                 Eyebrow(text: "AI summary", color: Theme.mu2)
@@ -162,11 +162,11 @@ struct VisionView: View {
         return HStack {
             if let pv { Button("‹ \(pv.focus)") { step(-1) }.foregroundStyle(Theme.mu) }
             Spacer()
-            Text("swipe for other weeks").font(Theme.ui(13)).foregroundStyle(Theme.mu2)
+            Text("swipe for other weeks").font(Theme.ui(12)).foregroundStyle(Theme.mu2)
             Spacer()
             if let nx { Button("\(nx.focus) ›") { step(1) }.foregroundStyle(Theme.mu) }
         }
-        .font(Theme.ui(15))
+        .font(Theme.ui(14))
         .padding(.top, 40)
     }
 }

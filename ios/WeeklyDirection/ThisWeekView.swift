@@ -31,15 +31,15 @@ struct ThisWeekView: View {
         let resume = (store.draft?["step"] as? String) == "plan" && store.draft?["replan"] as? String == nil
         let first = store.weeks.isEmpty
         return VStack(alignment: .leading, spacing: 14) {
-            HStack { Text("This week").font(Theme.serif(44)).foregroundStyle(Theme.tx); Spacer(); gear }
+            HStack { Text("This week").font(Theme.serif(34)).foregroundStyle(Theme.tx); Spacer(); gear }
             Eyebrow(text: first ? "Weekly Direction" : "No week in progress").padding(.top, 40)
             Text(resume ? "Your plan is waiting." : first ? "Plan your first week." : "Plan the next week.")
-                .font(Theme.serif(30)).foregroundStyle(Theme.tx)
+                .font(Theme.serif(26)).foregroundStyle(Theme.tx)
             Text(resume ? "Pick up where you left off." : "One word and a few daily habits. Seal it, then just live it.")
-                .font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                .font(Theme.ui(15)).foregroundStyle(Theme.mu)
             Button { router.cover = .plan(replan: nil) } label: {
                 Text(resume ? "Resume planning" : first ? "Plan your first week" : "Plan the week")
-                    .font(Theme.ui(17, .semibold)).foregroundStyle(Theme.onAc)
+                    .font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
                     .padding(.horizontal, 22).frame(height: 50)
                     .background(Theme.ac, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
             }
@@ -72,7 +72,7 @@ struct ThisWeekView: View {
     @ViewBuilder private func week(_ w: Week) -> some View {
         let x = ctx(w)
         HStack(alignment: .center) {
-            Text(w.focus).font(Theme.serif(44)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
+            Text(w.focus).font(Theme.serif(40)).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
                 .onTapGesture { router.cover = .vision(w.id) }
             Spacer()
             gear
@@ -87,7 +87,7 @@ struct ThisWeekView: View {
         if x.due || reviewDay(w, x) { closeCard(w, due: x.due).padding(.top, 18) }
         if x.selKey == nil, !x.due, reviewDay(w, x) {
             Text("\(Fmt.dowl[store.settings.closeDay]) · review and plan from \(Fmt.hourLabel(store.settings.closeHour))")
-                .font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 16)
+                .font(Theme.ui(14)).foregroundStyle(Theme.mu).padding(.top, 16)
         }
         habitsHeader(x).padding(.top, 24)
         VStack(spacing: 6) {
@@ -126,7 +126,7 @@ struct ThisWeekView: View {
                     VStack(spacing: 5) {
                         DaySquare(mark: m, fraction: m == nil && !fut ? fraction(x.w, d) : 0, future: fut, selected: k == x.selKey)
                             .frame(height: 30)
-                        Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(13)).tracking(1.2)
+                        Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(12)).tracking(1.2)
                             .foregroundStyle(k == x.selKey ? Theme.tx : k == x.todayK ? Theme.mu : Theme.mu2)
                     }
                     .frame(maxWidth: .infinity)
@@ -149,7 +149,7 @@ struct ThisWeekView: View {
         Button { router.sheet = .close(w.id) } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(due ? "Close the week" : "Weekly review").font(Theme.ui(19, .semibold)).foregroundStyle(Theme.tx)
+                    Text(due ? "Close the week" : "Weekly review").font(Theme.ui(17, .semibold)).foregroundStyle(Theme.tx)
                     Eyebrow(text: "\(Logic.weekStats(w, store.settings).pct)% \(due ? "" : "so far ")· close & plan", color: Theme.mu)
                 }
                 Spacer()
@@ -166,7 +166,7 @@ struct ThisWeekView: View {
         HStack(alignment: .firstTextBaseline) {
             Button { router.cover = .vision(x.w.id) } label: {
                 HStack(spacing: 8) {
-                    Eyebrow(text: "Daily habits", color: Theme.mu, size: 14)
+                    Eyebrow(text: "Daily habits", color: Theme.mu, size: 12)
                     Image(systemName: "chevron.right").font(.system(size: 11, weight: .medium)).foregroundStyle(Theme.mu)
                 }
             }
@@ -177,7 +177,7 @@ struct ThisWeekView: View {
                     Text("\(Fmt.dowl[Rules.weekday(d)]) · locked · ").foregroundStyle(Theme.mu)
                     Button(x.habitToday ? "today" : "done") { router.selK = nil }.foregroundStyle(Theme.ac)
                 }
-                .font(Theme.ui(15))
+                .font(Theme.ui(14))
             }
         }
     }
@@ -340,11 +340,11 @@ struct HabitCardShell: View {
             Button(action: onBody) {
                 HStack(spacing: 13) {
                     Ico(name: icon, size: 19).foregroundStyle(done || running > 0 ? Theme.ac : Theme.mu)
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(name).font(Theme.ui(18, .medium)).tracking(0.3).foregroundStyle(Theme.tx).lineLimit(1)
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(name).font(Theme.ui(16.5)).foregroundStyle(Theme.tx).lineLimit(1)
                             .strikethrough(strike, color: Theme.tx.opacity(0.35))
                         if !meta.isEmpty {
-                            Text(meta).font(Theme.label(15)).tracking(0.9).monospacedDigit()
+                            Text(meta).font(Theme.label(12)).tracking(0.8).monospacedDigit()
                                 .foregroundStyle(metaAccent ? Theme.ac : done ? Theme.tx.opacity(0.55) : Theme.mu2)
                         }
                     }
@@ -404,15 +404,15 @@ struct StreakCard: View {
         let cur = info.cur, best = info.best, next = Logic.miles.first { $0 > cur }
         VStack(alignment: .leading, spacing: 0) {
             HStack {
-                Eyebrow(text: "Streak", color: Theme.mu, size: 14)
+                Eyebrow(text: "Streak", color: Theme.mu, size: 12)
                 Spacer()
-                Text(best > cur ? "Best \(best)" : cur > 0 ? "Your best" : "").font(Theme.label(14)).tracking(1).foregroundStyle(Theme.mu2)
+                Text(best > cur ? "Best \(best)" : cur > 0 ? "Your best" : "").font(Theme.label(13)).tracking(1).foregroundStyle(Theme.mu2)
             }
             HStack(alignment: .firstTextBaseline, spacing: 6) {
-                Text("\(cur)").font(Theme.num(28)).foregroundStyle(Theme.tx)
-                Text("\(cur == 1 ? "day" : "days") in a row").font(Theme.ui(15)).foregroundStyle(Theme.mu)
+                Text("\(cur)").font(Theme.num(24)).foregroundStyle(Theme.tx)
+                Text("\(cur == 1 ? "day" : "days") in a row").font(Theme.ui(14)).foregroundStyle(Theme.mu)
                 Spacer()
-                Text(next.map { "\($0 - cur) to \($0)" } ?? "All milestones").font(Theme.label(16)).tracking(1).foregroundStyle(Theme.ac)
+                Text(next.map { "\($0 - cur) to \($0)" } ?? "All milestones").font(Theme.label(14)).tracking(1).foregroundStyle(Theme.ac)
             }
             .padding(.top, 6)
             HStack(alignment: .top, spacing: 4) {
@@ -428,7 +428,7 @@ struct StreakCard: View {
                         }
                         .frame(height: 5)
                         .overlay { if m == next { Capsule().stroke(Theme.ac.opacity(0.45), lineWidth: 1).padding(-1) } }
-                        Text("\(m)").font(Theme.label(14)).tracking(0.8).foregroundStyle(cur >= m ? Theme.ac : Theme.mu2)
+                        Text("\(m)").font(Theme.label(13)).tracking(0.8).foregroundStyle(cur >= m ? Theme.ac : Theme.mu2)
                     }
                 }
             }

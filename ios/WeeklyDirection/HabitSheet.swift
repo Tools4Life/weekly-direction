@@ -22,13 +22,13 @@ struct HabitSheet: View {
                     HStack(alignment: .top, spacing: 10) {
                         Ico(name: c.icon, size: 22).foregroundStyle(Theme.ac).padding(.top, 4)
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(c.name).font(Theme.serif(26)).foregroundStyle(Theme.tx)
-                            Text(metaLine(c)).font(Theme.label(15)).tracking(1.4).foregroundStyle(Theme.mu2)
+                            Text(c.name).font(Theme.serif(24)).foregroundStyle(Theme.tx)
+                            Text(metaLine(c)).font(Theme.label(13)).tracking(1.4).foregroundStyle(Theme.mu2)
                         }
                         Spacer()
-                        Button("Done") { router.sheet = nil }.font(Theme.ui(18, .semibold)).foregroundStyle(Theme.ac)
+                        Button("Done") { router.sheet = nil }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
                     }
-                    Eyebrow(text: "About", color: Theme.mu, size: 14).padding(.top, 22)
+                    Eyebrow(text: "About", color: Theme.mu, size: 12).padding(.top, 22)
                     TextEditor(text: $about)
                         .font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
                         .scrollContentBackground(.hidden)
@@ -41,7 +41,7 @@ struct HabitSheet: View {
                             }
                         }
                     if let k = day {
-                        Text(stateLine(w, c, k)).font(Theme.ui(16)).foregroundStyle(Theme.mu).padding(.top, 18)
+                        Text(stateLine(w, c, k)).font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 18)
                         actions(w, c, k).padding(.top, 26)
                     }
                 }
@@ -94,14 +94,14 @@ struct HabitSheet: View {
                         router.sheet = nil
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { router.cover = .focus(week: w.id, habit: c.id, day: k) }
                     } label: {
-                        Text("Open timer").font(Theme.ui(17, .medium)).foregroundStyle(Theme.tx)
+                        Text("Open timer").font(Theme.ui(16, .medium)).foregroundStyle(Theme.tx)
                             .frame(maxWidth: .infinity).frame(height: 48)
                             .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).stroke(Theme.line, lineWidth: 1))
                     }
                     .buttonStyle(.plain)
                 }
                 Button("Mark failed") { confirmFail = true }
-                    .font(Theme.ui(17)).foregroundStyle(Theme.ac).frame(maxWidth: .infinity)
+                    .font(Theme.ui(16)).foregroundStyle(Theme.ac).frame(maxWidth: .infinity)
                     .accessibilityIdentifier("markFailed")
             }
             .confirmationDialog("Mark \(c.name) failed for \(k == Rules.ymd(Now.date) ? "today" : "this day")? The day won’t be kept, and this can’t be undone.",

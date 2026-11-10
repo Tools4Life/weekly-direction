@@ -16,21 +16,21 @@ struct CloseSheet: View {
             if let w = store.week(weekId) {
                 let st = Logic.weekStats(w, store.settings)
                 VStack(alignment: .leading, spacing: 0) {
-                    Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 14)
+                    Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
                     Text(w.focus).font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.top, 6)
                     HStack(alignment: .firstTextBaseline, spacing: 10) {
                         HStack(alignment: .firstTextBaseline, spacing: 1) {
                             Text("\(st.pct)").font(Theme.num(32)).foregroundStyle(Theme.tx)
                             Text("%").font(Theme.num(16)).foregroundStyle(Theme.tx)
                         }
-                        Text("\(st.kept) of \(st.days.count) days kept").font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                        Text("\(st.kept) of \(st.days.count) days kept").font(Theme.ui(15)).foregroundStyle(Theme.mu)
                     }
                     .padding(.top, 18)
                     HStack(spacing: 8) {
                         ForEach(st.days, id: \.self) { d in
                             VStack(spacing: 5) {
                                 DaySquare(mark: w.marks[Rules.ymd(d)]).frame(height: 30)
-                                Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(13)).tracking(1.2).foregroundStyle(Theme.mu2)
+                                Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(12)).tracking(1.2).foregroundStyle(Theme.mu2)
                             }
                             .frame(maxWidth: .infinity)
                         }
@@ -38,11 +38,11 @@ struct CloseSheet: View {
                     .padding(.top, 14)
                     let unm = st.days.filter { w.marks[Rules.ymd($0)] == nil }.count
                     Text(unm > 0 ? "\(unm) \(unm == 1 ? "day wasn’t" : "days weren’t") kept. Days are recorded as they happened." : "Days are recorded as they happened.")
-                        .font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 12)
+                        .font(Theme.ui(14)).foregroundStyle(Theme.mu).padding(.top, 12)
                     if store.settings.cafOn {
                         let lim = Logic.cafLimit(store.settings, Now.date.addingTimeInterval(86400)), sp = Logic.cafSplit(store.settings, lim)
-                        Eyebrow(text: "Caffeine next week", color: Theme.mu, size: 14).padding(.top, 22)
-                        Text(lim > 0 ? "Starts at \(lim) mg · AM \(sp.am) · PM \(sp.pm)" : "Caffeine-free").font(Theme.ui(16)).foregroundStyle(Theme.tx).padding(.top, 6)
+                        Eyebrow(text: "Caffeine next week", color: Theme.mu, size: 12).padding(.top, 22)
+                        Text(lim > 0 ? "Starts at \(lim) mg · AM \(sp.am) · PM \(sp.pm)" : "Caffeine-free").font(Theme.ui(15)).foregroundStyle(Theme.tx).padding(.top, 6)
                     }
                     ForEach(Array(questions.enumerated()), id: \.offset) { i, q in
                         Text(q).font(Theme.serif(18)).lineSpacing(5).foregroundStyle(Theme.tx).padding(.top, 24)
@@ -50,13 +50,13 @@ struct CloseSheet: View {
                             .padding(.top, 10)
                     }
                     HStack(spacing: 12) {
-                        Eyebrow(text: "Reflection", color: Theme.mu, size: 14)
-                        Eyebrow(text: "optional", color: Theme.mu2, size: 13)
+                        Eyebrow(text: "Reflection", color: Theme.mu, size: 12)
+                        Eyebrow(text: "optional", color: Theme.mu2, size: 12)
                     }
                     .padding(.top, 28)
                     box(text: $reflection, placeholder: "Anything else from the week?", minHeight: 96).padding(.top, 10)
                     Button { close() } label: {
-                        Text("Close the week").font(Theme.ui(18, .semibold)).foregroundStyle(Theme.onAc)
+                        Text("Close the week").font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
                             .frame(maxWidth: .infinity).frame(height: 54)
                             .background(Theme.ac, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
                     }
@@ -146,19 +146,19 @@ struct ClosedMoment: View {
             Spacer()
             if let w = store.week(weekId) {
                 let st = Logic.weekStats(w, store.settings)
-                Eyebrow(text: "Week closed", color: Theme.mu2, size: 14)
-                Text(w.focus).font(Theme.serif(44)).foregroundStyle(Theme.tx).padding(.top, 10)
+                Eyebrow(text: "Week closed", color: Theme.mu2, size: 12)
+                Text(w.focus).font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.top, 10)
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text("\(shown)").font(Theme.num(72)).foregroundStyle(Theme.tx).contentTransition(.numericText())
-                    Text("%").font(Theme.ui(28)).foregroundStyle(Theme.mu)
+                    Text("%").font(Theme.ui(24)).foregroundStyle(Theme.mu)
                 }
                 .padding(.top, 18)
-                Text("\(st.kept) of \(st.days.count) days kept").font(Theme.ui(16)).foregroundStyle(Theme.mu)
+                Text("\(st.kept) of \(st.days.count) days kept").font(Theme.ui(15)).foregroundStyle(Theme.mu)
                 HStack(spacing: 8) {
                     ForEach(Array(st.days.enumerated()), id: \.offset) { i, d in
                         VStack(spacing: 5) {
                             DaySquare(mark: i < lit ? w.marks[Rules.ymd(d)] : nil).frame(width: 34, height: 30)
-                            Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(13)).foregroundStyle(Theme.mu2)
+                            Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(12)).foregroundStyle(Theme.mu2)
                         }
                     }
                 }
@@ -167,12 +167,12 @@ struct ClosedMoment: View {
             }
             Spacer()
             Button { router.cover = .plan(replan: nil) } label: {
-                Text("Plan the next week").font(Theme.ui(18, .semibold)).foregroundStyle(Theme.onAc)
+                Text("Plan the next week").font(Theme.ui(16, .semibold)).foregroundStyle(Theme.onAc)
                     .frame(maxWidth: .infinity).frame(height: 54)
                     .background(Theme.ac, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
             }
             .buttonStyle(.plain)
-            Button("Later") { router.cover = nil }.font(Theme.ui(17)).foregroundStyle(Theme.mu).padding(.top, 18).padding(.bottom, 24)
+            Button("Later") { router.cover = nil }.font(Theme.ui(16)).foregroundStyle(Theme.mu).padding(.top, 18).padding(.bottom, 24)
         }
         .padding(.horizontal, 24)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

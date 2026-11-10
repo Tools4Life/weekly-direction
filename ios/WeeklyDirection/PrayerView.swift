@@ -10,18 +10,18 @@ struct PrayerList: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Eyebrow(text: "Your prayers", color: Theme.mu, size: 14)
+                    Eyebrow(text: "Your prayers", color: Theme.mu, size: 12)
                     Spacer()
                     Button { router.sheet = .prayer(nil, pinned: false) } label: {
-                        HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").font(Theme.ui(17)) }.foregroundStyle(Theme.ac)
+                        HStack(spacing: 8) { Image(systemName: "plus").font(.system(size: 15)); Text("New").font(Theme.ui(16)) }.foregroundStyle(Theme.ac)
                     }
                     .buttonStyle(.plain)
                 }
                 Button { router.sheet = .prayer(life?.id, pinned: true) } label: {
                     VStack(alignment: .leading, spacing: 8) {
-                        Eyebrow(text: "Life prayer", color: Theme.mu, size: 14)
+                        Eyebrow(text: "Life prayer", color: Theme.mu, size: 12)
                         Text(life?.text ?? "Add the prayer that covers your whole life")
-                            .font(life == nil ? Theme.serifItalic(19) : Theme.serif(21)).foregroundStyle(life == nil ? Theme.mu : Theme.tx)
+                            .font(life == nil ? Theme.serifItalic(19) : Theme.serif(19)).foregroundStyle(life == nil ? Theme.mu : Theme.tx)
                             .multilineTextAlignment(.leading)
                     }
                     .fullWidth().padding(.horizontal, 19).padding(.vertical, 18)
@@ -38,7 +38,7 @@ struct PrayerList: View {
                     Button { router.sheet = .prayer(p.id, pinned: false) } label: {
                         HStack(spacing: 12) {
                             Ico(name: p.icon ?? "hands", size: 18).foregroundStyle(Theme.mu).opacity(p.icon == nil ? 0.5 : 1)
-                            Text(p.text).font(Theme.serif(19)).foregroundStyle(Theme.tx).multilineTextAlignment(.leading)
+                            Text(p.text).font(Theme.serif(18)).foregroundStyle(Theme.tx).multilineTextAlignment(.leading)
                             Spacer()
                         }
                         .padding(.vertical, 13)
@@ -83,12 +83,12 @@ struct PrayerSheet: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Eyebrow(text: existing.map { Fmt.date(Date(timeIntervalSince1970: $0.created / 1000)) } ?? "New prayer", color: Theme.mu2, size: 14)
+                    Eyebrow(text: existing.map { Fmt.date(Date(timeIntervalSince1970: $0.created / 1000)) } ?? "New prayer", color: Theme.mu2, size: 12)
                     Spacer()
                     if !editing {
-                        Button("Edit") { if pinned { confirmRevise = true } else { startEdit() } }.font(Theme.ui(17)).foregroundStyle(Theme.mu).padding(.trailing, 22)
+                        Button("Edit") { if pinned { confirmRevise = true } else { startEdit() } }.font(Theme.ui(16)).foregroundStyle(Theme.mu).padding(.trailing, 22)
                     }
-                    Button("Done") { router.sheet = nil }.font(Theme.ui(18, .semibold)).foregroundStyle(Theme.ac)
+                    Button("Done") { router.sheet = nil }.font(Theme.ui(16, .semibold)).foregroundStyle(Theme.ac)
                 }
                 if editing { editor } else { reader }
             }
@@ -118,11 +118,11 @@ struct PrayerSheet: View {
     private var reader: some View {
         let paras = bodyText.components(separatedBy: "\n\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
         return VStack(alignment: .leading, spacing: 18) {
-            Text(title).font(Theme.serif(26)).foregroundStyle(Theme.tx)
+            Text(title).font(Theme.serif(24)).foregroundStyle(Theme.tx)
             ForEach(Array(paras.enumerated()), id: \.offset) { _, p in
                 Text(p).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
             }
-            if pinned, !paras.isEmpty { Eyebrow(text: "Amen", color: Theme.mu2, size: 14).frame(maxWidth: .infinity).padding(.top, 10) }
+            if pinned, !paras.isEmpty { Eyebrow(text: "Amen", color: Theme.mu2, size: 12).frame(maxWidth: .infinity).padding(.top, 10) }
         }
         .padding(.top, 20)
     }
@@ -130,14 +130,14 @@ struct PrayerSheet: View {
     private var editor: some View {
         VStack(alignment: .leading, spacing: 14) {
             TextField("What are you praying for?", text: $title, axis: .vertical)
-                .font(Theme.serif(26)).foregroundStyle(Theme.tx).focused($focus, equals: .title)
+                .font(Theme.serif(24)).foregroundStyle(Theme.tx).focused($focus, equals: .title)
                 .submitLabel(.next).onSubmit { focus = .body }
             if !pinned {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
                         ForEach(Self.icons, id: \.0) { t in
                             Button { icon = icon == t.0 ? nil : t.0 } label: {
-                                HStack(spacing: 6) { Ico(name: t.0, size: 15); Text(t.1).font(Theme.ui(15)) }
+                                HStack(spacing: 6) { Ico(name: t.0, size: 15); Text(t.1).font(Theme.ui(14)) }
                                     .foregroundStyle(icon == t.0 ? Theme.onAc : Theme.mu)
                                     .padding(.leading, 6).padding(.trailing, 12).frame(height: 36)
                                     .background(icon == t.0 ? Theme.ac : Theme.card, in: Capsule())
@@ -154,7 +154,7 @@ struct PrayerSheet: View {
                     if bodyText.isEmpty { Text("Go as deep as you want.").font(Theme.serifItalic(18)).foregroundStyle(Theme.mu2).padding(.top, 8).allowsHitTesting(false) }
                 }
             if existing != nil, !pinned {
-                Button("Remove from list") { confirmRemove = true }.font(Theme.ui(16)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity)
+                Button("Remove from list") { confirmRemove = true }.font(Theme.ui(15)).foregroundStyle(Theme.danger).frame(maxWidth: .infinity)
             }
         }
         .padding(.top, 20)

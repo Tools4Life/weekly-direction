@@ -11,7 +11,7 @@ struct SignInView: View {
         VStack(alignment: .leading, spacing: 18) {
             Spacer()
             Text("Weekly Direction")
-                .font(Theme.serif(40))
+                .font(Theme.serif(34))
                 .foregroundStyle(Theme.tx)
             VStack(spacing: 12) {
                 TextField("Email", text: $email)
