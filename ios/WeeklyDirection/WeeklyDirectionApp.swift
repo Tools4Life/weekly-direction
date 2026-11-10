@@ -50,6 +50,8 @@ struct RootView: View {
             Theme.bg.ignoresSafeArea()
             if Mock.enabled, UserDefaults.standard.string(forKey: "OpenScreen") == "icons" {
                 IconOptions()
+            } else if Mock.enabled, let g = UserDefaults.standard.string(forKey: "OpenScreen"), g.hasPrefix("growth-") {
+                GrowthMock(screen: g)
             } else if !store.signedIn {
                 SignInView()
             } else if !store.ready {

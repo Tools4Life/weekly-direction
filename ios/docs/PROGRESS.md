@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: Nov 10 batch BUILT, none of it on the phone: past-day change to failed, half-sheet prayers, firmer mic feedback, settings rework, edit this week from the focus word page, week swiping, motion. Next TestFlight upload is 0.2 (1).** Open: prayer icon pick. Nothing pushed (no git credentials in the Claude shell).
+**Current: growth-from-reflections MOCKUPS sent (docs/design/findings/2026-11-10-growth), waiting for Eddie to pick A (one colour) or B (green / red); nothing built behind them. Nov 10 batch (see sections below) is built, not on the phone. `tidy` function not deployed. Next TestFlight upload is 0.2 (1).** Open: prayer icon pick. Nothing pushed.
 
 ## Prayers without a full page (Nov 10)
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
