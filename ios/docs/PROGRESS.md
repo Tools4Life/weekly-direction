@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (3) uploaded to TestFlight Nov 10 (through commit 233be09: sounds, practice mode, black widgets, timer swipe-down). After it, not yet uploaded: Journal's Write is now "+ NEW" like Prayer. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Open: prayer icon pick. Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (4) uploaded to TestFlight Nov 10 (through commit 39f2423: sphere page, ratings keep their sentence, Journal + NEW); waiting on Eddie's device test. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Open: prayer icon pick. Nothing pushed (no git credentials in the Claude shell).
 
 ## Prayers without a full page (Nov 10)
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
