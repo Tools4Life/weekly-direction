@@ -27,7 +27,18 @@ final class Router: ObservableObject {
 
     @Published var tab = "week"             // week | reflect (the journal list) | prayer | progress
     @Published var cover: Cover?
-    @Published var sheet: Sheet?
+    @Published var sheet: Sheet? {
+        didSet {
+            guard let s = sheet else { return }
+            // a habit, and a prayer that is only its name, open as a half sheet; anything to read or write gets the page
+            if case .habit = s { detent = .medium } else if case .prayer = s, half { detent = .medium } else { detent = .large }
+            half = false
+        }
+    }
+    /// how tall the open sheet is; a half sheet goes to `.large` when its editor opens
+    @Published var detent: PresentationDetent = .large
+    /// set right before `sheet` to open a prayer as a half sheet
+    var half = false
     /// the day the habit list shows (nil = today)
     @Published var selK: String?
     /// the Reflect intent arrived before the data did
@@ -64,6 +75,7 @@ final class Router: ObservableObject {
         case "recording": recording = true
         case "prayer": tab = "prayer"
         case "prayer-open": tab = "prayer"; sheet = .prayer(store.prayers.first { !$0.pinned }?.id, pinned: false)
+        case "prayer-short": tab = "prayer"; half = true; sheet = .prayer(store.prayers.first { !$0.pinned && $0.body.isEmpty }?.id, pinned: false)
         case "progress": tab = "progress"
         case "progress-habits": tab = "progress"; progressView = "habits"
         case "stats": tab = "progress"; if let aw { cover = .stats(aw.id) }

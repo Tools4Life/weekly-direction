@@ -109,8 +109,8 @@ struct MainTabs: View {
         }
         .sheet(item: $router.sheet) { s in
             sheet(s).environmentObject(store).environmentObject(router)
-                // a habit opens as a half sheet over the week; pull it up for more room
-                .presentationDetents({ if case .habit = s { return [.medium, .large] } else { return [.large] } }())
+                // a habit, and a prayer with nothing but its name, open as a half sheet; pull it up for more room
+                .presentationDetents({ if case .close = s { return [.large] } else { return [.medium, .large] } }(), selection: $router.detent)
                 .presentationDragIndicator(.visible)
                 .presentationCornerRadius(28)
                 .presentationBackground(Theme.bg)

@@ -35,10 +35,17 @@ struct PrayerList: View {
                         .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
                 }
                 ForEach(rest) { p in
-                    Button { router.sheet = .prayer(p.id, pinned: false) } label: {
-                        HStack(spacing: 12) {
+                    Button { router.half = p.body.isEmpty; router.sheet = .prayer(p.id, pinned: false) } label: {
+                        HStack(alignment: .top, spacing: 12) {
                             Ico(name: p.icon ?? "hands", size: 18).foregroundStyle(Theme.mu).opacity(p.icon == nil ? 0.5 : 1)
-                            Text(p.text).font(Theme.serif(18)).foregroundStyle(Theme.tx).multilineTextAlignment(.leading)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(p.text).font(Theme.serif(18)).foregroundStyle(Theme.tx).multilineTextAlignment(.leading)
+                                // what is written under the name, so the list shows which prayers have more to read
+                                if !p.body.isEmpty {
+                                    Text(p.body.replacingOccurrences(of: "\\s+", with: " ", options: .regularExpression))
+                                        .font(Theme.serifItalic(15)).foregroundStyle(Theme.mu2).lineLimit(1)
+                                }
+                            }
                             Spacer()
                         }
                         .padding(.vertical, 13)
@@ -113,7 +120,7 @@ struct PrayerSheet: View {
         }
     }
 
-    private func startEdit() { editing = true; focus = .body }
+    private func startEdit() { router.detent = .large; editing = true; focus = .body }
 
     private var reader: some View {
         let paras = bodyText.components(separatedBy: "\n\n").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }.filter { !$0.isEmpty }
@@ -123,6 +130,13 @@ struct PrayerSheet: View {
                 Text(p).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
             }
             if pinned, !paras.isEmpty { Eyebrow(text: "Amen", color: Theme.mu2, size: 12).frame(maxWidth: .infinity).padding(.top, 10) }
+            // only a name so far: one tap to write under it
+            if paras.isEmpty, !pinned {
+                Button { startEdit() } label: {
+                    Text("Add to this prayer").font(Theme.serifItalic(18)).foregroundStyle(Theme.mu2).fullWidth().contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            }
         }
         .padding(.top, 20)
     }

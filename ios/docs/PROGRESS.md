@@ -2,6 +2,10 @@
 
 **Current: a past day of the open week can be changed to failed from the habit sheet (Nov 10) BUILT, not on the phone yet; next TestFlight upload is 0.2 (1).** Open: prayer icon pick, device check of dictation. Nothing pushed (no git credentials in the Claude shell).
 
+## Prayers without a full page (Nov 10)
+- A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list shows one muted line of a prayer's text under its name.
+- Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
+
 ## Past-day correction (Nov 10)
 - Habit sheet on a past day of the open week: "Change <day> to failed" plus a confirm that names the day and what is recorded. Works for a done or a missed habit; a failure stays final; a past day still cannot be checked off. Writes what a same-day failure writes (`id: false`, `id@fail: true`, mark `drift`). Closed weeks stay read-only.
 - iOS only: the web app still closes the sheet on past days, but shows the failure.
