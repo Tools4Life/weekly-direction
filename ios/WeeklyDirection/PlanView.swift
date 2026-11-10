@@ -92,8 +92,7 @@ struct PlanView: View {
             }
         }
         .padding(.top, 10)
-        DictateCard(title: replan != nil ? "Talk through this week" : "Plan next week",
-                    hint: "Say what you want the week to be. It’s cleaned up and added to your vision.", onText: spoken)
+        DictateCard(title: replan != nil ? "Talk through this week" : "Plan next week", onText: spoken)
             .padding(.top, 26)
         Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.top, 26)
         field {
@@ -110,8 +109,7 @@ struct PlanView: View {
         }
         .padding(.top, 34)
         trayCard.padding(.top, 10)
-        Eyebrow(text: "Add from your library · hold to edit", color: Theme.mu2, size: 11).padding(.top, 18)
-        chips.padding(.top, 10)
+        chips.padding(.top, 14)
         HStack {
             Eyebrow(text: "Saturday questions", color: Theme.mu, size: 12)
             Spacer()
@@ -165,7 +163,7 @@ struct PlanView: View {
         let cur = thoughts.trimmingCharacters(in: .whitespacesAndNewlines)
         thoughts = cur.isEmpty ? text : cur + "\n\n" + text
         saveDraft()
-        return tidy == nil ? Tidy.asSpoken : "Added to your vision below. Edit anything that isn’t right."
+        return tidy == nil ? Tidy.asSpoken : "Added to your vision."
     }
 
     private func field<V: View>(stroke: Color = Theme.line, @ViewBuilder _ content: () -> V) -> some View {

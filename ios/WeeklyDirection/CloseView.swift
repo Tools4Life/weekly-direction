@@ -21,7 +21,7 @@ struct CloseSheet: View {
             for i in answers.indices { answers[i] = add(answers[i], r.answers[i]) }
             if !r.other.isEmpty { reflection = reflection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? r.other : reflection + "\n\n" + r.other }
             let n = r.answers.filter { !$0.isEmpty }.count
-            return n == 0 ? "Added under Reflection. Read it over before you close." : "Filled in \(n) of \(questions.count). Read them over before you close."
+            return n == 0 ? "Added under Reflection." : "Answered \(n) of \(questions.count)."
         }
         let text = Tidy.oneLine(raw)
         if answers.isEmpty { reflection = reflection.isEmpty ? text : reflection + "\n\n" + text } else { answers[0] = add(answers[0], text) }
@@ -53,27 +53,22 @@ struct CloseSheet: View {
                         }
                     }
                     .padding(.top, 14)
-                    let unm = st.days.filter { w.marks[Rules.ymd($0)] == nil }.count
-                    Text(unm > 0 ? "\(unm) \(unm == 1 ? "day wasn’t" : "days weren’t") kept. Days are recorded as they happened." : "Days are recorded as they happened.")
-                        .font(Theme.ui(14)).foregroundStyle(Theme.mu).padding(.top, 12)
                     if store.settings.cafOn {
                         let lim = Logic.cafLimit(store.settings, Now.date.addingTimeInterval(86400)), sp = Logic.cafSplit(store.settings, lim)
                         Eyebrow(text: "Caffeine next week", color: Theme.mu, size: 12).padding(.top, 22)
                         Text(lim > 0 ? "Starts at \(lim) mg · AM \(sp.am) · PM \(sp.pm)" : "Caffeine-free").font(Theme.ui(15)).foregroundStyle(Theme.tx).padding(.top, 6)
                     }
-                    DictateCard(title: "Reflect on this week", hint: "Talk it through. Your words fill in the answers below.", onText: spoken)
-                        .padding(.top, 26)
+                    DictateCard(title: "Reflect on this week", onText: spoken).padding(.top, 28)
+                    // the questions are a plain page: each one, then its answer (spoken or typed) straight under it
                     ForEach(Array(questions.enumerated()), id: \.offset) { i, q in
-                        Text(q).font(Theme.serif(18)).lineSpacing(5).foregroundStyle(Theme.tx).padding(.top, 24)
-                        box(text: Binding(get: { i < answers.count ? answers[i] : "" }, set: { if i < answers.count { answers[i] = $0 } }), placeholder: "Answer", minHeight: 72)
-                            .padding(.top, 10)
+                        Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
+                        Text(q).font(Theme.serifItalic(17)).lineSpacing(4).foregroundStyle(Theme.mu).padding(.top, 18)
+                        line(text: Binding(get: { i < answers.count ? answers[i] : "" }, set: { if i < answers.count { answers[i] = $0 } }), placeholder: "Answer")
+                            .padding(.top, 8)
                     }
-                    HStack(spacing: 12) {
-                        Eyebrow(text: "Reflection", color: Theme.mu, size: 12)
-                        Eyebrow(text: "optional", color: Theme.mu2, size: 12)
-                    }
-                    .padding(.top, 28)
-                    box(text: $reflection, placeholder: "Anything else from the week?", minHeight: 96).padding(.top, 10)
+                    Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
+                    Eyebrow(text: "This week’s journal", color: Theme.mu, size: 12).padding(.top, 18)
+                    line(text: $reflection, placeholder: "Anything else from the week?").padding(.top, 8)
                     Button { close() } label: {
                         Text("Close the week").caps(16).foregroundStyle(Theme.onAc)
                             .frame(maxWidth: .infinity).frame(height: 54)
@@ -96,13 +91,10 @@ struct CloseSheet: View {
         .background(Theme.bg)
     }
 
-    private func box(text: Binding<String>, placeholder: String, minHeight: CGFloat) -> some View {
+    /// writing straight on the page: no box around it
+    private func line(text: Binding<String>, placeholder: String) -> some View {
         TextField(placeholder, text: text, axis: .vertical)
-            .font(Theme.serif(17)).lineSpacing(6).foregroundStyle(Theme.tx)
-            .frame(minHeight: minHeight, alignment: .topLeading)
-            .padding(.horizontal, 16).padding(.vertical, 14)
-            .background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous))
-            .overlay(RoundedRectangle(cornerRadius: Theme.r(14), style: .continuous).stroke(Theme.line, lineWidth: 1))
+            .font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx).fullWidth()
     }
 
     /// joinRef: each answered question as "question\nanswer", then the reflection, separated by blank lines

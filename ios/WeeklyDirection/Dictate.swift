@@ -6,7 +6,6 @@ import SwiftUI
 struct DictateCard: View {
     @EnvironmentObject var recorder: Recorder
     let title: String
-    let hint: String
     /// what to do with the spoken words (tidy them, fill the fields); the card shows it is working until this returns
     let onText: (String) async -> String?
 
@@ -25,7 +24,8 @@ struct DictateCard: View {
                             .frame(width: 46, height: 46).background(Theme.ac, in: Circle())
                         VStack(alignment: .leading, spacing: 3) {
                             Text(title).caps(16).foregroundStyle(Theme.tx)
-                            Text(note ?? hint).font(Theme.ui(14)).foregroundStyle(Theme.mu).multilineTextAlignment(.leading)
+                            // no standing explanation (Eddie: minimal); only what just happened, when something did
+                            if let note { Text(note).font(Theme.ui(14)).foregroundStyle(Theme.mu).multilineTextAlignment(.leading) }
                         }
                         Spacer(minLength: 0)
                     }
@@ -58,8 +58,11 @@ struct DictateCard: View {
                 .frame(height: 46)
             }
         }
-        .padding(16).fullWidth().card(18)
-        .overlay(RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous).stroke(Theme.acDim.opacity(phase == .idle ? 0.45 : 0.9), lineWidth: 1))
+        // at rest it is just the mic and its name; the box appears only while it is listening or working
+        .padding(phase == .idle ? 0 : 16).fullWidth()
+        .background(phase == .idle ? Color.clear : Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: Theme.r(18), style: .continuous).stroke(phase == .idle ? Color.clear : Theme.acDim, lineWidth: 1))
+        .animation(.easeOut(duration: 0.18), value: phase)
         .onChange(of: recorder.elapsed) { _, e in if phase == .rec, e >= Recorder.maxSeconds - 1 { Task { await finish() } } }
         .onDisappear { if phase == .rec { Task { _ = await recorder.finishDictation(cancel: true) } } }
     }
@@ -115,5 +118,5 @@ enum Tidy {
     static func oneLine(_ s: String) -> String {
         s.replacingOccurrences(of: "\\s*\\n+\\s*", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
     }
-    static let asSpoken = "Clean-up wasn’t available, so these are your words as spoken."
+    static let asSpoken = "Added as spoken."
 }
