@@ -73,6 +73,7 @@ struct ThisWeekView: View {
         let x = ctx(w)
         HStack(alignment: .center) {
             Text(w.focus).title(40).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5)
+                .wordLand()
                 .onTapGesture { router.cover = .vision(w.id) }
             Spacer()
             gear
@@ -83,25 +84,27 @@ struct ThisWeekView: View {
             if x.due { Text("Review due").font(Theme.serifItalic(17)).foregroundStyle(Theme.ac) } else { Eyebrow(text: dayCount(w, x.end)) }
         }
         .padding(.top, 6)
-        strip(x).padding(.top, 16)
+        strip(x).padding(.top, 16).rise(0)
         if x.due || reviewDay(w, x) { closeCard(w, due: x.due).padding(.top, 18) }
         if x.selKey == nil, !x.due, reviewDay(w, x) {
             Text("\(Fmt.dowl[store.settings.closeDay]) · review and plan from \(Fmt.hourLabel(store.settings.closeHour))")
                 .font(Theme.ui(14)).foregroundStyle(Theme.mu).padding(.top, 16)
         }
-        habitsHeader(x).padding(.top, 24)
+        habitsHeader(x).padding(.top, 24).rise(1)
         VStack(spacing: 6) {
-            ForEach(w.commitments.filter { c in x.selDay.map { Rules.onDay(c, $0) } ?? true }) { c in
+            let shown = w.commitments.filter { c in x.selDay.map { Rules.onDay(c, $0) } ?? true }
+            ForEach(Array(shown.enumerated()), id: \.element.id) { n, c in
                 HabitCard(week: w, day: x.selKey, todayK: x.todayK, c: c, now: now,
                           onBody: { router.sheet = .habit(week: w.id, habit: c.id, day: x.selKey) },
                           onCheck: { tapCheck(w, x, c) })
                     .modifier(Nudge(on: nudge == c.id))
+                    .rise(2 + n)
             }
             if let k = x.selKey, let d = x.selDay { doses(w, k, d, locked: k != x.todayK) }
         }
         .padding(.top, 12)
-        LatestThought(week: w).padding(.top, 14)
-        StreakCard(info: Logic.streak(store.weeks, store.settings)).padding(.top, 14)
+        LatestThought(week: w).padding(.top, 14).rise(6)
+        StreakCard(info: Logic.streak(store.weeks, store.settings)).padding(.top, 14).rise(7)
     }
 
     private func reviewDay(_ w: Week, _ x: Ctx) -> Bool {
@@ -127,6 +130,7 @@ struct ThisWeekView: View {
                     VStack(spacing: 5) {
                         DaySquare(mark: m, fraction: m == nil && !fut ? fraction(x.w, d) : 0, future: fut, selected: k == x.selKey)
                             .frame(height: 30)
+                            .pop(on: m)
                         Text(Fmt.dow[Rules.weekday(d)]).font(Theme.label(12)).tracking(1.2)
                             .foregroundStyle(k == x.selKey ? Theme.tx : k == x.todayK ? Theme.mu : Theme.mu2)
                     }
@@ -358,7 +362,7 @@ struct HabitCardShell: View {
             .buttonStyle(.plain)
             if let check {
                 Rectangle().fill(Theme.line.opacity(0.7)).frame(width: 1)
-                Button(action: onCheck) { mark(check).frame(width: 54).frame(maxHeight: .infinity).contentShape(Rectangle()) }
+                Button(action: onCheck) { mark(check).pop(on: check).frame(width: 54).frame(maxHeight: .infinity).contentShape(Rectangle()) }
                     .buttonStyle(.plain)
             }
         }

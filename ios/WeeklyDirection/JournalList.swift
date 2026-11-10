@@ -109,7 +109,7 @@ struct JournalList: View {
                     if ents.isEmpty {
                         Text("Nothing yet this week.").font(Theme.jitalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
                     }
-                    ForEach(ents, id: \.i) { e in
+                    ForEach(Array(ents.enumerated()), id: \.element.i) { n, e in
                         VStack(alignment: .leading, spacing: 6) {
                             if let d = e.d, let t = e.t {
                                 Text("\(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d), \(t)").font(Theme.jitalic(13)).foregroundStyle(Theme.mu2)
@@ -120,6 +120,7 @@ struct JournalList: View {
                         .contentShape(Rectangle())
                         .onTapGesture { router.cover = .weekPage(w.id) }
                         .onLongPressGesture(minimumDuration: 0.5) { Haptic.tick(); router.entryMenu = e.i }
+                        .rise(n)
                         Rectangle().fill(Theme.rule).frame(height: 1)
                     }
                 }

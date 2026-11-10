@@ -148,7 +148,51 @@ enum Haptic {
     static func micOff() { UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 1); AudioServicesPlaySystemSound(1114) }
 }
 
+// Motion (Eddie, Nov 10 2026: the web app's small animations, here too). Everything is an entrance or a response to a
+// tap; nothing loops. All of it is skipped when Reduce Motion is on.
+
+/// web `rise`: a block comes up into place with a slight overshoot when its page opens; `i` staggers a list
+private struct Rise: ViewModifier {
+    let i: Int
+    @State private var shown = false
+    @Environment(\.accessibilityReduceMotion) private var still
+    func body(content: Content) -> some View {
+        content.opacity(shown || still ? 1 : 0).offset(y: shown || still ? 0 : 18)
+            .onAppear {
+                guard !shown else { return }
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.72).delay(0.04 + 0.045 * Double(min(i, 9)))) { shown = true }
+            }
+    }
+}
+
+/// web `wordland`: the focus word settles out of a blur
+private struct WordLand: ViewModifier {
+    @State private var shown = false
+    @Environment(\.accessibilityReduceMotion) private var still
+    func body(content: Content) -> some View {
+        let on = shown || still
+        content.opacity(on ? 1 : 0).blur(radius: on ? 0 : 8).scaleEffect(on ? 1 : 1.06, anchor: .leading).offset(y: on ? 0 : -12)
+            .onAppear { if !shown { withAnimation(.timingCurve(0.2, 0.9, 0.2, 1, duration: 0.9)) { shown = true } } }
+    }
+}
+
+/// web `sqpop` / `ckpop`: a quick squeeze and overshoot when `value` changes (a check lands, a day is kept)
+private struct Pop<V: Equatable>: ViewModifier {
+    let value: V
+    @Environment(\.accessibilityReduceMotion) private var still
+    func body(content: Content) -> some View {
+        if still { content } else {
+            content.phaseAnimator([1.0, 0.7, 1.14, 1.0], trigger: value) { v, s in v.scaleEffect(s) } animation: { _ in
+                .spring(response: 0.22, dampingFraction: 0.6)
+            }
+        }
+    }
+}
+
 extension View {
+    func rise(_ i: Int = 0) -> some View { modifier(Rise(i: i)) }
+    func wordLand() -> some View { modifier(WordLand()) }
+    func pop<V: Equatable>(on value: V) -> some View { modifier(Pop(value: value)) }
     func card(_ radius: CGFloat = 20) -> some View {
         background(Theme.card, in: RoundedRectangle(cornerRadius: Theme.r(radius), style: .continuous))
             .overlay { if Theme.style > 0 { Rectangle().stroke(Theme.line, lineWidth: 1) } }

@@ -29,12 +29,12 @@ struct PrayerList: View {
                     .overlay(RoundedRectangle(cornerRadius: Theme.r(20), style: .continuous)
                         .stroke(Theme.line, style: StrokeStyle(lineWidth: 1, dash: life == nil ? [4, 4] : [])))
                 }
-                .buttonStyle(.plain).padding(.top, 18).padding(.bottom, 12)
+                .buttonStyle(.plain).padding(.top, 18).padding(.bottom, 12).rise(0)
                 if rest.isEmpty {
                     Text("What else are you praying for? Tap New to name it, then go as deep as you want.")
                         .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
                 }
-                ForEach(rest) { p in
+                ForEach(Array(rest.enumerated()), id: \.element.id) { n, p in
                     Button { router.half = p.body.isEmpty; router.sheet = .prayer(p.id, pinned: false) } label: {
                         HStack(spacing: 12) {
                             Ico(name: p.icon ?? "hands", size: 18).foregroundStyle(Theme.mu).opacity(p.icon == nil ? 0.5 : 1)
@@ -44,7 +44,7 @@ struct PrayerList: View {
                         .padding(.vertical, 13)
                         .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.plain).rise(1 + n)
                     Rectangle().fill(Theme.rule).frame(height: 1)
                 }
             }

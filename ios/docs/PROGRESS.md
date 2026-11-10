@@ -1,10 +1,15 @@
 # Weekly Direction iOS — progress log
 
-**Current: a past day of the open week can be changed to failed from the habit sheet (Nov 10) BUILT, not on the phone yet; next TestFlight upload is 0.2 (1).** Open: prayer icon pick, device check of dictation. Nothing pushed (no git credentials in the Claude shell).
+**Current: Nov 10 batch BUILT, none of it on the phone: past-day change to failed, half-sheet prayers, firmer mic feedback, settings rework, edit this week from the focus word page, week swiping, motion. Next TestFlight upload is 0.2 (1).** Open: prayer icon pick. Nothing pushed (no git credentials in the Claude shell).
 
 ## Prayers without a full page (Nov 10)
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
+
+## Week swiping and motion (Nov 10)
+- Week page (Journal → a week): swipe sideways for the week before / after, or tap the older / newer focus words at the bottom. Slides in from the side swiped. Off while selecting entries.
+- Motion ported from the web (`rise`, `wordland`, `sqpop` / `ckpop`), in `Theme.swift`: This Week (focus word settles out of a blur; day strip, habits, latest thought, streak rise in a stagger; check and day square pop when they change), Journal entries, Prayer rows, Progress hero. Entrances and tap responses only, nothing loops; skipped with Reduce Motion.
+- Not verified: how any of it feels (screenshots only show the settled pages); the swipe gesture next to vertical scrolling; on the phone.
 
 ## Settings rework (Nov 10)
 - First page is short rows: Appearance, Sounds, Reminders, Saturday questions (count), Caffeine wean (state), Export, Sign out; the account is one quiet line at the bottom.

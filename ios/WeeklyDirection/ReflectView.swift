@@ -8,7 +8,9 @@ struct WeekPage: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
     @Environment(\.dismiss) private var dismiss
-    let weekId: String
+    /// the week on the page; swiping sideways moves to the week before or after
+    @State var weekId: String
+    @State private var forward = true
     @State private var selecting = false
     @State private var picked = Set<Int>()
     @State private var confirmDelete = false
@@ -33,11 +35,19 @@ struct WeekPage: View {
                 .padding(.horizontal, 22).frame(height: 52)
                 ScrollView {
                     if let w = store.week(weekId) {
-                        VStack(alignment: .leading, spacing: 0) { page(w) }
+                        VStack(alignment: .leading, spacing: 0) { page(w); weekNav }
                             .fullWidth().padding(.horizontal, 24).padding(.top, 12).padding(.bottom, selecting ? 110 : 50)
                     }
                 }
                 .scrollIndicators(.hidden)
+                // a new week slides in from the side it was swiped from
+                .id(weekId)
+                .transition(.asymmetric(insertion: .move(edge: forward ? .trailing : .leading).combined(with: .opacity),
+                                        removal: .move(edge: forward ? .leading : .trailing).combined(with: .opacity)))
+                .simultaneousGesture(DragGesture(minimumDistance: 30).onEnded { g in
+                    guard !selecting, abs(g.translation.width) > 60, abs(g.translation.width) > abs(g.translation.height) * 1.6 else { return }
+                    step(g.translation.width < 0 ? 1 : -1)
+                })
             }
             if selecting {
                 Button { confirmDelete = true } label: {
@@ -70,6 +80,41 @@ struct WeekPage: View {
         .modifier(EntryMenu(onEdit: { i in editing = EditRef(id: i) }))
         .fullScreenCover(item: $editing) { e in EntryEditor(entry: e.id).environmentObject(store).environmentObject(router) }
         .fullScreenCover(isPresented: $vision) { VisionView(weekId: weekId, log: true).environmentObject(store) }
+    }
+
+    private var ordered: [Week] { store.weeks.sorted { $0.sealedAtMs < $1.sealedAtMs } }
+    private func neighbour(_ d: Int) -> Week? {
+        guard let i = ordered.firstIndex(where: { $0.id == weekId }), ordered.indices.contains(i + d) else { return nil }
+        return ordered[i + d]
+    }
+    private func step(_ d: Int) {
+        guard let n = neighbour(d) else { return }
+        Haptic.tick()
+        forward = d > 0
+        selecting = false; picked = []
+        withAnimation(.easeOut(duration: 0.22)) { weekId = n.id }
+    }
+
+    /// the week before and after, by their focus words: tap, or swipe the page sideways
+    @ViewBuilder private var weekNav: some View {
+        let older = neighbour(-1), newer = neighbour(1)
+        if !selecting, older != nil || newer != nil {
+            Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 30)
+            HStack {
+                if let older {
+                    Button { step(-1) } label: {
+                        HStack(spacing: 8) { Image(systemName: "chevron.left").font(.system(size: 13, weight: .medium)); Text(older.focus) }
+                    }
+                }
+                Spacer()
+                if let newer {
+                    Button { step(1) } label: {
+                        HStack(spacing: 8) { Text(newer.focus); Image(systemName: "chevron.right").font(.system(size: 13, weight: .medium)) }
+                    }
+                }
+            }
+            .font(Theme.jserif(17)).foregroundStyle(Theme.mu).buttonStyle(.plain).padding(.top, 16)
+        }
     }
 
     @ViewBuilder private func page(_ w: Week) -> some View {

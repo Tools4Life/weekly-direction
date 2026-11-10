@@ -13,8 +13,8 @@ struct ProgressScreen: View {
             VStack(alignment: .leading, spacing: 0) {
                 Text("Progress").title(34).foregroundStyle(Theme.tx)
                 if let aw = weeks.first(where: { $0.isActive }) ?? weeks.first {
-                    hero(aw, weeks).padding(.top, 18)
-                    Seg(options: [("weeks", "Weeks"), ("habits", "Habits")], value: $router.progressView).padding(.top, 18)
+                    hero(aw, weeks).padding(.top, 18).rise(0)
+                    Seg(options: [("weeks", "Weeks"), ("habits", "Habits")], value: $router.progressView).padding(.top, 18).rise(1)
                     if router.progressView == "habits" { habits } else { list(weeks.filter { $0.id != aw.id }) }
                 } else {
                     Text("Your weeks will appear here once you seal your first one.").font(Theme.serifItalic(17)).foregroundStyle(Theme.mu).padding(.top, 20)
