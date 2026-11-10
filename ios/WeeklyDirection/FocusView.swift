@@ -13,6 +13,7 @@ struct FocusView: View {
     @State private var fin = false
     @State private var confirmStop = false
     @State private var opened = Now.date
+    @State private var pull: CGFloat = 0
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 0.25)) { _ in
@@ -20,6 +21,14 @@ struct FocusView: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Theme.bg.ignoresSafeArea())
+        // swipe down to leave: the page follows the finger and the timer keeps running
+        .offset(y: pull)
+        .gesture(DragGesture(minimumDistance: 12)
+            .onChanged { g in if g.translation.height > 0, abs(g.translation.height) > abs(g.translation.width) { pull = g.translation.height } }
+            .onEnded { g in
+                if g.translation.height > 110 || g.predictedEndTranslation.height > 320 { Haptic.tick(); router.cover = nil }
+                else { withAnimation(.spring(response: 0.3, dampingFraction: 0.8)) { pull = 0 } }
+            })
         .onAppear { UIApplication.shared.isIdleTimerDisabled = true }
         .onDisappear { UIApplication.shared.isIdleTimerDisabled = false }
     }
@@ -56,7 +65,8 @@ struct FocusView: View {
                 .frame(maxWidth: 300).frame(maxWidth: .infinity)
                 .rise(0)
                 Spacer(minLength: 20)
-                Text(fin ? "\(c.name) is done for today." : "Keeps running if you close this.")
+                // nothing to explain while it runs (Eddie, Nov 10 2026); one line only when it has finished
+                Text(fin ? "\(c.name) is done for today." : " ")
                     .font(Theme.ui(15)).foregroundStyle(Theme.mu).frame(maxWidth: .infinity).padding(.bottom, 18)
                 Button { confirmStop = true } label: {
                     // the app's quiet outlined row (same as Delete entries): stopping is possible, not invited
