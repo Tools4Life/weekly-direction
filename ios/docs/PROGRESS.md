@@ -2,6 +2,9 @@
 
 **Current: 0.2 (8) uploaded to TestFlight Nov 10 (through commit 7b847e6: debugging-run fixes, the four picks, the label batch). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Nothing pushed (no git credentials in the Claude shell).
 
+## After 0.2 (8), from Eddie's phone (Nov 10): not uploaded
+- Progress card says "1 of 7 days kept" on one line; "% on time" removed there and from the Habits rows (always 100 since the Nov 8 rule: on time or missed). Still shown on the week's own stats pages.
+
 ## Label batch before the freeze (Nov 10, Eddie agreed to the list)
 - This Week: "Day N of M" removed; "Review due" is the caps label; the streak card's "N to M" removed.
 - Past week's journal page: "Open week" is now "Week summary". Vision page: "swipe for other weeks" removed.

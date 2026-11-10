@@ -27,7 +27,7 @@ struct ProgressScreen: View {
     }
 
     private func hero(_ aw: Week, _ weeks: [Week]) -> some View {
-        let st = Logic.weekStats(aw, store.settings), ot = Logic.onTimePct(aw, store.settings)
+        let st = Logic.weekStats(aw, store.settings)
         let trend = Array(weeks.filter { $0.status == "closed" }.prefix(12).reversed())
         let pcts = trend.map { Logic.weekStats($0, store.settings).pct }
         let avg = pcts.isEmpty ? nil : Int((Double(pcts.reduce(0, +)) / Double(pcts.count)).rounded())
@@ -41,8 +41,9 @@ struct ProgressScreen: View {
                         Text("\(st.pct)").font(Theme.num(38)).foregroundStyle(Theme.tx)
                         Text("%").font(Theme.ui(17)).foregroundStyle(Theme.mu)
                     }
-                    Text("\(st.kept) of \(st.days.count) days" + (ot.map { " · \($0)% on time" } ?? ""))
-                        .font(Theme.ui(14)).foregroundStyle(Theme.mu).multilineTextAlignment(.leading)
+                    // "% on time" is gone from here (Eddie, Nov 10 2026): since Nov 8 a start-by habit is on time or missed,
+                    // so the number was always 100 and said nothing
+                    Text("\(st.kept) of \(st.days.count) days kept").font(Theme.ui(14)).foregroundStyle(Theme.mu).lineLimit(1)
                     MiniDays(week: aw, days: st.days, size: 12).padding(.top, 8)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -96,13 +97,12 @@ struct ProgressScreen: View {
         } else {
             Text("Last \(h.weeks) week\(h.weeks > 1 ? "s" : ""), oldest → newest · tap a square").font(Theme.ui(13)).foregroundStyle(Theme.mu2).padding(.top, 14)
             ForEach(h.rows) { r in
-                let ot = r.on + r.late > 0 ? Fmt.pct(r.on, r.on + r.late) : nil
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 10) {
                         Ico(name: r.c.icon, size: 17).foregroundStyle(Theme.mu)
                         VStack(alignment: .leading, spacing: 3) {
                             Text(r.c.name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
-                            Text("\(r.kept)/\(r.tot) days" + (ot.map { " · \($0)% on time" } ?? "") + (r.gr > 0 ? " · \(r.gr) grace" : "") + (r.rs > 0 ? " · \(r.rs) resched." : ""))
+                            Text("\(r.kept)/\(r.tot) days" + (r.gr > 0 ? " · \(r.gr) grace" : "") + (r.rs > 0 ? " · \(r.rs) resched." : ""))
                                 .font(Theme.label(13)).tracking(0.8).foregroundStyle(Theme.mu2).lineLimit(1).minimumScaleFactor(0.7)
                         }
                         Spacer(minLength: 4)
