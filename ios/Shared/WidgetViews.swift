@@ -21,9 +21,9 @@ struct WeekWidgetBody: View {
     let snap: WidgetSnapshot?
     let date: Date
     let size: Size
-    /// a word beside the mic. Not used by the real widgets (Eddie agreed to no word, Nov 10 2026); the app passes one in
-    /// sample-data mode (`-OpenScreen widgets -MockMicWord Reflect`) to show what it would look like.
-    var micWord: String? = nil
+    /// the word beside the mic on the medium and large widgets (Eddie, Nov 10 2026: "Reflect" on both, after seeing it
+    /// next to the mic alone). nil draws the mic alone (`-OpenScreen widgets -MockMicWord none` in sample-data mode).
+    var micWord: String? = "Reflect"
 
     private var p: WPalette { WPalette.of(light: snap?.light ?? false) }
     private func serif(_ s: CGFloat) -> Font { .custom("Fraunces-Regular", size: s) }
@@ -127,7 +127,6 @@ struct WeekWidgetBody: View {
                 if !s.verseRef.isEmpty { Text(s.verseRef.uppercased()).font(label(11)).tracking(1.8).foregroundStyle(p.mu2).padding(.top, 4) }
                 Spacer(minLength: 6)
                 Link(destination: Shared.dictateURL) {
-                    // the mic alone, like the one in the app's tab bar: no word on it
                     mic(icon: 17, side: 40, word: 13)
                 }
             }

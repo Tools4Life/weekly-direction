@@ -10,7 +10,7 @@ struct WidgetPreview: View {
     var body: some View {
         let light = UserDefaults.standard.string(forKey: "MockTheme") == "light"
         var s = WidgetSnapshot.sample; s.light = light; s.day = Rules.ymd(Date())
-        let word = UserDefaults.standard.string(forKey: "MockMicWord")
+        let w0 = UserDefaults.standard.string(forKey: "MockMicWord") ?? "Reflect", word: String? = w0 == "none" ? nil : w0
         return ScrollView {
             VStack(spacing: 18) {
                 HStack(spacing: 18) {
