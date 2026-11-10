@@ -7,6 +7,8 @@ struct TabIcon: View {
     let name: String          // week | reflect | prayer | progress
     var frame: Frame = .square
     var size: CGFloat = 27
+    /// prayer mark: cross | flame | hands | heart
+    var prayer = "cross"
 
     var body: some View {
         Canvas { ctx, sz in
@@ -30,7 +32,23 @@ struct TabIcon: View {
             case "reflect":
                 line([(8, 9), (16, 9)]); line([(8, 12), (16, 12)]); line([(8, 15), (12.8, 15)])
             case "prayer":
-                line([(12, 7.2), (12, 16.8)]); line([(8.9, 10.4), (15.1, 10.4)])
+                func curve(_ to: (CGFloat, CGFloat), _ c1: (CGFloat, CGFloat), _ c2: (CGFloat, CGFloat)) {
+                    path.addCurve(to: p(to.0, to.1), control1: p(c1.0, c1.1), control2: p(c2.0, c2.1))
+                }
+                switch prayer {
+                case "flame":
+                    path.move(to: p(12, 6.9))
+                    curve((15.3, 13.4), (13.2, 8.7), (15.3, 10.7)); curve((12, 17), (15.3, 15.5), (13.9, 17))
+                    curve((8.7, 13.4), (10.1, 17), (8.7, 15.5)); curve((12, 6.9), (8.7, 10.7), (10.8, 8.7))
+                case "hands":
+                    line([(9.2, 16.9), (9.2, 12.2), (12, 7)]); line([(14.8, 16.9), (14.8, 12.2), (12, 7)]); line([(12, 7), (12, 13.2)])
+                case "heart":
+                    path.move(to: p(12, 16.7))
+                    curve((7.9, 11.1), (9.4, 15.1), (7.9, 13.2)); curve((12, 9.7), (7.9, 8.5), (10.9, 8))
+                    curve((16.1, 11.1), (13.1, 8), (16.1, 8.5)); curve((12, 16.7), (16.1, 13.2), (14.6, 15.1))
+                default:
+                    line([(12, 7.2), (12, 16.8)]); line([(8.9, 10.4), (15.1, 10.4)])
+                }
             default:
                 line([(7.2, 15), (10.3, 11.7), (12.9, 14.1), (16.8, 9.5)])
             }
@@ -43,45 +61,42 @@ struct TabIcon: View {
 /// Design finding (-OpenScreen icons, sample data only): the tab icon options side by side.
 struct IconOptions: View {
     private let tabs = ["week", "reflect", "mic", "prayer", "progress"]
-    private let sf = ["week": "calendar.badge.checkmark", "reflect": "book", "prayer": "hands.sparkles", "progress": "chart.line.uptrend.xyaxis"]
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("Tab icons").font(Theme.serif(34)).foregroundStyle(Theme.tx).padding(.bottom, 6)
-            Text("Order: This Week, Journal, mic, Prayer, Progress. First icon shown selected.")
+            Text("Squares are in. The cross clashes with the app icon, so here are other marks for Prayer.")
                 .font(Theme.ui(14)).foregroundStyle(Theme.mu)
-            row("Now · iOS symbols") { n in AnyView(Image(systemName: sf[n]!).font(.system(size: 25))) }
-            row("A · Squares (the web app's family)") { n in AnyView(TabIcon(name: n, frame: .square)) }
-            row("B · Circles (echo the mic)") { n in AnyView(TabIcon(name: n, frame: .circle)) }
+            Eyebrow(text: "Prayer icon options", color: Theme.mu).padding(.top, 34)
+            HStack {
+                ForEach(["flame", "hands", "heart", "cross"], id: \.self) { g in
+                    VStack(spacing: 10) {
+                        TabIcon(name: "prayer", size: 44, prayer: g).foregroundStyle(Theme.tx)
+                        Text(g == "cross" ? "cross (now)" : g).font(Theme.ui(14)).foregroundStyle(Theme.mu)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .padding(.top, 22)
+            Eyebrow(text: "In the bar", color: Theme.mu).padding(.top, 40)
+            ForEach(["flame", "hands", "heart"], id: \.self) { g in
+                HStack {
+                    ForEach(tabs, id: \.self) { n in
+                        Group {
+                            if n == "mic" {
+                                ZStack { Circle().fill(Theme.ac).frame(width: 52, height: 52); Image(systemName: "mic").font(.system(size: 21)).foregroundStyle(Theme.onAc) }
+                            } else { TabIcon(name: n, size: 30, prayer: g).foregroundStyle(n == "week" ? Theme.tx : Theme.mu2) }
+                        }
+                        .frame(maxWidth: .infinity)
+                    }
+                }
+                .frame(height: 70).padding(.horizontal, -10)
+                .overlay(alignment: .bottom) { Rectangle().fill(Theme.rule).frame(height: 1) }
+            }
             Spacer()
         }
         .padding(.horizontal, 24).padding(.top, 20)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .background(Theme.bg.ignoresSafeArea())
-    }
-
-    private func row(_ title: String, _ icon: @escaping (String) -> AnyView) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Eyebrow(text: title, color: Theme.mu).padding(.top, 34)
-            HStack {
-                ForEach(tabs, id: \.self) { n in
-                    Group {
-                        if n == "mic" {
-                            ZStack {
-                                Circle().fill(Theme.ac.opacity(0.18)).frame(width: 70, height: 70)
-                                Circle().fill(Theme.ac).frame(width: 60, height: 60)
-                                Image(systemName: "mic").font(.system(size: 24)).foregroundStyle(Theme.onAc)
-                            }
-                        } else {
-                            icon(n).foregroundStyle(n == "week" ? Theme.tx : Theme.mu2)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                }
-            }
-            .frame(height: 76)
-            .padding(.horizontal, -10)
-            .overlay(alignment: .bottom) { Rectangle().fill(Theme.rule).frame(height: 1) }
-        }
     }
 }

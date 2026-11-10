@@ -101,6 +101,7 @@ struct MainTabs: View {
         }
         .background(Theme.bg.ignoresSafeArea())
         .ignoresSafeArea(.keyboard)
+        .overlay { if router.recording { RecordingView().transition(.opacity).zIndex(5) } }
         .modifier(EntryMenu(onEdit: { i in router.cover = .edit(i) }))
         .fullScreenCover(item: $router.cover) { c in
             cover(c).environmentObject(store).environmentObject(router).environmentObject(recorder).environmentObject(notifier)
@@ -125,7 +126,6 @@ struct MainTabs: View {
         case .weekPage(let id): WeekPage(weekId: id)
         case .write: EntryEditor(entry: nil)
         case .edit(let i): EntryEditor(entry: i)
-        case .recording: RecordingView()
         case .closed(let id): ClosedMoment(weekId: id)
         }
     }
@@ -162,8 +162,8 @@ struct TabBar: View {
                         .frame(maxWidth: .infinity).frame(height: 52).offset(y: -16)
                     }
                     .buttonStyle(.plain)
-                    .disabled(recorder.state != .idle || store.activeWeek == nil)
-                    .opacity(recorder.state == .busy || store.activeWeek == nil ? 0.45 : 1)
+                    .disabled(store.activeWeek == nil)
+                    .opacity(store.activeWeek == nil ? 0.45 : 1)
                     .accessibilityLabel("Speak a reflection")
                 } else {
                 Button {

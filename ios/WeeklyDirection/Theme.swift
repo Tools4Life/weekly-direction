@@ -10,6 +10,19 @@ enum Theme {
     /// Flat style preview (-MockStyle 1 or 2, sample-data mode only): a design finding Eddie tried and turned down
     /// (Nov 9 2026: "keep original"). 1 = square, outlined shapes; 2 = the same plus condensed caps titles.
     static let style: Int = Mock.enabled ? UserDefaults.standard.integer(forKey: "MockStyle") : 0
+    /// Calmer stats preview (-MockStats 1, sample data only): a design finding, not approved.
+    static let statsV2: Bool = Mock.enabled && UserDefaults.standard.integer(forKey: "MockStats") == 1
+    /// Journal feel preview (-MockJournal paper | warm, sample data only): a design finding, not approved.
+    /// paper = the web app's cream paper page (use with -MockTheme light); warm = brown-black page set in Georgia.
+    static let journal: String? = Mock.enabled ? UserDefaults.standard.string(forKey: "MockJournal") : nil
+    static var jbg: Color { journal == "paper" ? Color(hex: 0xF3EEE4) : journal == "warm" ? Color(hex: 0x17130F) : bg }
+    static var jtx: Color { journal == "paper" ? Color(hex: 0x1F1B16) : journal == "warm" ? Color(hex: 0xEFE6D8) : tx }
+    static var jmu: Color { journal == "paper" ? Color(hex: 0x6B6257) : journal == "warm" ? Color(hex: 0xA99D8D) : mu }
+    static var jmu2: Color { journal == "paper" ? Color(hex: 0x8C8273) : journal == "warm" ? Color(hex: 0x877C6E) : mu2 }
+    static var jrule: Color { journal == "paper" ? Color(hex: 0xE0D7C7) : journal == "warm" ? Color(hex: 0x2B251E) : rule }
+    static var jac: Color { journal == "paper" ? Color(hex: 0x8A2E22) : ac }
+    static func jserif(_ size: CGFloat) -> Font { journal == "warm" ? .custom("Georgia", size: size) : serif(size) }
+    static func jitalic(_ size: CGFloat) -> Font { journal == "warm" ? .custom("Georgia-Italic", size: size) : serifItalic(size) }
     static func r(_ x: CGFloat) -> CGFloat { style > 0 ? 0 : x }
     static var pill: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Capsule()) }
     static var dot: AnyShape { style > 0 ? AnyShape(Rectangle()) : AnyShape(Circle()) }
@@ -146,6 +159,10 @@ extension View {
     /// sentences and descriptions keep Barlow.
     func caps(_ size: CGFloat = 16) -> some View {
         font(.custom("BarlowCondensed-SemiBold", size: size)).textCase(.uppercase).tracking(size * 0.11)
+    }
+    /// a button inside the journal: plain words when a journal feel is being previewed, caps otherwise
+    @ViewBuilder func jbutton(_ size: CGFloat = 16) -> some View {
+        if Theme.journal != nil { font(Theme.ui(size + 1)) } else { caps(size) }
     }
     /// habit name
     func rowTitle() -> some View { caps(17) }

@@ -15,7 +15,6 @@ final class Router: ObservableObject {
         case weekPage(String)
         case write
         case edit(Int)
-        case recording
         case closed(String)                 // the closing moment for a week
         var id: String { String(describing: self) }
     }
@@ -33,10 +32,14 @@ final class Router: ObservableObject {
     @Published var selK: String?
     /// the Reflect intent arrived before the data did
     @Published var pendingRecord = false
+    /// the recording space is up: an overlay, not a cover, so it opens and closes at once
+    @Published var recording = false
+    func endRecording() { withAnimation(.easeOut(duration: 0.16)) { recording = false } }
 
     func startRecording() {
         sheet = nil
-        if cover != .recording { cover = .recording }
+        cover = nil
+        if !recording { withAnimation(.easeOut(duration: 0.16)) { recording = true } }
     }
 
     /// `-OpenScreen <name>`: used by scripts/shot.sh with sample data
@@ -57,7 +60,7 @@ final class Router: ObservableObject {
         case "entry-menu": tab = "reflect"; entryMenu = aw.flatMap { Journal.entries($0.liveRefl).last?.i }
         case "edit": tab = "reflect"; if let i = aw.flatMap({ Journal.entries($0.liveRefl).last?.i }) { cover = .edit(i) }
         case "write": tab = "reflect"; cover = .write
-        case "recording": tab = "reflect"; cover = .recording
+        case "recording": recording = true
         case "prayer": tab = "prayer"
         case "prayer-open": tab = "prayer"; sheet = .prayer(store.prayers.first { !$0.pinned }?.id, pinned: false)
         case "progress": tab = "progress"

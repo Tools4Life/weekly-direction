@@ -7,11 +7,11 @@ import SwiftUI
 struct RecorderStatus: View {
     @EnvironmentObject var recorder: Recorder
     var body: some View {
-        if recorder.state == .busy || recorder.message != nil || (recorder.pending > 0 && recorder.state == .idle) {
+        if recorder.sending || recorder.message != nil || recorder.pending > 0 {
             HStack(spacing: 10) {
-                if recorder.state == .busy { Text("Transcribing…") }
+                if recorder.sending { Text("Transcribing…") }
                 else if let m = recorder.message { Text(m) }
-                if recorder.pending > 0, recorder.state == .idle {
+                if recorder.pending > 0, !recorder.sending {
                     Text("\(recorder.pending) waiting ·")
                     Button("Retry") { Task { await recorder.flush() } }.foregroundStyle(Theme.ac)
                 }
@@ -24,6 +24,7 @@ struct RecorderStatus: View {
 /// This Week: the most recent thought of the week, one tap from the whole journal
 struct LatestThought: View {
     @EnvironmentObject var router: Router
+    @EnvironmentObject var recorder: Recorder
     let week: Week
 
     var body: some View {
@@ -34,7 +35,10 @@ struct LatestThought: View {
             HStack(alignment: .top, spacing: 12) {
                 Rectangle().fill(Theme.ac).frame(width: 2)
                 VStack(alignment: .leading, spacing: 5) {
-                    if let e, let d = e.d, let t = e.t {
+                    if recorder.sending, let heard = recorder.draftText {
+                        Eyebrow(text: "Just now · transcribing", color: Theme.ac)
+                        Text(heard).font(Theme.serif(16)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(2).multilineTextAlignment(.leading)
+                    } else if let e, let d = e.d, let t = e.t {
                         Eyebrow(text: "Latest thought · \(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d) \(t)", color: Theme.mu2)
                         Text(e.x).font(Theme.serif(16)).lineSpacing(4).foregroundStyle(Theme.tx).lineLimit(2).multilineTextAlignment(.leading)
                     } else {
@@ -66,58 +70,58 @@ struct JournalList: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 0) {
                 HStack {
-                    Text("Journal").font(Theme.serif(34)).foregroundStyle(Theme.tx)
+                    Text("Journal").font(Theme.jserif(34)).foregroundStyle(Theme.jtx)
                     Spacer()
                     if store.activeWeek != nil {
                         Button { router.cover = .write } label: {
-                            HStack(spacing: 6) { Image(systemName: "pencil.line").font(.system(size: 14)); Text("Write").caps(15) }.foregroundStyle(Theme.ac)
+                            HStack(spacing: 6) { Image(systemName: "pencil.line").font(.system(size: 14)); Text("Write").jbutton(15) }.foregroundStyle(Theme.jac)
                         }
                         .buttonStyle(.plain)
                     }
                 }
                 RecorderStatus().padding(.top, 10)
                 if let w = store.activeWeek {
-                    (Text("This week · \(Fmt.weekRange(w, store.settings)) · ").foregroundColor(Theme.mu2) + Text(w.focus).foregroundColor(Theme.ac))
+                    (Text("This week · \(Fmt.weekRange(w, store.settings)) · ").foregroundColor(Theme.jmu2) + Text(w.focus).foregroundColor(Theme.jac))
                         .font(Theme.label(12)).tracking(2.4).textCase(.uppercase).padding(.top, 18)
                     let ents = Array(Journal.entries(w.liveRefl).reversed())
                     if ents.isEmpty {
-                        Text("Nothing yet this week.").font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
+                        Text("Nothing yet this week.").font(Theme.jitalic(17)).foregroundStyle(Theme.jmu2).padding(.top, 14)
                     }
                     ForEach(ents, id: \.i) { e in
                         VStack(alignment: .leading, spacing: 6) {
                             if let d = e.d, let t = e.t {
-                                Text("\(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d), \(t)").font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2)
+                                Text("\(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d), \(t)").font(Theme.jitalic(13)).foregroundStyle(Theme.jmu2)
                             }
-                            Text(e.x).font(Theme.serif(17)).lineSpacing(7).foregroundStyle(Theme.tx)
+                            Text(e.x).font(Theme.jserif(17)).lineSpacing(7).foregroundStyle(Theme.jtx)
                         }
                         .fullWidth().padding(.vertical, 16)
                         .contentShape(Rectangle())
                         .onTapGesture { router.cover = .weekPage(w.id) }
                         .onLongPressGesture(minimumDuration: 0.5) { Haptic.tick(); router.entryMenu = e.i }
-                        Rectangle().fill(Theme.rule).frame(height: 1)
+                        Rectangle().fill(Theme.jrule).frame(height: 1)
                     }
                 }
-                if !past.isEmpty { Eyebrow(text: "Earlier weeks", color: Theme.mu2).padding(.top, 28) }
+                if !past.isEmpty { Eyebrow(text: "Earlier weeks", color: Theme.jmu2).padding(.top, 28) }
                 ForEach(past) { w in
                     Button { router.cover = .weekPage(w.id) } label: {
                         VStack(alignment: .leading, spacing: 5) {
                             HStack(alignment: .firstTextBaseline) {
-                                Text(w.focus).font(Theme.serif(19)).foregroundStyle(Theme.tx)
+                                Text(w.focus).font(Theme.jserif(19)).foregroundStyle(Theme.jtx)
                                 Spacer()
-                                Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2)
+                                Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.jmu2)
                             }
                             let first = w.summary ?? Journal.blocks(w.reflection.isEmpty ? w.liveRefl : w.reflection).first?.x
-                            if let first { Text(first).font(Theme.serif(15)).lineSpacing(4).foregroundStyle(Theme.mu).lineLimit(2).multilineTextAlignment(.leading) }
+                            if let first { Text(first).font(Theme.jserif(15)).lineSpacing(4).foregroundStyle(Theme.jmu).lineLimit(2).multilineTextAlignment(.leading) }
                         }
                         .fullWidth().padding(.vertical, 14).contentShape(Rectangle())
                     }
                     .buttonStyle(.plain)
-                    Rectangle().fill(Theme.rule).frame(height: 1)
+                    Rectangle().fill(Theme.jrule).frame(height: 1)
                 }
             }
             .padding(.horizontal, 24).padding(.top, 20).padding(.bottom, 56)
         }
         .scrollIndicators(.hidden)
-        .background(Theme.bg)
+        .background(Theme.jbg)
     }
 }

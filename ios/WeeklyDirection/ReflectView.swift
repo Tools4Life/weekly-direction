@@ -238,19 +238,24 @@ struct EntryEditor: View {
                 Button("Cancel") {
                     if entry == nil, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { confirmDiscard = true } else { dismiss() }
                 }
-                .caps(16).foregroundStyle(Theme.mu)
+                .jbutton().foregroundStyle(Theme.jmu)
                 Spacer()
-                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.caps(16).foregroundStyle(Theme.ac)
+                Button(entry == nil ? "Add" : "Save") { save(); dismiss() }.jbutton().foregroundStyle(Theme.jac)
             }
             .frame(height: 52)
+            if Theme.journal != nil {
+                Text(entry == nil ? Fmt.stamp(opened) : (blk?.d.map { "\($0), \(blk?.t ?? "")" } ?? "Edit entry"))
+                    .font(Theme.jitalic(15)).foregroundStyle(Theme.jmu2).padding(.top, 14)
+            } else {
             Eyebrow(text: entry == nil ? "New entry · \(Fmt.stamp(opened))" : "Edit entry" + (blk?.d.map { " · \($0), \(blk?.t ?? "")" } ?? ""),
-                    color: Theme.mu, size: 14).padding(.top, 8)
-            Text(w?.focus ?? "").font(Theme.serif(20)).foregroundStyle(Theme.tx).padding(.top, 12)
+                    color: Theme.jmu, size: 14).padding(.top, 8)
+            }
+            Text(w?.focus ?? "").font(Theme.jserif(20)).foregroundStyle(Theme.jtx).padding(.top, 12)
             if entry == nil, !prompts.isEmpty {
                 ScrollView(.horizontal) {
                     HStack(alignment: .top, spacing: 18) {
                         ForEach(prompts, id: \.self) { q in
-                            Text(q).font(Theme.serifItalic(14)).foregroundStyle(Theme.mu2).lineLimit(2)
+                            Text(q).font(Theme.jitalic(14)).foregroundStyle(Theme.jmu2).lineLimit(2)
                                 .frame(width: 230, alignment: .leading)
                         }
                     }
@@ -260,20 +265,20 @@ struct EntryEditor: View {
                 .accessibilityLabel("This week's questions")
             }
             TextEditor(text: $text)
-                .font(Theme.serif(19)).lineSpacing(8).foregroundStyle(Theme.tx)
+                .font(Theme.jserif(19)).lineSpacing(Theme.journal != nil ? 10 : 8).foregroundStyle(Theme.jtx)
                 .scrollContentBackground(.hidden)
                 .focused($focused)
                 .padding(.horizontal, -5).padding(.top, 6)
                 .overlay(alignment: .topLeading) {
                     if text.isEmpty {
-                        Text("What is on your heart?").font(Theme.serifItalic(19)).foregroundStyle(Theme.mu2)
+                        Text("What is on your heart?").font(Theme.jitalic(19)).foregroundStyle(Theme.jmu2)
                             .padding(.top, 14).allowsHitTesting(false)
                     }
                 }
                 .onChange(of: text) { _, t in keep(t) }
         }
         .padding(.horizontal, 24)
-        .background(Theme.bg.ignoresSafeArea())
+        .background(Theme.jbg.ignoresSafeArea())
         .onAppear {
             guard !loaded else { return }
             loaded = true; opened = Now.date

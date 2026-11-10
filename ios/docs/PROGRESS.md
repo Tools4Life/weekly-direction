@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: mic-first layout BUILT (Nov 9, Eddie approved the mockup); waiting for Eddie's device test.** Nothing verified on the phone, nothing pushed (no git credentials in the Claude shell).
+**Current: dictation made instant (built, untested on device); waiting for Eddie to pick from the stats / journal / prayer-icon findings in docs/design/findings/2026-11-09-stats-journal-prayer.** Eddie has the app running on his phone (real data reads, Nov 9). Nothing pushed (no git credentials in the Claude shell).
 
 ## Polish pass (Nov 9, evening)
 - Habit names now match the web: Barlow Regular 16.5, no extra tracking (was Medium 18 + tracking); meta Barlow Condensed 13.
@@ -11,6 +11,7 @@
 - Caps font (Eddie, Nov 9): habit names, row titles, buttons and controls use Barlow Condensed SemiBold caps (`.caps()` in Theme.swift). Page titles and journal text keep the serif; sentences, descriptions, typed text and the account email keep Barlow.
 - Mic-first layout (Eddie, Nov 9): tab bar is This Week, Journal, mic (raised, records from any screen), Prayer, Progress. This Week shows the latest thought under the habits. Reflect is `JournalList.swift`: this week's entries newest first, then earlier weeks, Write at the top. The old journal card, the Journal | Prayer switch and the mic dock are removed; `-OpenScreen reflect-past` is gone. Layout only: entries are read and written as before. Starting a recording no longer switches tabs.
 - Not verified: recording from the centre mic on a device; the "Transcribing… / N waiting · Retry" line in its new places (This Week above the latest thought, top of Journal).
+- Dictation (Nov 9, late): the recording space is an overlay (0.16 s fade, orb grows from the tab mic), not a full-screen cover. Finishing closes it at once; transcription runs behind (`Recorder.sending`), the latest-thought strip shows the on-device words as "Just now · transcribing" until the real text lands, and a new recording can start meanwhile. Audio session and recorder set-up run off the main thread; live words start 0.35 s after the screen opens. Not verified on a device: any of it (sample data records nothing).
 - Previous state: run DAY-2026-11-09 DONE.
 
 ## Run DAY-2026-11-09 (see docs/runs/DAY-2026-11-09.md)

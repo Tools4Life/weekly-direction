@@ -30,7 +30,7 @@ struct StatsView: View {
             .padding(.leading, 24).padding(.trailing, 12).padding(.top, 8)
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-                    if mode == "all" { allTime } else if let w = shown { week(w) }
+                    if mode == "all" { if Theme.statsV2 { allTime2 } else { allTime } } else if let w = shown { if Theme.statsV2 { week2(w) } else { week(w) } }
                 }
                 .fullWidth().padding(.horizontal, 24).padding(.top, 14).padding(.bottom, 50)
             }
@@ -151,6 +151,94 @@ struct StatsView: View {
         }
     }
 
+    // MARK: calmer stats (preview, -MockStats 1)
+
+    /// one headline, the week as a grid, what slipped in a single quiet line, then each habit
+    @ViewBuilder private func week2(_ w: Week) -> some View {
+        let d = Logic.weekDetail(w, store.weeks, store.settings), st = d.stats
+        let today = Rules.ymd(Now.date)
+        let elapsed = w.isActive ? d.keys.filter { $0 <= today }.count : st.days.count
+        HStack(spacing: 6) {
+            navButton("chevron.left", d.prev)
+            Eyebrow(text: Fmt.weekRange(w, store.settings), color: Theme.mu2, size: 12)
+            navButton("chevron.right", d.next)
+            Spacer()
+            Button { vision = true } label: { Text("Vision").caps(14).foregroundStyle(Theme.ac) }.buttonStyle(.plain)
+        }
+        .padding(.leading, -12)
+        Text(w.focus).title(34).foregroundStyle(Theme.tx).lineLimit(1).minimumScaleFactor(0.5).padding(.top, 6)
+        HStack(alignment: .firstTextBaseline, spacing: 8) {
+            Text("\(st.kept)").font(Theme.num(52)).foregroundStyle(Theme.tx)
+            Text("of \(elapsed) day\(elapsed == 1 ? "" : "s") kept" + (w.isActive ? " so far" : "")).font(Theme.ui(17)).foregroundStyle(Theme.mu)
+        }
+        .padding(.top, 14)
+        Text("\(d.done) of \(d.due) habits done" + (d.tDone > 0 ? " · \(Fmt.pct(d.tOn, d.tDone))% on time" : ""))
+            .font(Theme.ui(15)).foregroundStyle(Theme.mu)
+        grid2(w, d, today).padding(.top, 30)
+        let slipped = [d.miss > 0 ? "\(d.miss) missed" : "", d.fail > 0 ? "\(d.fail) failed" : "", d.grace > 0 ? "\(d.grace) in grace" : ""].filter { !$0.isEmpty }
+        Text(slipped.isEmpty ? "Nothing missed." : slipped.joined(separator: " · ")).font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 14)
+        Eyebrow(text: "By habit", color: Theme.mu2, size: 12).padding(.top, 34)
+        ForEach(Array(d.per.enumerated()), id: \.offset) { _, t in
+            HabitLine(c: t.c, value: "\(t.done)/\(t.due)", pct: t.due > 0 ? Fmt.pct(t.done, t.due) : 0)
+        }
+    }
+
+    private func grid2(_ w: Week, _ d: Logic.WeekDetail, _ today: String) -> some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 7) {
+                Color.clear.frame(width: 30, height: 1)
+                ForEach(Array(d.stats.days.enumerated()), id: \.offset) { i, day in
+                    Text(Fmt.dow[Rules.weekday(day)]).font(Theme.label(12)).tracking(1)
+                        .foregroundStyle(d.keys[i] == today ? Theme.tx : Theme.mu2).frame(maxWidth: .infinity)
+                }
+            }
+            ForEach(w.commitments) { c in
+                HStack(spacing: 7) {
+                    Ico(name: c.icon, size: 16).foregroundStyle(Theme.mu).frame(width: 30)
+                    ForEach(d.keys, id: \.self) { k in
+                        CellView(cell: Logic.cell(w, k, c)).frame(maxWidth: .infinity).frame(height: 34)
+                    }
+                }
+            }
+            // only the marks that actually appear this week
+            let seen = Set(w.commitments.flatMap { c in d.keys.map { Logic.cell(w, $0, c) } })
+            HStack(spacing: 14) {
+                ForEach([(Logic.Cell.on, "on time"), (.grace, "grace"), (.late, "late"), (.miss, "missed"), (.fail, "failed")], id: \.1) { c, t in
+                    if seen.contains(c) { legend(c, t) }
+                }
+            }
+            .padding(.top, 8)
+        }
+    }
+
+    @ViewBuilder private var allTime2: some View {
+        let a = Logic.allTime(store.weeks, store.settings), s = Logic.streak(store.weeks, store.settings)
+        if let first = a.weeks.first {
+            Eyebrow(text: "Since \(Fmt.dateYear(first.w.sealedAt)) · \(a.weeks.count) week\(a.weeks.count > 1 ? "s" : "")", color: Theme.mu2, size: 12)
+            Text("All time").title(34).foregroundStyle(Theme.tx).padding(.top, 4)
+            HStack(alignment: .firstTextBaseline, spacing: 8) {
+                Text("\(a.pct)").font(Theme.num(52)).foregroundStyle(Theme.tx)
+                Text("% of all habits done").font(Theme.ui(17)).foregroundStyle(Theme.mu)
+            }
+            .padding(.top, 14)
+            Text("\(a.kept) of \(a.days) days kept · streak \(s.cur), best \(s.best)").font(Theme.ui(15)).foregroundStyle(Theme.mu)
+            // finished weeks only: a week in progress would always look like a drop
+            let closed = a.weeks.filter { !$0.w.isActive }
+            if closed.count >= 2 {
+                TrendChart(title: "Finished weeks", sub: a.best.map { "best \($0.w.focus) \($0.pct)%" } ?? "",
+                           points: closed.map { .init(label: Fmt.slash($0.w.sealedAt.addingTimeInterval(86400)), value: $0.pct, live: false) }, height: 150)
+                    .padding(.top, 22)
+            }
+            let slipped = [a.miss > 0 ? "\(a.miss) missed" : "", a.fail > 0 ? "\(a.fail) failed" : "", a.grace > 0 ? "\(a.grace) in grace" : "",
+                           a.perfect > 0 ? "\(a.perfect) perfect week\(a.perfect == 1 ? "" : "s")" : ""].filter { !$0.isEmpty }
+            if !slipped.isEmpty { Text(slipped.joined(separator: " · ")).font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 14) }
+            Eyebrow(text: "By habit", color: Theme.mu2, size: 12).padding(.top, 34)
+            ForEach(Array(a.habits.enumerated()), id: \.offset) { _, h in
+                HabitLine(c: h.c, value: "\(h.due > 0 ? Fmt.pct(h.done, h.due) : 0)%", pct: h.due > 0 ? Fmt.pct(h.done, h.due) : 0)
+            }
+        }
+    }
+
     // MARK: all time
 
     @ViewBuilder private var allTime: some View {
@@ -201,6 +289,31 @@ struct CellView: View {
         }
         .clipShape(round ? AnyShape(Circle()) : AnyShape(shape))
         .overlay { if round, cell == .miss || cell == .fail { Circle().stroke(Theme.mu2, style: StrokeStyle(lineWidth: 1, dash: cell == .miss ? [3, 2.5] : [])) } }
+    }
+}
+
+/// calmer stats: a habit as its name, one figure and a full-width hairline bar
+struct HabitLine: View {
+    let c: Commitment
+    let value: String
+    let pct: Int
+    var body: some View {
+        VStack(alignment: .leading, spacing: 9) {
+            HStack(spacing: 10) {
+                Ico(name: c.icon, size: 16).foregroundStyle(Theme.mu)
+                Text(c.name).rowTitle().foregroundStyle(Theme.tx).lineLimit(1)
+                Spacer(minLength: 6)
+                Text(value).font(Theme.num(16)).foregroundStyle(Theme.tx)
+            }
+            GeometryReader { g in
+                ZStack(alignment: .leading) {
+                    Theme.pill.fill(Theme.rule)
+                    Theme.pill.fill(Theme.ac).frame(width: g.size.width * CGFloat(pct) / 100)
+                }
+            }
+            .frame(height: 3)
+        }
+        .padding(.top, 16)
     }
 }
 

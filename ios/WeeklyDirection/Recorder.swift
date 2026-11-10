@@ -9,7 +9,9 @@ import SwiftUI
 /// Recordings wait on the phone when the upload fails and are retried when the network returns.
 @MainActor
 final class Recorder: NSObject, ObservableObject {
-    enum State { case idle, rec, busy }
+    /// recording or not; sending a finished recording is separate (`sending`), so the screen closes the moment you
+    /// finish and you can start the next thought while the last one is still being transcribed
+    enum State { case idle, rec }
     static let voiceURL = URL(string: "https://us-central1-ops-hub-9bebc.cloudfunctions.net/transcribe")!
     static let maxSeconds: TimeInterval = 10 * 60
 
@@ -20,13 +22,16 @@ final class Recorder: NSObject, ObservableObject {
     /// last ~2 s of voice level, newest last
     @Published var levels = [Double](repeating: 0, count: 56)
     @Published var liveText = ""
+    /// a finished recording is being transcribed
+    @Published var sending = false
+    /// the on-device words of the recording being transcribed: shown as a placeholder until the real text arrives
+    @Published var draftText: String?
 
     weak var store: Store?
     private var recorder: AVAudioRecorder?
     private var startedAt = Date()
     private var meter: Timer?
     private var cancelled = false
-    private var flushing = false
     private var messageToken = 0
     private let monitor = NWPathMonitor()
     private var online = true
@@ -36,6 +41,9 @@ final class Recorder: NSObject, ObservableObject {
     private var request: SFSpeechAudioBufferRecognitionRequest?
     private var task: SFSpeechRecognitionTask?
     private var tapped = false
+    /// audio session changes block for a moment: they run here, in order, never on the main thread
+    private let audioQ = DispatchQueue(label: "wd.audio")
+    private struct Rec: @unchecked Sendable { let r: AVAudioRecorder?; let t0: Date }
 
     private var dir: URL {
         let d = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0].appendingPathComponent("voice", isDirectory: true)
@@ -75,24 +83,32 @@ final class Recorder: NSObject, ObservableObject {
         guard state == .idle else { return false }
         say(nil)
         guard await AVAudioApplication.requestRecordPermission() else { say("Mic blocked: allow it in iPhone Settings"); return false }
-        do {
-            let s = AVAudioSession.sharedInstance()
-            try s.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
-            try s.setActive(true)
-            let t0 = Date()
-            let url = dir.appendingPathComponent("rec-\(Int(t0.timeIntervalSince1970 * 1000)).m4a")
-            let r = try AVAudioRecorder(url: url, settings: [
-                AVFormatIDKey: kAudioFormatMPEG4AAC, AVSampleRateKey: 16000, AVNumberOfChannelsKey: 1,
-                AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
-            ])
-            r.isMeteringEnabled = true
-            guard r.record() else { say("This phone can’t record audio right now"); return false }
-            recorder = r
-            startedAt = t0
-        } catch {
-            say("This phone can’t record audio right now")
+        let url0 = dir
+        let made: Rec = await withCheckedContinuation { c in
+            audioQ.async {
+                do {
+                    let s = AVAudioSession.sharedInstance()
+                    try s.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker])
+                    try s.setActive(true)
+                    let t0 = Date()
+                    let url = url0.appendingPathComponent("rec-\(Int(t0.timeIntervalSince1970 * 1000)).m4a")
+                    let r = try AVAudioRecorder(url: url, settings: [
+                        AVFormatIDKey: kAudioFormatMPEG4AAC, AVSampleRateKey: 16000, AVNumberOfChannelsKey: 1,
+                        AVEncoderAudioQualityKey: AVAudioQuality.high.rawValue
+                    ])
+                    r.isMeteringEnabled = true
+                    c.resume(returning: Rec(r: r.record() ? r : nil, t0: t0))
+                } catch { c.resume(returning: Rec(r: nil, t0: Date())) }
+            }
+        }
+        // cancelled or started twice while the microphone was opening
+        guard state == .idle, let r = made.r else {
+            made.r?.stop(); if let u = made.r?.url { try? FileManager.default.removeItem(at: u) }
+            if made.r == nil { say("This phone can’t record audio right now") }
             return false
         }
+        recorder = r
+        startedAt = made.t0
         cancelled = false
         elapsed = 0
         liveText = ""
@@ -100,7 +116,11 @@ final class Recorder: NSObject, ObservableObject {
         state = .rec
         Haptic.tick()
         meter = Timer.scheduledTimer(withTimeInterval: 0.035, repeats: true) { [weak self] _ in Task { @MainActor in self?.tick() } }
-        startLive()
+        // live words start once the screen has finished opening, so the animation never waits on the speech engine
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            if self?.state == .rec { self?.startLive() }
+        }
         return true
     }
 
@@ -127,8 +147,9 @@ final class Recorder: NSObject, ObservableObject {
         let dur = Date().timeIntervalSince(startedAt), url = r.url
         r.stop()
         recorder = nil
-        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+        audioQ.async { try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation) }
         Haptic.tick()
+        let heard = liveText.trimmingCharacters(in: .whitespacesAndNewlines)
         let size = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int) ?? 0
         if cancelled { try? FileManager.default.removeItem(at: url); state = .idle; say(nil); return }
         if dur < 1.5 || size == 0 { try? FileManager.default.removeItem(at: url); state = .idle; say("Too short"); return }
@@ -136,11 +157,11 @@ final class Recorder: NSObject, ObservableObject {
         let at = Int(startedAt.timeIntervalSince1970 * 1000)
         let queued = dir.appendingPathComponent("v\(at)_\(Int(dur.rounded())).m4a")
         try? FileManager.default.moveItem(at: url, to: queued)
-        state = .busy
-        Task {
-            let ok = await send(queued)
-            if ok { await flush() }
-        }
+        // the screen closes now; transcription carries on behind it
+        state = .idle
+        if !cancelled { draftText = heard.isEmpty ? nil : heard }
+        refreshPending()
+        Task { await drain() }
     }
 
     // MARK: send and queue
@@ -153,7 +174,6 @@ final class Recorder: NSObject, ObservableObject {
     func refreshPending() { pending = queue().count }
 
     private func send(_ file: URL) async -> Bool {
-        state = .busy
         var ok = false
         let name = file.deletingPathExtension().lastPathComponent.dropFirst().split(separator: "_")
         let at = Double(name.first ?? "") ?? Date().timeIntervalSince1970 * 1000
@@ -187,20 +207,26 @@ final class Recorder: NSObject, ObservableObject {
         } catch {
             say(online ? "Voice server not reachable · saved" : "Offline · saved for later")
         }
-        state = .idle
         refreshPending()
         return ok
     }
 
-    /// send everything still waiting, oldest first; stops at the first failure
-    func flush() async {
-        guard !flushing, state == .idle, online, store?.isMock == false else { return }
-        flushing = true
-        defer { flushing = false }
-        for f in queue() {
-            if state != .idle { break }
-            if !(await send(f)) { break }
+    /// send what is waiting, oldest first, one at a time; a recording finished meanwhile is picked up by the same loop
+    private func drain() async {
+        guard !sending else { return }
+        sending = true
+        defer { sending = false; draftText = nil }
+        guard store?.isMock == false else { return }
+        var failed = Set<String>()
+        while let f = queue().first(where: { !failed.contains($0.lastPathComponent) }) {
+            if !(await send(f)) { failed.insert(f.lastPathComponent); break }
         }
+    }
+
+    /// retry everything still waiting (network back, app opened, Retry tapped)
+    func flush() async {
+        guard online else { return }
+        await drain()
     }
 
     private struct VoiceError: Error { let status: Int; let detail: String }

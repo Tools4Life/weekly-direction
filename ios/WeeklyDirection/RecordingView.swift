@@ -13,11 +13,10 @@ struct RecordingView: View {
     private static let demoText = "This is a preview of live words. As you talk, what you say shows up here a few words at a time"
 
     var body: some View {
-        let busy = recorder.state == .busy
         VStack(spacing: 0) {
             ZStack {
                 HStack {
-                    Button("Cancel") { recorder.cancel(); router.cover = nil }.caps(16).foregroundStyle(Theme.mu)
+                    Button("Cancel") { recorder.cancel(); router.endRecording() }.caps(16).foregroundStyle(Theme.mu)
                     Spacer()
                 }
                 Text(Fmt.mmss(floor(recorder.elapsed))).font(Theme.label(15)).tracking(1.5).monospacedDigit().foregroundStyle(Theme.mu)
@@ -33,7 +32,7 @@ struct RecordingView: View {
             }
             Wave(levels: recorder.levels).frame(height: 60).padding(.top, 26)
             Button {
-                if store.isMock { router.cover = nil } else { recorder.stop() }
+                if store.isMock { router.endRecording() } else { recorder.stop(); router.endRecording() }
             } label: {
                 ZStack {
                     Circle().fill(Theme.ac).frame(width: 105, height: 105)
@@ -42,23 +41,23 @@ struct RecordingView: View {
                 .scaleEffect(1 + 0.08 * (recorder.levels.last ?? 0))
                 .animation(.easeOut(duration: 0.12), value: recorder.levels.last)
             }
-            .buttonStyle(.plain).disabled(busy)
+            .buttonStyle(.plain)
             .accessibilityLabel("Finish recording")
             .padding(.top, 38)
-            .offset(y: risen ? 0 : 60)
-            Text(busy ? "Saving…" : "Tap to finish").font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 16).padding(.bottom, 30)
+            // the orb grows out of the tab bar mic
+            .scaleEffect(risen ? 1 : 0.57).offset(y: risen ? 0 : 96)
+            Text("Tap to finish").font(Theme.ui(14)).foregroundStyle(Theme.mu2).padding(.top, 16).padding(.bottom, 30)
         }
         .padding(.horizontal, 24)
         .background(Theme.bg.ignoresSafeArea())
-        .opacity(risen ? 1 : 0)
         .onAppear {
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.8)) { risen = true }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) { risen = true }
             if store.isMock { startDemo(); return }
-            Task { if !(await recorder.start()) { router.cover = nil } }
+            Task { if !(await recorder.start()) { router.endRecording() } }
         }
         .onDisappear { demo?.invalidate(); if recorder.state == .rec { recorder.cancel() } }
-        // sent (or queued): back to the journal, where the status line says what happened
-        .onChange(of: recorder.state) { old, new in if old != .idle && new == .idle { router.cover = nil } }
+        // stopped by the 10 minute limit: close; the status line says what happened next
+        .onChange(of: recorder.state) { old, new in if old == .rec && new == .idle { router.endRecording() } }
     }
 
     /// sample words and a moving level for simulator screenshots; nothing is recorded
