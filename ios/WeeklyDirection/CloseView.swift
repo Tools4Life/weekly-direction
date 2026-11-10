@@ -1,31 +1,24 @@
 import SwiftUI
 
-/// Close the week (web: openClose / renderClose): the result as recorded, the Saturday questions, the reflection
-/// (starts as this week's journal), then Close. Closing writes status, closedAt, percentage and reflection, nothing else.
+/// Close the week (web: openClose / renderClose): the result as recorded, the Saturday questions as prompts, one free
+/// reflection (spoken or typed), and this week's journal, then Close. Closing writes status, closedAt, percentage and reflection, nothing else.
 struct CloseSheet: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
     let weekId: String
-    @State private var answers: [String] = []
+    /// the reflection spoken or typed on this page
+    @State private var review = ""
     @State private var questions: [String] = []
     @State private var reflection = ""
     @State private var loaded = false
 
-    /// spoken review: tidied and placed under the questions it answers; typed answers already there are kept
+    /// spoken reflection: tidied, then added to what is already written; the questions are prompts, not fields
     private func spoken(_ raw: String) async -> String? {
-        func add(_ old: String, _ new: String) -> String {
-            let o = old.trimmingCharacters(in: .whitespacesAndNewlines)
-            return new.isEmpty ? old : o.isEmpty ? new : o + " " + new
-        }
-        if let r = await Tidy.review(store, raw, questions) {
-            for i in answers.indices { answers[i] = add(answers[i], r.answers[i]) }
-            if !r.other.isEmpty { reflection = reflection.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? r.other : reflection + "\n\n" + r.other }
-            let n = r.answers.filter { !$0.isEmpty }.count
-            return n == 0 ? "Added under Reflection." : "Answered \(n) of \(questions.count)."
-        }
-        let text = Tidy.oneLine(raw)
-        if answers.isEmpty { reflection = reflection.isEmpty ? text : reflection + "\n\n" + text } else { answers[0] = add(answers[0], text) }
-        return Tidy.asSpoken
+        let tidy = await Tidy.clean(store, raw, mode: "reflection")
+        let text = tidy ?? raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cur = review.trimmingCharacters(in: .whitespacesAndNewlines)
+        review = cur.isEmpty ? text : cur + "\n\n" + text
+        return tidy == nil ? Tidy.asSpoken : nil
     }
 
     var body: some View {
@@ -59,16 +52,18 @@ struct CloseSheet: View {
                         Text(lim > 0 ? "Starts at \(lim) mg · AM \(sp.am) · PM \(sp.pm)" : "Caffeine-free").font(Theme.ui(15)).foregroundStyle(Theme.tx).padding(.top, 6)
                     }
                     DictateCard(title: "Reflect on this week", autoStart: router.dictateOnOpen, onText: spoken).padding(.top, 28)
-                    // the questions are a plain page: each one, then its answer (spoken or typed) straight under it
-                    ForEach(Array(questions.enumerated()), id: \.offset) { i, q in
-                        Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
-                        Text(q).font(Theme.serifItalic(17)).lineSpacing(4).foregroundStyle(Theme.mu).padding(.top, 18)
-                        line(text: Binding(get: { i < answers.count ? answers[i] : "" }, set: { if i < answers.count { answers[i] = $0 } }), placeholder: "Answer")
-                            .padding(.top, 8)
+                    // the Saturday questions are prompts to talk or write from (Eddie, Nov 10 2026): nothing to fill in
+                    VStack(alignment: .leading, spacing: 12) {
+                        ForEach(questions, id: \.self) { q in
+                            Text(q).font(Theme.serifItalic(16)).lineSpacing(3).foregroundStyle(Theme.mu)
+                        }
                     }
+                    .padding(.top, 22)
+                    Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
+                    line(text: $review, placeholder: "Your reflection").padding(.top, 18)
                     Rectangle().fill(Theme.rule).frame(height: 1).padding(.top, 22)
                     Eyebrow(text: "This week’s journal", color: Theme.mu, size: 12).padding(.top, 18)
-                    line(text: $reflection, placeholder: "Anything else from the week?").padding(.top, 8)
+                    line(text: $reflection, placeholder: "Nothing written this week.").padding(.top, 8)
                     Button { close() } label: {
                         Text("Close the week").caps(16).foregroundStyle(Theme.onAc)
                             .frame(maxWidth: .infinity).frame(height: 54)
@@ -83,7 +78,6 @@ struct CloseSheet: View {
                     loaded = true
                     router.dictateOnOpen = false
                     questions = Logic.qsOf(w, store.settings)
-                    answers = Array(repeating: "", count: questions.count)
                     reflection = w.liveRefl
                 }
             }
@@ -98,15 +92,11 @@ struct CloseSheet: View {
             .font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx).fullWidth()
     }
 
-    /// joinRef: each answered question as "question\nanswer", then the reflection, separated by blank lines
+    /// what is saved as the week's reflection: the journal as it stands, then this reflection as one more stamped entry
+    /// (the same shape as a journal entry, so it has no blank lines inside)
     private func joined() -> String {
-        var parts = questions.enumerated().compactMap { i, q -> String? in
-            let a = answers[i].trimmingCharacters(in: .whitespacesAndNewlines)
-            return a.isEmpty ? nil : "\(q)\n\(a)"
-        }
         let r = reflection.trimmingCharacters(in: .whitespacesAndNewlines)
-        if !r.isEmpty { parts.append(r) }
-        return parts.joined(separator: "\n\n")
+        return Journal.appended(r, at: Now.date, text: review) ?? r
     }
 
     private func close() {

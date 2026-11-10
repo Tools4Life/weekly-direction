@@ -49,7 +49,8 @@ Every report shows the simulator shot next to the reference, says what was not v
 
 ## Voice in plan and review (Nov 10 2026)
 `DictateCard` + `Tidy` (Dictate.swift) and `Recorder.startDictation / finishDictation`. Cloud Function `tidy` takes
-`{mode: "vision", text}` → `{text}` or `{mode: "review", text, questions}` → `{answers, other}`. It must clean, never summarize.
+`{mode: "vision" | "reflection", text}` → `{text}`. It must clean, never summarize. The Saturday questions are prompts on
+the review page, not fields: the review saves the journal plus the reflection as one more stamped entry.
 
 ## Known pitfalls
 - A failing XCTest assertion hangs (XCTest stalls collecting the failure's call stack) instead of printing. `scripts/test.sh`

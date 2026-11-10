@@ -6,6 +6,11 @@
 - A prayer that is only its name opens as a half sheet with "Add to this prayer"; Edit or that line lifts it to the full page. A prayer with text, the life prayer and New still open full height. The list stays plain rows (a text preview line was tried and removed the same day: Eddie wants the list simple).
 - Layout only: no change to what is saved. Verified: simulator shots `prayer`, `prayer-short`. Not verified: on the phone; the lift to full height when Edit is tapped.
 
+## Questions are prompts (Nov 10)
+- Review page: the Saturday questions are shown as prompts only; there is one free reflection (spoken or typed) and this week's journal. Closing saves the journal plus the reflection as one more stamped entry ("Saturday, 5:32 pm" + text, no blank lines inside). iOS no longer writes "question + answer" blocks; weeks closed on the web still have them and still display.
+- `tidy` is now `{mode: "vision" | "reflection", text}` → `{text}` only (the per-question split is gone). Still not deployed.
+- Verified: shot `close`, 13 tests. Not verified: closing a week with a spoken reflection, on the phone.
+
 ## Review on the main page (Nov 10)
 - This Week on review day / when due: a block under the day strip with "Reflect on this week" (the mic opens the review and starts listening; the row opens it to read or type) and "Plan next week" (muted until the week is closed; opens the review). Replaces the old "Weekly review" card.
 - When every habit of today is done, failed or missed, the habit list tucks away under one row ("Daily habits · done for today", tap to open again).

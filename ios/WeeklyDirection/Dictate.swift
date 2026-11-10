@@ -109,21 +109,11 @@ enum Tidy {
         } catch { return nil }
     }
 
-    @MainActor static func vision(_ store: Store, _ text: String) async -> String? {
-        let t = (await call(store, ["mode": "vision", "text": text])?["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
+    /// mode "vision" (a plan) or "reflection" (a review): the same clean-up, told what the note is
+    @MainActor static func clean(_ store: Store, _ text: String, mode: String) async -> String? {
+        let t = (await call(store, ["mode": mode, "text": text])?["text"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
         return t?.isEmpty == false ? t : nil
     }
 
-    /// one answer per question ("" where he did not speak to it), plus what fits none of them
-    @MainActor static func review(_ store: Store, _ text: String, _ questions: [String]) async -> (answers: [String], other: String)? {
-        guard !questions.isEmpty, let j = await call(store, ["mode": "review", "text": text, "questions": questions]),
-              let a = j["answers"] as? [String], a.count == questions.count else { return nil }
-        return (a.map(oneLine), oneLine(j["other"] as? String ?? ""))
-    }
-
-    /// an answer is one paragraph: a blank line inside it would split the saved reflection into two entries
-    static func oneLine(_ s: String) -> String {
-        s.replacingOccurrences(of: "\\s*\\n+\\s*", with: " ", options: .regularExpression).trimmingCharacters(in: .whitespacesAndNewlines)
-    }
     static let asSpoken = "Added as spoken."
 }

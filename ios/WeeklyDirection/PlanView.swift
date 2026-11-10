@@ -158,7 +158,7 @@ struct PlanView: View {
 
     /// spoken plan: tidied, then added under what the vision already says
     private func spoken(_ raw: String) async -> String? {
-        let tidy = await Tidy.vision(store, raw)
+        let tidy = await Tidy.clean(store, raw, mode: "vision")
         let text = tidy ?? raw.trimmingCharacters(in: .whitespacesAndNewlines)
         let cur = thoughts.trimmingCharacters(in: .whitespacesAndNewlines)
         thoughts = cur.isEmpty ? text : cur + "\n\n" + text
