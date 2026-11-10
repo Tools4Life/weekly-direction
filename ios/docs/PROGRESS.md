@@ -1,8 +1,8 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (8) uploaded to TestFlight Nov 10 (through commit 7b847e6: debugging-run fixes, the four picks, the label batch). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (9) uploaded to TestFlight Nov 10 (through commit 5468a17: build 8 plus the Progress card wording). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Nothing pushed (no git credentials in the Claude shell).
 
-## After 0.2 (8), from Eddie's phone (Nov 10): not uploaded
+## After 0.2 (8), from Eddie's phone (Nov 10): in 0.2 (9)
 - Progress card says "1 of 7 days kept" on one line; "% on time" removed there and from the Habits rows (always 100 since the Nov 8 rule: on time or missed). Still shown on the week's own stats pages.
 
 ## Label batch before the freeze (Nov 10, Eddie agreed to the list)
