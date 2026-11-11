@@ -104,16 +104,7 @@ struct SettingsView: View {
             }
             .buttonStyle(.plain)
         }
-        if store.practice || !store.isMock {
-            group {
-                Button {
-                    Haptic.tick()
-                    if store.practice { store.exitPractice() } else { store.enterPractice() }
-                    dismiss()
-                } label: { line(store.practice ? "Leave practice mode" : "Practice mode", value: store.practice ? nil : "Sample week", chevron: !store.practice) }
-                .buttonStyle(.plain)
-            }
-        }
+        // no way into practice mode from here any more (Eddie, Nov 10 2026); the code behind it stays, unreachable
         group {
             Button { exportURL = export() } label: { line("Export my data", value: nil, chevron: true) }.buttonStyle(.plain)
             divider
