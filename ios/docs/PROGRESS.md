@@ -2,6 +2,9 @@
 
 **Current: 0.2 (12) uploaded to TestFlight Nov 11 (through commit d70c559: build 11 plus praying hands on the mic on the Prayer tab). Open: the prayer log's save to `data/prayerLog` is unverified against the Firestore rules (Eddie to pray one sentence and report).** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
 
+## After 0.2 (12) (Nov 11): NOT uploaded yet
+- Praying hands redrawn to match the mic (Eddie): outline only, curved, symmetric, the mic's stroke and height; no thumbs.
+
 ## After 0.2 (11) (Nov 11): in 0.2 (12)
 - The mic on the Prayer tab shows praying hands (`TabIcon` prayer "praying"), not the cross: the tab keeps the cross, so the two marks differ (Eddie's call; no pulse, no label).
 

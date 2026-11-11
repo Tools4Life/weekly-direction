@@ -40,17 +40,17 @@ struct TabIcon: View {
                 }
                 switch prayer {
                 case "praying":
-                    // drawn for one hand and mirrored: fingers and palm down to the wrist, then the thumb hooked in front
+                    // two palms together, outline only, in the mic's rounded language (Eddie, Nov 11 2026: same stroke as
+                    // the mic, no interior detail, symmetric). Drawn for one hand and mirrored; one line where they meet.
                     for s in [CGFloat(-1), 1] {
                         func q(_ dx: CGFloat, _ y: CGFloat) -> CGPoint { p(12 + s * dx, y) }
-                        path.move(to: q(0.35, 9.6)); path.addLine(to: q(0.75, 4.6))
-                        path.addQuadCurve(to: q(1.9, 4.4), control: q(1.2, 3.5))
-                        for (dx, y) in [(4.2, 10.0), (4.2, 13.4), (6.6, 17.0), (3.6, 20.0), (0, 16.4)] as [(CGFloat, CGFloat)] { path.addLine(to: q(dx, y)) }
-                        path.move(to: q(2.1, 13.8)); path.addLine(to: q(2.1, 11.0))
-                        path.addQuadCurve(to: q(1.05, 9.9), control: q(2.1, 9.9))
-                        path.addQuadCurve(to: q(0, 11.0), control: q(0, 9.9))
+                        path.move(to: q(0, 5.4))
+                        path.addCurve(to: q(4.3, 12.6), control1: q(1.9, 2.6), control2: q(4.3, 8.6))
+                        path.addCurve(to: q(6.4, 17.2), control1: q(4.3, 14.6), control2: q(5.4, 15.8))
+                        path.addLine(to: q(3.8, 19.8))
+                        path.addLine(to: q(0, 16.0))
                     }
-                    line([(12, 11.0), (12, 16.4)])
+                    line([(12, 5.4), (12, 16.0)])
                 case "flame":
                     path.move(to: p(12, 6.9))
                     curve((15.3, 13.4), (13.2, 8.7), (15.3, 10.7)); curve((12, 17), (15.3, 15.5), (13.9, 17))

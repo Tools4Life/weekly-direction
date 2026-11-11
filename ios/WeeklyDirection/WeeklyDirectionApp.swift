@@ -208,7 +208,7 @@ struct TabBar: View {
                             Circle().fill(Theme.bg).frame(width: 90, height: 90)
                             Circle().fill(Theme.ac.opacity(0.18)).frame(width: 84, height: 84)
                             Circle().fill(Theme.ac).frame(width: 72, height: 72)
-                            if praying { TabIcon(name: "prayer", frame: .none, size: 62, prayer: "praying", weight: 1.15).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
+                            if praying { TabIcon(name: "prayer", frame: .none, size: 46, prayer: "praying", weight: 1.17).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
                             else { Image(systemName: "mic").font(.system(size: 29, weight: .regular)).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
                         }
                         .animation(.easeOut(duration: 0.18), value: praying)
