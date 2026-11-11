@@ -156,7 +156,7 @@ struct VisionView: View {
             VStack(alignment: .leading, spacing: 5) {
                 if let q = b.q { Text(q).font(Theme.serifItalic(17)).foregroundStyle(Theme.mu) }
                 if let d = b.d, let t = b.t { Eyebrow(text: "\(d), \(t)") }
-                Text(b.x).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
+                Text(b.read).font(Theme.serif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
             }
             .padding(.bottom, 16)
         }

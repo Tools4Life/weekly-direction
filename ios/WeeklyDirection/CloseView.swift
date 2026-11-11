@@ -155,7 +155,7 @@ struct CloseSheet: View {
                     ForEach(blocks) { b in
                         VStack(alignment: .leading, spacing: 5) {
                             if let d = b.d { Text(b.t.map { "\(d), \($0)" } ?? d).font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2) }
-                            Text(b.x).font(Theme.serif(17)).lineSpacing(6).foregroundStyle(Theme.tx)
+                            Text(b.read).font(Theme.serif(17)).lineSpacing(6).foregroundStyle(Theme.tx)
                         }
                         .fullWidth().padding(.top, 16)
                     }

@@ -31,7 +31,8 @@ enum Mock {
         Up before the alarm. Devotion in Daniel 1, the part about purposing in his heart before the test came.
 
         Tuesday, 9:15 pm
-        Slipped on devotion this morning. Overslept after a late night on the laptop. Present at home went well though.
+        Slipped on devotion this morning. Overslept after a late night on the laptop.
+        Present at home went well though.
 
         Wednesday, 6:52 am
         Back on track. I think the evening is the real battle, not the morning.

@@ -145,7 +145,7 @@ struct WeekPage: View {
             ForEach(qa) { e in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(e.q ?? "").font(Theme.jitalic(17)).foregroundStyle(Theme.mu)
-                    Text(e.x).font(Theme.jserif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
+                    Text(e.read).font(Theme.jserif(18)).lineSpacing(6).foregroundStyle(Theme.tx)
                 }
                 .padding(.top, 14)
             }
@@ -204,7 +204,7 @@ struct WeekPage: View {
             }
             VStack(alignment: .leading, spacing: 6) {
                 if let t = e.t { Text(t).font(Theme.jitalic(13)).foregroundStyle(Theme.mu2) }
-                Text(e.x).font(Theme.jserif(18)).lineSpacing(8).foregroundStyle(Theme.tx)
+                Text(e.read).font(Theme.jserif(18)).lineSpacing(8).foregroundStyle(Theme.tx)
             }
         }
         .fullWidth()

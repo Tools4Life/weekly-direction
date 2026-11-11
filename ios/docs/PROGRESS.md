@@ -6,6 +6,10 @@
 - 2026-11-11, Prayer tab: a spoken prayer log. Eddie: "add a running log of prayers spoken out loud to the prayer tab, below
   the 'things to pray for'. It's just spoken prayer log below." Not designed or built yet.
 
+## After 0.2 (10) (Nov 11, from Eddie's phone): NOT uploaded yet
+- Edit / Plan the week: a long vision stays a box of at most 12 lines that scrolls inside itself; scrolling the page puts the keyboard away at once (Seal comes back). From his screen recording: a page-long vision buried the habits and Seal, and the keyboard stayed up over the whole page.
+- Reading entries (journal week page, journal list, review, vision log): an empty line between an entry's paragraphs (`Journal.Block.read`). Display only; stored entries keep single line breaks.
+
 ## After 0.2 (9) (Nov 10): in 0.2 (10)
 - Settings: the Practice mode row is removed (Eddie). The practice code stays in `Store`, unreachable (only `-MockPractice` in sample mode).
 - `tidy` function: spoken text is edited, never answered (transcript tags + a guard that returns his own words); deployed Nov 10.

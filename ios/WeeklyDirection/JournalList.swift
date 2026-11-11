@@ -135,7 +135,7 @@ struct JournalList: View {
                             if let d = e.d, let t = e.t {
                                 Text("\(d == Fmt.dowl[Rules.weekday(Now.date)] ? "Today" : d), \(t)").font(Theme.jitalic(13)).foregroundStyle(Theme.mu2)
                             }
-                            Text(e.x).font(Theme.jserif(17)).lineSpacing(7).foregroundStyle(Theme.tx)
+                            Text(e.read).font(Theme.jserif(17)).lineSpacing(7).foregroundStyle(Theme.tx)
                         }
                         .fullWidth().padding(.vertical, 16)
                         .contentShape(Rectangle())

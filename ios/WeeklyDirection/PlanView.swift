@@ -50,7 +50,8 @@ struct PlanView: View {
                     .fullWidth().padding(.horizontal, 24).padding(.top, 14).padding(.bottom, 50)
             }
             .scrollIndicators(.hidden)
-            .scrollDismissesKeyboard(.interactively)
+            // scrolling the page puts the keyboard away at once, which brings Seal back
+            .scrollDismissesKeyboard(.immediately)
             // out of the way while typing, so the field being written in keeps the room
             if !typing { footer }
         }
@@ -104,7 +105,9 @@ struct PlanView: View {
         Eyebrow(text: "Vision", color: Theme.mu, size: 12).padding(.top, 26)
         field {
             TextField("What do you want this week to be?", text: $thoughts, axis: .vertical)
-                .font(Theme.serif(17)).lineSpacing(6).frame(minHeight: 96, alignment: .topLeading)
+                // a long vision stays a box of a dozen lines that scrolls inside itself (Eddie, Nov 11 2026): the page under
+                // it stays short, so the habits and Seal are a flick away and not a page of text away
+                .font(Theme.serif(17)).lineSpacing(6).lineLimit(4...12)
                 .onChange(of: thoughts) { _, _ in saveDraft() }
         }
         .padding(.top, 10)

@@ -334,6 +334,9 @@ enum Journal {
         var q: String?
         let x: String
         var id: Int { i }
+        /// the text for reading: an empty line between its paragraphs (Eddie, Nov 11 2026). Display only: the stored
+        /// entry keeps single line breaks, because a blank line is what separates one entry from the next.
+        var read: String { x.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: "\n\n") }
     }
 
     private static let sep = try! NSRegularExpression(pattern: "\\n\\s*\\n")
