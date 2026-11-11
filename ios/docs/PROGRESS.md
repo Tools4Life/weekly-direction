@@ -2,9 +2,16 @@
 
 **Current: 0.2 (10) uploaded to TestFlight Nov 11 (through commit 1f400b9: build 9 plus the Practice row removed from Settings). `tidy` function deployed Nov 10 with the edit-never-answer fix. The app is frozen after this build unless Eddie's phone test finds a bug.** Pushed to GitHub through f032c01; later commits are local (`git push` works from Eddie's terminal, token in the Keychain).
 
-## Next update (backlog, not started)
-- 2026-11-11, Prayer tab: a spoken prayer log. Eddie: "add a running log of prayers spoken out loud to the prayer tab, below
-  the 'things to pray for'. It's just spoken prayer log below." Not designed or built yet.
+## Prayer log (Nov 11, built, NOT uploaded, not tested on the phone)
+Eddie: "add a running log of prayers spoken out loud to the prayer tab, below the 'things to pray for'", one mic only.
+- On the Prayer tab the tab-bar mic shows the prayer mark and records a prayer; on every other tab, and from widgets and
+  shortcuts, it records a thought for the journal as before. The recording screen says PRAYER.
+- Same pipeline as thoughts (m4a → `transcribe`), kept on the phone until written; the file name ends `_p` so a prayer sent
+  later still goes to the log. It needs no week in progress.
+- Stored in a NEW collection, iOS only: `users/{uid}/weeklyDirection/data/prayerLog/{l<ms>}` = `{at, text}`. Never inside a week.
+  **Unverified: the Firestore rules must allow this path.** If they don't, the app says "Couldn't save the prayer · kept on
+  the phone" and the recording stays queued (nothing is lost).
+- Prayer tab: "Prayer log" under the list, newest first by day; press and hold to delete. Included in Export.
 
 ## After 0.2 (10) (Nov 11, from Eddie's phone): NOT uploaded yet
 - Edit / Plan the week: a long vision stays a box of at most 12 lines that scrolls inside itself; scrolling the page puts the keyboard away at once (Seal comes back). From his screen recording: a page-long vision buried the habits and Seal, and the keyboard stayed up over the whole page.

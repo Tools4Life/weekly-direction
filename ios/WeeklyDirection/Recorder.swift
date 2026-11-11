@@ -36,6 +36,10 @@ final class Recorder: NSObject, ObservableObject {
     /// journal as a placeholder entry until its transcript arrives; `text` is what the phone itself heard, if anything.
     struct Waiting: Identifiable, Equatable { let at: Date; let seconds: Int; let text: String?; var id: Double { at.timeIntervalSince1970 } }
     @Published var waiting: [Waiting] = []
+    /// the same for prayers spoken on the Prayer tab: they wait for the prayer log, never the journal
+    @Published var waitingPrayers: [Waiting] = []
+    /// the recording in progress is a prayer (started from the Prayer tab)
+    private var prayer = false
 
     weak var store: Store?
     private var recorder: AVAudioRecorder?
@@ -80,7 +84,7 @@ final class Recorder: NSObject, ObservableObject {
         message = m
         messageToken += 1
         guard let m else { return }
-        let token = messageToken, quick = ["Added to this week", "Too short", "Nothing heard"].contains(m)
+        let token = messageToken, quick = ["Added to this week", "Added to your prayers", "Too short", "Nothing heard"].contains(m)
         DispatchQueue.main.asyncAfter(deadline: .now() + (quick ? 1.8 : 3.5)) { [weak self] in
             if self?.messageToken == token { self?.message = nil }
         }
@@ -89,8 +93,9 @@ final class Recorder: NSObject, ObservableObject {
     // MARK: record
 
     /// returns false when the mic is blocked or recording can't start
-    func start() async -> Bool {
+    func start(prayer: Bool = false) async -> Bool {
         guard state == .idle, !starting else { return false }
+        self.prayer = prayer
         starting = true; abortStart = false
         defer { starting = false }
         say(nil)
@@ -227,13 +232,14 @@ final class Recorder: NSObject, ObservableObject {
         if dur < 1.5 || size == 0 { try? FileManager.default.removeItem(at: url); state = .idle; say("Too short"); return }
         // queue it under its start time and length, then send; it stays on the phone until the server has it
         let at = Int(startedAt.timeIntervalSince1970 * 1000)
-        let queued = dir.appendingPathComponent("v\(at)_\(Int(dur.rounded())).m4a")
+        // a prayer is marked in the file name, so it still goes to the prayer log if it is sent hours later
+        let queued = dir.appendingPathComponent("v\(at)_\(Int(dur.rounded()))\(prayer ? "_p" : "").m4a")
         try? FileManager.default.moveItem(at: url, to: queued)
         // what the phone heard, kept beside the recording: the placeholder shown until the real transcript arrives
         if !heard.isEmpty { try? heard.write(to: queued.deletingPathExtension().appendingPathExtension("txt"), atomically: true, encoding: .utf8) }
         // the screen closes now; transcription carries on behind it
         state = .idle
-        if !cancelled { draftText = heard.isEmpty ? nil : heard }
+        if !cancelled, !prayer { draftText = heard.isEmpty ? nil : heard }
         refreshPending()
         // offline: it stays on the phone and is sent by itself when the network is back
         if !online { say("Offline · saved, will be written down later"); return }
@@ -250,14 +256,19 @@ final class Recorder: NSObject, ObservableObject {
     func refreshPending() {
         let q = queue()
         pending = q.count
-        waiting = q.map { f in
-            let name = f.deletingPathExtension().lastPathComponent.dropFirst().split(separator: "_")
-            let text = (try? String(contentsOf: f.deletingPathExtension().appendingPathExtension("txt"), encoding: .utf8))?
-                .trimmingCharacters(in: .whitespacesAndNewlines)
-            return Waiting(at: Date(timeIntervalSince1970: (Double(name.first ?? "") ?? 0) / 1000), seconds: Int(name.count > 1 ? name[1] : "0") ?? 0,
-                           text: text?.isEmpty == false ? text : nil)
+        func rows(_ fs: [URL]) -> [Waiting] {
+            fs.map { f in
+                let name = f.deletingPathExtension().lastPathComponent.dropFirst().split(separator: "_")
+                let text = (try? String(contentsOf: f.deletingPathExtension().appendingPathExtension("txt"), encoding: .utf8))?
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                return Waiting(at: Date(timeIntervalSince1970: (Double(name.first ?? "") ?? 0) / 1000), seconds: Int(name.count > 1 ? name[1] : "0") ?? 0,
+                               text: text?.isEmpty == false ? text : nil)
+            }
         }
+        waiting = rows(q.filter { !Self.isPrayer($0) })
+        waitingPrayers = rows(q.filter { Self.isPrayer($0) })
     }
+    static func isPrayer(_ f: URL) -> Bool { f.deletingPathExtension().lastPathComponent.hasSuffix("_p") }
 
     private func send(_ file: URL) async -> Bool {
         var ok = false
@@ -265,8 +276,10 @@ final class Recorder: NSObject, ObservableObject {
         let at = Double(name.first ?? "") ?? Date().timeIntervalSince1970 * 1000
         do {
             guard let store else { throw URLError(.cancelled) }
-            // with no week in progress there is nowhere to write it: it stays on the phone, unsent, until a week is sealed
-            guard store.activeWeek != nil else { say("No week in progress · saved"); refreshPending(); return false }
+            let isPrayer = Self.isPrayer(file)
+            // with no week in progress there is nowhere to write a thought: it stays on the phone, unsent, until a week is
+            // sealed. A prayer belongs to no week and is sent regardless.
+            guard isPrayer || store.activeWeek != nil else { say("No week in progress · saved"); refreshPending(); return false }
             let token = try await store.token()
             var req = URLRequest(url: Self.voiceURL)
             req.httpMethod = "POST"
@@ -278,7 +291,11 @@ final class Recorder: NSObject, ObservableObject {
             let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
             guard (200..<300).contains(code) else { throw VoiceError(status: code, detail: "\(j["detail"] ?? j["error"] ?? "")") }
             let text = (j["text"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            if !text.isEmpty {
+            if !text.isEmpty, isPrayer {
+                // the recording is only deleted once the log has the words
+                do { try await store.addPrayerLog(at: at, text: text) }
+                catch { say("Couldn’t save the prayer · kept on the phone"); refreshPending(); return false }
+            } else if !text.isEmpty {
                 // the week was closed while this was uploading: keep the recording rather than lose the words
                 guard let w = store.activeWeek else { say("No week in progress · saved"); refreshPending(); return false }
                 if let t = Journal.appended(w.liveRefl, at: Date(timeIntervalSince1970: at / 1000), text: text) { store.patchWeek(w, ["liveRefl": t]) }
@@ -286,7 +303,7 @@ final class Recorder: NSObject, ObservableObject {
             try? FileManager.default.removeItem(at: file)
             try? FileManager.default.removeItem(at: file.deletingPathExtension().appendingPathExtension("txt"))
             ok = true
-            say(text.isEmpty ? "Nothing heard" : "Added to this week")
+            say(text.isEmpty ? "Nothing heard" : isPrayer ? "Added to your prayers" : "Added to this week")
             if !text.isEmpty { Haptic.success() }
         } catch let e as VoiceError {
             let d = e.detail

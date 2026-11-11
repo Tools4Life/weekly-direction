@@ -58,6 +58,11 @@ Target `WeeklyDirectionWidgets` (see project.yml). `Shared/` is compiled into bo
 show, written by `WidgetBridge` into the App Group), `TimerAttributes`, `DictateIntent`, `WeekWidgetBody` (the layouts; the app
 draws the same views for `-OpenScreen widgets`). The extension never touches Firebase and never writes habit data.
 
+## Prayer log (Nov 11 2026, iOS only)
+On the Prayer tab the tab-bar mic records a prayer (`Router.recordingPrayer`, `Recorder.start(prayer:)`, queued file name ends
+`_p`) into `data/prayerLog/{l<ms>}` = `{at, text}` (`Store.addPrayerLog`), shown under the prayer list. Everywhere else the mic
+records a thought. A prayer never touches a week.
+
 ## Known pitfalls
 - A failing XCTest assertion hangs (XCTest stalls collecting the failure's call stack) instead of printing. `scripts/test.sh`
   caps each test at 60 s; a test that "exceeded execution time allowance" is a failed assertion: print the actual values.

@@ -82,6 +82,10 @@ enum Mock {
         let library = seed.enumerated().map { ["id": "c\($0.offset)", "name": $0.element.0, "icon": $0.element.1, "order": $0.offset] as [String: Any] }
         var settings: [String: Any] = ["closeDay": 6, "closeHour": 17, "cafOn": false, "theme": "dark"]
         if let t = UserDefaults.standard.string(forKey: "MockTheme") { settings["theme"] = t }
-        store.loadMock(settings: settings, weeks: weeks, prayers: prayers, library: library)
+        let log = [("2026-11-11", "06:10", "Lord, thank You for this morning. Give me a sober mind today, at work and at home.\nKeep my eyes and my thoughts. Let me be present with the girls tonight."),
+                   ("2026-11-10", "21:40", "Father, I slipped today and I know it. Forgive me, and help me start tomorrow before the day starts me."),
+                   ("2026-11-09", "06:05", "Thank You for the church and for the men You have put around me. Provide for the house this month.")]
+        store.loadMock(settings: settings, weeks: weeks, prayers: prayers, library: library,
+                       prayerLog: log.map { PrayerEntry(id: "l" + $0.0 + $0.1, at: ms($0.0, $0.1), text: $0.2) })
     }
 }

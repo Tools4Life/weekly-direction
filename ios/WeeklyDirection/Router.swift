@@ -55,9 +55,14 @@ final class Router: ObservableObject {
     @Published var recording = false
     func endRecording() { withAnimation(.easeOut(duration: 0.16)) { recording = false } }
 
-    func startRecording() {
+    /// what the recording in progress is: a prayer for the prayer log, or a thought for the journal
+    @Published var recordingPrayer = false
+
+    /// the mic records a prayer only when it is tapped on the Prayer tab; widgets, shortcuts and every other tab record a thought
+    func startRecording(prayer: Bool = false) {
         sheet = nil
         cover = nil
+        if !recording { recordingPrayer = prayer }
         if !recording { withAnimation(.easeOut(duration: 0.16)) { recording = true } }
     }
 

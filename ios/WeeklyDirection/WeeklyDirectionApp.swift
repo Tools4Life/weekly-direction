@@ -199,20 +199,25 @@ struct TabBar: View {
         HStack {
             ForEach(tabs, id: \.0) { t in
                 if t.0 == "mic" {
-                    Button { router.startRecording() } label: {
+                    // on the Prayer tab the same button records a prayer into the prayer log, and shows the prayer mark
+                    let praying = router.tab == "prayer"
+                    Button { router.startRecording(prayer: praying) } label: {
                         ZStack {
                             // larger (Eddie, Nov 10 2026): it is the most used control in the app
                             Circle().fill(Theme.bg).frame(width: 90, height: 90)
                             Circle().fill(Theme.ac.opacity(0.18)).frame(width: 84, height: 84)
                             Circle().fill(Theme.ac).frame(width: 72, height: 72)
-                            Image(systemName: "mic").font(.system(size: 29, weight: .regular)).foregroundStyle(Theme.onAc)
+                            if praying { TabIcon(name: "prayer", frame: .none, size: 58).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
+                            else { Image(systemName: "mic").font(.system(size: 29, weight: .regular)).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
                         }
+                        .animation(.easeOut(duration: 0.18), value: praying)
                         .frame(maxWidth: .infinity).frame(height: 52).offset(y: -22)
                     }
                     .buttonStyle(.plain)
-                    .disabled(store.activeWeek == nil)
-                    .opacity(store.activeWeek == nil ? 0.45 : 1)
-                    .accessibilityLabel("Speak a reflection")
+                    // a thought needs a week to go into; a prayer does not
+                    .disabled(store.activeWeek == nil && !praying)
+                    .opacity(store.activeWeek == nil && !praying ? 0.45 : 1)
+                    .accessibilityLabel(praying ? "Pray out loud" : "Speak a reflection")
                 } else {
                 Button {
                     if router.tab != t.0 { Haptic.tick() }

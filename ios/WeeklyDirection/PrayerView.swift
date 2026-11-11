@@ -4,6 +4,8 @@ import SwiftUI
 struct PrayerList: View {
     @EnvironmentObject var store: Store
     @EnvironmentObject var router: Router
+    @EnvironmentObject var recorder: Recorder
+    @State private var deleting: PrayerEntry?
 
     var body: some View {
         let life = store.prayers.first { $0.pinned }, rest = store.prayers.filter { !$0.pinned }
@@ -47,10 +49,61 @@ struct PrayerList: View {
                     .buttonStyle(.plain).rise(1 + n)
                     Rectangle().fill(Theme.rule).frame(height: 1)
                 }
+                log
             }
             .fullWidth().padding(.horizontal, 24).padding(.top, 24).padding(.bottom, 40)
         }
         .scrollIndicators(.hidden)
+        .alert("Delete this prayer from the log? This can’t be undone.", isPresented: Binding(get: { deleting != nil }, set: { if !$0 { deleting = nil } })) {
+            Button("Delete", role: .destructive) { if let d = deleting { store.delPrayerLog(d.id) }; deleting = nil }
+            Button("Cancel", role: .cancel) { deleting = nil }
+        }
+    }
+
+    /// Prayers spoken out loud (Eddie, Nov 11 2026): on this tab the mic records a prayer, and it lands here, newest
+    /// first, under its day. Press and hold one to delete it.
+    @ViewBuilder private var log: some View {
+        Eyebrow(text: "Prayer log", color: Theme.mu, size: 12).padding(.top, 40)
+        RecorderStatus().padding(.top, 8)
+        // recordings still on the phone hold their place until they are written down
+        ForEach(recorder.waitingPrayers.reversed()) { p in
+            VStack(alignment: .leading, spacing: 6) {
+                Text("\(Fmt.clock(p.at)) · \(recorder.sending ? "writing it down" : "waiting to send")").font(Theme.serifItalic(13)).foregroundStyle(Theme.ac)
+                Text(p.text ?? "Spoken prayer, \(Fmt.mmss(Double(p.seconds)))").font(Theme.serif(17)).lineSpacing(6).foregroundStyle(Theme.mu)
+            }
+            .fullWidth().padding(.top, 18)
+        }
+        if store.prayerLog.isEmpty, recorder.waitingPrayers.isEmpty {
+            Text("Tap the button below and pray out loud. It is written down here.")
+                .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
+        }
+        ForEach(days, id: \.0) { day, entries in
+            HStack(alignment: .firstTextBaseline) {
+                Text(day == Rules.ymd(Now.date) ? "Today" : Fmt.dowl[Rules.weekday(entries[0].date)]).font(Theme.serif(20)).foregroundStyle(Theme.tx)
+                Spacer()
+                Eyebrow(text: Fmt.date(entries[0].date), color: Theme.mu2, size: 12)
+            }
+            .padding(.top, 30)
+            ForEach(entries) { e in
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(Fmt.clock(e.date)).font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2)
+                    Text(e.read).font(Theme.serif(18)).lineSpacing(7).foregroundStyle(Theme.tx)
+                }
+                .fullWidth().padding(.top, 16)
+                .contentShape(Rectangle())
+                .onLongPressGesture(minimumDuration: 0.5) { Haptic.tick(); deleting = e }
+            }
+        }
+    }
+
+    /// the log by day, newest day first, newest prayer first within a day
+    private var days: [(String, [PrayerEntry])] {
+        var out: [(String, [PrayerEntry])] = []
+        for e in store.prayerLog {
+            let k = Rules.ymd(e.date)
+            if out.last?.0 == k { out[out.count - 1].1.append(e) } else { out.append((k, [e])) }
+        }
+        return out
     }
 }
 

@@ -154,6 +154,17 @@ struct Settings: Equatable {
     static func == (a: Settings, b: Settings) -> Bool { NSDictionary(dictionary: a.raw).isEqual(to: b.raw) }
 }
 
+/// One prayer spoken out loud on the Prayer tab (iOS only, Nov 11 2026): `data/prayerLog/{id}` = {at, text}.
+/// It belongs to no week, so it never touches the weekly record.
+struct PrayerEntry: Identifiable, Equatable {
+    let id: String
+    let at: Double
+    let text: String
+    var date: Date { Date(timeIntervalSince1970: at / 1000) }
+    /// for reading: an empty line between paragraphs
+    var read: String { text.components(separatedBy: "\n").map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }.joined(separator: "\n\n") }
+}
+
 struct Prayer: Identifiable, Equatable {
     let id: String
     let text: String

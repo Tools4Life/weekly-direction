@@ -161,4 +161,19 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(items.first { $0.id == "rev:2026-11-14" }?.at, Rules.localDate("2026-11-14", "17:00"))
         XCTAssertEqual(items.count, 23)
     }
+
+    /// a prayer recording is told from a thought by its file name, and the same recording sent twice is one log entry
+    func testPrayerLog() async throws {
+        XCTAssertTrue(Recorder.isPrayer(URL(fileURLWithPath: "/x/v1762860000000_42_p.m4a")))
+        XCTAssertFalse(Recorder.isPrayer(URL(fileURLWithPath: "/x/v1762860000000_42.m4a")))
+        let n = store.prayerLog.count
+        try await store.addPrayerLog(at: 1_762_860_000_000, text: "Lord, keep me today.\nAnd tomorrow.")
+        try await store.addPrayerLog(at: 1_762_860_000_000, text: "Lord, keep me today.\nAnd tomorrow.")
+        XCTAssertEqual(store.prayerLog.count, n + 1)
+        XCTAssertEqual(store.prayerLog.first { $0.id == "l1762860000000" }?.read, "Lord, keep me today.\n\nAnd tomorrow.")
+        let liveRefl = store.activeWeek?.liveRefl
+        store.delPrayerLog("l1762860000000")
+        XCTAssertEqual(store.prayerLog.count, n)
+        XCTAssertEqual(store.activeWeek?.liveRefl, liveRefl)      // the journal is never touched
+    }
 }

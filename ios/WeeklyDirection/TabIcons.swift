@@ -3,7 +3,7 @@ import SwiftUI
 /// Tab bar icons drawn on the web app's 24-point grid with one stroke, so all four belong together.
 /// `framed` puts each glyph in the web's rounded square (its own tab icons do this); `.circle` echoes the mic.
 struct TabIcon: View {
-    enum Frame { case square, circle }
+    enum Frame { case square, circle, none }
     let name: String          // week | reflect | prayer | progress
     var frame: Frame = .square
     var size: CGFloat = 27
@@ -22,6 +22,7 @@ struct TabIcon: View {
             switch frame {
             case .square: path.addRoundedRect(in: CGRect(x: 3.5 * k, y: 3.5 * k, width: 17 * k, height: 17 * k), cornerSize: CGSize(width: 4 * k, height: 4 * k), style: .continuous)
             case .circle: path.addEllipse(in: CGRect(x: 3 * k, y: 3 * k, width: 18 * k, height: 18 * k))
+            case .none: break
             }
             switch name {
             case "week":

@@ -18,6 +18,7 @@ struct RecordingView: View {
             HStack {
                 Button("Cancel") { recorder.cancel(); router.endRecording() }.caps(16).foregroundStyle(Theme.mu)
                 Spacer()
+                if router.recordingPrayer { Eyebrow(text: "Prayer", color: Theme.ac) }
             }
             .frame(height: 52)
             ScrollViewReader { proxy in
@@ -57,7 +58,7 @@ struct RecordingView: View {
         .onAppear {
             withAnimation(.spring(response: 0.3, dampingFraction: 0.82)) { risen = true }
             if !store.online { startDemo(); return }
-            Task { if !(await recorder.start()) { router.endRecording() } }
+            Task { if !(await recorder.start(prayer: router.recordingPrayer)) { router.endRecording() } }
         }
         .onDisappear { demo?.invalidate(); if recorder.state == .rec { recorder.cancel() } else { recorder.abortIfStarting() } }
         // stopped by the 10 minute limit: close; the status line says what happened next

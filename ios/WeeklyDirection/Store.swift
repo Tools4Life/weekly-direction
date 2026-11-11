@@ -14,6 +14,8 @@ final class Store: ObservableObject {
     @Published var settings = Settings()
     @Published var weeks: [Week] = []
     @Published var prayers: [Prayer] = []
+    /// prayers spoken out loud, newest first
+    @Published var prayerLog: [PrayerEntry] = []
     @Published var library: [Chip] = []
     /// the in-progress plan (nil when there is none)
     @Published var draft: [String: Any]?
@@ -107,7 +109,7 @@ final class Store: ObservableObject {
         user = u
         email = u?.email
         ready = false
-        weeks = []; prayers = []; library = []; draft = nil
+        weeks = []; prayers = []; prayerLog = []; library = []; draft = nil
         base = nil
         guard let u else { return }
         // users/{uid}/weeklyDirection/{settings|draft}; data/{weeks|prayers|library} are collections
@@ -148,6 +150,16 @@ final class Store: ObservableObject {
                 if let err { fail(err); return }
                 self.prayers = (snap?.documents ?? []).map { Prayer(id: $0.documentID, $0.data()) }.sorted { $0.created > $1.created }
                 self.loaded("prayers")
+            }
+        })
+        // the spoken prayer log is not part of "ready": the app must open even if this collection cannot be read
+        listeners.append(data.collection("prayerLog").addSnapshotListener { [weak self] snap, _ in
+            Task { @MainActor in
+                guard let self, let snap else { return }
+                self.prayerLog = snap.documents.compactMap { d in
+                    guard let at = msOf(d.data()["at"]), let t = d.data()["text"] as? String else { return nil }
+                    return PrayerEntry(id: d.documentID, at: at, text: t)
+                }.sorted { $0.at > $1.at }
             }
         })
         listeners.append(data.collection("library").addSnapshotListener { [weak self] snap, err in
@@ -208,6 +220,26 @@ final class Store: ObservableObject {
         if isMock { prayers.removeAll { $0.id == id }; return }
         base?.document("data").collection("prayers").document(id).delete()
     }
+    /// One spoken prayer. The id comes from the time it was spoken, so sending the same recording twice writes the same
+    /// entry. Throws when the server has not taken it within 15 s: the recording then stays on the phone.
+    func addPrayerLog(at: Double, text: String) async throws {
+        let id = "l\(Int(at))"
+        if isMock {
+            prayerLog = ([PrayerEntry(id: id, at: at, text: text)] + prayerLog.filter { $0.id != id }).sorted { $0.at > $1.at }
+            return
+        }
+        guard let ref = base?.document("data").collection("prayerLog").document(id) else { throw URLError(.userAuthenticationRequired) }
+        try await withThrowingTaskGroup(of: Void.self) { g in
+            g.addTask { try await ref.setData(["at": at, "text": text]) }
+            g.addTask { try await Task.sleep(nanoseconds: 15_000_000_000); throw URLError(.timedOut) }
+            try await g.next()
+            g.cancelAll()
+        }
+    }
+    func delPrayerLog(_ id: String) {
+        if isMock { prayerLog.removeAll { $0.id == id }; return }
+        base?.document("data").collection("prayerLog").document(id).delete()
+    }
     func putChip(id: String, _ fields: [String: Any]) {
         if isMock {
             library = (library.filter { $0.id != id } + [Chip(id: id, fields)]).sorted { $0.order < $1.order }
@@ -234,7 +266,8 @@ final class Store: ObservableObject {
 
     // MARK: - mock (in-memory, like the web's memoryStore)
 
-    func loadMock(settings: [String: Any], weeks: [[String: Any]], prayers: [[String: Any]], library: [[String: Any]]) {
+    func loadMock(settings: [String: Any], weeks: [[String: Any]], prayers: [[String: Any]], library: [[String: Any]], prayerLog: [PrayerEntry] = []) {
+        self.prayerLog = prayerLog.sorted { $0.at > $1.at }
         self.settings = Settings(settings)
         self.weeks = weeks.compactMap { Week(id: $0["id"] as? String ?? "", $0) }.sorted { $0.sealedAtMs > $1.sealedAtMs }
         self.prayers = prayers.map { Prayer(id: $0["id"] as? String ?? "", $0) }.sorted { $0.created > $1.created }
