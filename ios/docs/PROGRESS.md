@@ -1,8 +1,8 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (12) uploaded to TestFlight Nov 11 (through commit d70c559: build 11 plus praying hands on the mic on the Prayer tab). Open: the prayer log's save to `data/prayerLog` is unverified against the Firestore rules (Eddie to pray one sentence and report).** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
+**Current: 0.2 (13) uploaded to TestFlight Nov 11 (through commit b174028: mic back on the Prayer tab, prayers by week with AI summaries, caffeine as information with its own page). `summarize` (prayer mode) and `tidy` are deployed. Open: nothing on the phone is verified yet; the prayer log's save to `data/prayerLog` is unverified against the Firestore rules (Eddie to pray one sentence and report).** Pushed to GitHub through 3208d81; later commits are local (`git push` works from Eddie's terminal).
 
-## Caffeine wean is information, not a habit (Nov 11, built, NOT uploaded)
+## Caffeine wean is information, not a habit (Nov 11, in 0.2 (13))
 - Eddie: "that's not really a habit... not something that should get checked off". The AM / PM dose rows are gone from This
   Week and doses no longer count toward a kept day or the streak (`Logic.dayItems` is the habits only). Days recorded
   before stay as marked.
@@ -12,16 +12,16 @@
   in sample mode.
 - The web app is retired (Eddie, Nov 11): this rule no longer has to match `index.html`.
 
-## Prayer weeks and summaries (Nov 11, built, NOT uploaded; Eddie: "this will be the final thing")
+## Prayer weeks and summaries (Nov 11, in 0.2 (13); Eddie: "this will be the final thing")
 - `PrayerWeeks.swift`: the log grouped under the week sealed last before each prayer ("earlier" for prayers before the first
   week). Prayer tab shows the newest week and "All weeks ›"; that opens one page per week (focus word, AI summary, the
   prayers), swiped sideways like the journal.
 - Summary: asked once per finished week (week closed) when the weeks view opens, stored at `data/prayerLog/s-<weekId>` =
   `{week, summary, at}`. Uses `summarize` with `{mode: "prayers"}`; the app keeps it only if the reply says `mode: "prayers"`.
-  **Needs a deploy: `npx firebase-tools deploy --only functions:weekly-direction:summarize`.** Until then no prayer summary appears.
+  Deployed Nov 11 (`npx firebase-tools deploy --only functions:weekly-direction:summarize`).
 - Not verified: the live function's prayer mode, anything on the phone, the Firestore rules for `data/prayerLog`.
 
-## After 0.2 (12) (Nov 11): NOT uploaded yet
+## After 0.2 (12) (Nov 11): in 0.2 (13)
 - The mic stays the mic on every tab, the Prayer tab included (Eddie, after a cross and two rounds of praying hands: none sat
   well beside Apple's mic symbol). It still records a prayer there; the recording screen says PRAYER. Settled: don't reopen.
 
