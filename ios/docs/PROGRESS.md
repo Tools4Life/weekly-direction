@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (9) uploaded to TestFlight Nov 10 (through commit 5468a17: build 8 plus the Progress card wording). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `npx firebase-tools deploy --only functions:weekly-direction:tidy`.** Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (9) uploaded to TestFlight Nov 10 (through commit 5468a17). `tidy` function deployed Nov 10 (`npx firebase-tools deploy --only functions:weekly-direction:tidy`); pushed to GitHub through f032c01. The app is frozen after this build unless Eddie's phone test finds a bug.** `git push` now works from Eddie's terminal (token in the Keychain).
 
 ## After 0.2 (8), from Eddie's phone (Nov 10): in 0.2 (9)
 - Progress card says "1 of 7 days kept" on one line; "% on time" removed there and from the Habits rows (always 100 since the Nov 8 rule: on time or missed). Still shown on the week's own stats pages.
