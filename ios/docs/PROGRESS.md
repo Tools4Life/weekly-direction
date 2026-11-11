@@ -2,6 +2,10 @@
 
 **Current: 0.2 (10) uploaded to TestFlight Nov 11 (through commit 1f400b9: build 9 plus the Practice row removed from Settings). `tidy` function deployed Nov 10 with the edit-never-answer fix. The app is frozen after this build unless Eddie's phone test finds a bug.** Pushed to GitHub through f032c01; later commits are local (`git push` works from Eddie's terminal, token in the Keychain).
 
+## Next update (backlog, not started)
+- 2026-11-11, Prayer tab: a spoken prayer log. Eddie: "add a running log of prayers spoken out loud to the prayer tab, below
+  the 'things to pray for'. It's just spoken prayer log below." Not designed or built yet.
+
 ## After 0.2 (9) (Nov 10): in 0.2 (10)
 - Settings: the Practice mode row is removed (Eddie). The practice code stays in `Store`, unreachable (only `-MockPractice` in sample mode).
 - `tidy` function: spoken text is edited, never answered (transcript tags + a guard that returns his own words); deployed Nov 10.
