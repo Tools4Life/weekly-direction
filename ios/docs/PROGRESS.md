@@ -1,8 +1,8 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (9) uploaded to TestFlight Nov 10 (through commit 5468a17). `tidy` function deployed Nov 10 (`npx firebase-tools deploy --only functions:weekly-direction:tidy`); pushed to GitHub through f032c01. The app is frozen after this build unless Eddie's phone test finds a bug.** `git push` now works from Eddie's terminal (token in the Keychain).
+**Current: 0.2 (10) uploaded to TestFlight Nov 11 (through commit 1f400b9: build 9 plus the Practice row removed from Settings). `tidy` function deployed Nov 10 with the edit-never-answer fix. The app is frozen after this build unless Eddie's phone test finds a bug.** Pushed to GitHub through f032c01; later commits are local (`git push` works from Eddie's terminal, token in the Keychain).
 
-## After 0.2 (9) (Nov 10): NOT uploaded yet
+## After 0.2 (9) (Nov 10): in 0.2 (10)
 - Settings: the Practice mode row is removed (Eddie). The practice code stays in `Store`, unreachable (only `-MockPractice` in sample mode).
 - `tidy` function: spoken text is edited, never answered (transcript tags + a guard that returns his own words); deployed Nov 10.
 
