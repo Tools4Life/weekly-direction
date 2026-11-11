@@ -1,8 +1,8 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (10) uploaded to TestFlight Nov 11 (through commit 1f400b9: build 9 plus the Practice row removed from Settings). `tidy` function deployed Nov 10 with the edit-never-answer fix. The app is frozen after this build unless Eddie's phone test finds a bug.** Pushed to GitHub through f032c01; later commits are local (`git push` works from Eddie's terminal, token in the Keychain).
+**Current: 0.2 (11) uploaded to TestFlight Nov 11 (through commit 744be51: the prayer log, the 12-line vision box, blank lines between paragraphs). Open: Eddie is choosing a prayer mark for the mic on the Prayer tab (the cross "doesn't look right"; mock-up sent); the prayer log's save to `data/prayerLog` is unverified against the Firestore rules.** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
 
-## Prayer log (Nov 11, built, NOT uploaded, not tested on the phone)
+## Prayer log (Nov 11, in 0.2 (11), not tested on the phone)
 Eddie: "add a running log of prayers spoken out loud to the prayer tab, below the 'things to pray for'", one mic only.
 - On the Prayer tab the tab-bar mic shows the prayer mark and records a prayer; on every other tab, and from widgets and
   shortcuts, it records a thought for the journal as before. The recording screen says PRAYER.
@@ -13,7 +13,7 @@ Eddie: "add a running log of prayers spoken out loud to the prayer tab, below th
   the phone" and the recording stays queued (nothing is lost).
 - Prayer tab: "Prayer log" under the list, newest first by day; press and hold to delete. Included in Export.
 
-## After 0.2 (10) (Nov 11, from Eddie's phone): NOT uploaded yet
+## After 0.2 (10) (Nov 11, from Eddie's phone): in 0.2 (11)
 - Edit / Plan the week: a long vision stays a box of at most 12 lines that scrolls inside itself; scrolling the page puts the keyboard away at once (Seal comes back). From his screen recording: a page-long vision buried the habits and Seal, and the keyboard stayed up over the whole page.
 - Reading entries (journal week page, journal list, review, vision log): an empty line between an entry's paragraphs (`Journal.Block.read`). Display only; stored entries keep single line breaks.
 
