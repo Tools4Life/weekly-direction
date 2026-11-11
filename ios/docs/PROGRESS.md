@@ -1,6 +1,9 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (11) uploaded to TestFlight Nov 11 (through commit 744be51: the prayer log, the 12-line vision box, blank lines between paragraphs). Open: Eddie is choosing a prayer mark for the mic on the Prayer tab (the cross "doesn't look right"; mock-up sent); the prayer log's save to `data/prayerLog` is unverified against the Firestore rules.** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
+**Current: 0.2 (11) uploaded to TestFlight Nov 11 (through commit 744be51: the prayer log, the 12-line vision box, blank lines between paragraphs). Open: the prayer log's save to `data/prayerLog` is unverified against the Firestore rules.** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
+
+## After 0.2 (11) (Nov 11): NOT uploaded yet
+- The mic on the Prayer tab shows praying hands (`TabIcon` prayer "praying"), not the cross: the tab keeps the cross, so the two marks differ (Eddie's call; no pulse, no label).
 
 ## Prayer log (Nov 11, in 0.2 (11), not tested on the phone)
 Eddie: "add a running log of prayers spoken out loud to the prayer tab, below the 'things to pray for'", one mic only.

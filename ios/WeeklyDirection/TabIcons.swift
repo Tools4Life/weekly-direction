@@ -7,8 +7,10 @@ struct TabIcon: View {
     let name: String          // week | reflect | prayer | progress
     var frame: Frame = .square
     var size: CGFloat = 27
-    /// prayer mark: cross | flame | hands | heart
+    /// prayer mark: cross | flame | hands | heart | praying (two palms together: the mic's mark on the Prayer tab)
     var prayer = "cross"
+    /// stroke width on the 24-point grid
+    var weight: CGFloat = 1.55
 
     var body: some View {
         Canvas { ctx, sz in
@@ -37,6 +39,18 @@ struct TabIcon: View {
                     path.addCurve(to: p(to.0, to.1), control1: p(c1.0, c1.1), control2: p(c2.0, c2.1))
                 }
                 switch prayer {
+                case "praying":
+                    // drawn for one hand and mirrored: fingers and palm down to the wrist, then the thumb hooked in front
+                    for s in [CGFloat(-1), 1] {
+                        func q(_ dx: CGFloat, _ y: CGFloat) -> CGPoint { p(12 + s * dx, y) }
+                        path.move(to: q(0.35, 9.6)); path.addLine(to: q(0.75, 4.6))
+                        path.addQuadCurve(to: q(1.9, 4.4), control: q(1.2, 3.5))
+                        for (dx, y) in [(4.2, 10.0), (4.2, 13.4), (6.6, 17.0), (3.6, 20.0), (0, 16.4)] as [(CGFloat, CGFloat)] { path.addLine(to: q(dx, y)) }
+                        path.move(to: q(2.1, 13.8)); path.addLine(to: q(2.1, 11.0))
+                        path.addQuadCurve(to: q(1.05, 9.9), control: q(2.1, 9.9))
+                        path.addQuadCurve(to: q(0, 11.0), control: q(0, 9.9))
+                    }
+                    line([(12, 11.0), (12, 16.4)])
                 case "flame":
                     path.move(to: p(12, 6.9))
                     curve((15.3, 13.4), (13.2, 8.7), (15.3, 10.7)); curve((12, 17), (15.3, 15.5), (13.9, 17))
@@ -53,7 +67,7 @@ struct TabIcon: View {
             default:
                 line([(7.2, 15), (10.3, 11.7), (12.9, 14.1), (16.8, 9.5)])
             }
-            ctx.stroke(path, with: .foreground, style: StrokeStyle(lineWidth: 1.55 * k, lineCap: .round, lineJoin: .round))
+            ctx.stroke(path, with: .foreground, style: StrokeStyle(lineWidth: weight * k, lineCap: .round, lineJoin: .round))
         }
         .frame(width: size, height: size)
     }
