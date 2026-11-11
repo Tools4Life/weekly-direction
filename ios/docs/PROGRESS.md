@@ -1,6 +1,6 @@
 # Weekly Direction iOS — progress log
 
-**Current: 0.2 (9) uploaded to TestFlight Nov 10 (through commit 5468a17: build 8 plus the Progress card wording). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `firebase deploy --only functions:tidy`.** Nothing pushed (no git credentials in the Claude shell).
+**Current: 0.2 (9) uploaded to TestFlight Nov 10 (through commit 5468a17: build 8 plus the Progress card wording). The app is frozen after this build unless Eddie's phone test finds a bug. `tidy` function NOT deployed: `npx firebase-tools deploy --only functions:weekly-direction:tidy`.** Nothing pushed (no git credentials in the Claude shell).
 
 ## After 0.2 (8), from Eddie's phone (Nov 10): in 0.2 (9)
 - Progress card says "1 of 7 days kept" on one line; "% on time" removed there and from the Habits rows (always 100 since the Nov 8 rule: on time or missed). Still shown on the week's own stats pages.
@@ -76,7 +76,7 @@
 
 ## Talk first: review and plan by voice (Nov 10)
 - `DictateCard` (Dictate.swift): "Reflect on this week" on the close sheet, "Plan next week" / "Talk through this week" above the Vision field. Records with the same recorder, transcribes with `transcribe`, hands the text to the screen; nothing joins the journal and nothing is saved until the screen's own Close / Seal.
-- New Cloud Function `tidy` (`functions/tidy.js`, exported in `functions/index.js`): cleans spoken text (fillers, repeats, false starts) without summarizing; review mode places what was said under the Saturday questions (`answers`, `other`). **Not deployed**: Eddie runs `firebase deploy --only functions:tidy`. Until then the app falls back to the words as spoken and says so.
+- New Cloud Function `tidy` (`functions/tidy.js`, exported in `functions/index.js`): cleans spoken text (fillers, repeats, false starts) without summarizing; review mode places what was said under the Saturday questions (`answers`, `other`). **Not deployed**: Eddie runs `npx firebase-tools deploy --only functions:weekly-direction:tidy`. Until then the app falls back to the words as spoken and says so.
 - Review: answers are added to what is already typed; `other` goes under Reflection. Plan: tidied text is appended to the vision and the draft saves as usual.
 - Not built: AI suggesting habits or a focus word (Eddie was unsure he needs it).
 - Verified: simulator shots `close`, `plan` (idle card only), 13 tests, `node --check` on the function. Not verified: recording, transcription, the tidy function's output, anything on the phone.
