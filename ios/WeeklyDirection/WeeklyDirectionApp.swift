@@ -199,8 +199,8 @@ struct TabBar: View {
         HStack {
             ForEach(tabs, id: \.0) { t in
                 if t.0 == "mic" {
-                    // on the Prayer tab the same button records a prayer into the prayer log, and shows praying hands (the tab
-                    // itself keeps the cross: the place and the act are different marks; Eddie, Nov 11 2026)
+                    // on the Prayer tab the same button records a prayer into the prayer log. It stays the mic on every tab
+                    // (Eddie, Nov 11 2026, after trying a cross and praying hands): it writes into the page you are on
                     let praying = router.tab == "prayer"
                     Button { router.startRecording(prayer: praying) } label: {
                         ZStack {
@@ -208,10 +208,8 @@ struct TabBar: View {
                             Circle().fill(Theme.bg).frame(width: 90, height: 90)
                             Circle().fill(Theme.ac.opacity(0.18)).frame(width: 84, height: 84)
                             Circle().fill(Theme.ac).frame(width: 72, height: 72)
-                            if praying { TabIcon(name: "prayer", frame: .none, size: 46, prayer: "praying", weight: 1.17).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
-                            else { Image(systemName: "mic").font(.system(size: 29, weight: .regular)).foregroundStyle(Theme.onAc).transition(.scale(scale: 0.6).combined(with: .opacity)) }
+                            Image(systemName: "mic").font(.system(size: 29, weight: .regular)).foregroundStyle(Theme.onAc)
                         }
-                        .animation(.easeOut(duration: 0.18), value: praying)
                         .frame(maxWidth: .infinity).frame(height: 52).offset(y: -22)
                     }
                     .buttonStyle(.plain)

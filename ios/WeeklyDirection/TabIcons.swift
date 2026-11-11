@@ -3,14 +3,12 @@ import SwiftUI
 /// Tab bar icons drawn on the web app's 24-point grid with one stroke, so all four belong together.
 /// `framed` puts each glyph in the web's rounded square (its own tab icons do this); `.circle` echoes the mic.
 struct TabIcon: View {
-    enum Frame { case square, circle, none }
+    enum Frame { case square, circle }
     let name: String          // week | reflect | prayer | progress
     var frame: Frame = .square
     var size: CGFloat = 27
-    /// prayer mark: cross | flame | hands | heart | praying (two palms together: the mic's mark on the Prayer tab)
+    /// prayer mark: cross | flame | hands | heart
     var prayer = "cross"
-    /// stroke width on the 24-point grid
-    var weight: CGFloat = 1.55
 
     var body: some View {
         Canvas { ctx, sz in
@@ -24,7 +22,6 @@ struct TabIcon: View {
             switch frame {
             case .square: path.addRoundedRect(in: CGRect(x: 3.5 * k, y: 3.5 * k, width: 17 * k, height: 17 * k), cornerSize: CGSize(width: 4 * k, height: 4 * k), style: .continuous)
             case .circle: path.addEllipse(in: CGRect(x: 3 * k, y: 3 * k, width: 18 * k, height: 18 * k))
-            case .none: break
             }
             switch name {
             case "week":
@@ -39,18 +36,6 @@ struct TabIcon: View {
                     path.addCurve(to: p(to.0, to.1), control1: p(c1.0, c1.1), control2: p(c2.0, c2.1))
                 }
                 switch prayer {
-                case "praying":
-                    // two palms together, outline only, in the mic's rounded language (Eddie, Nov 11 2026: same stroke as
-                    // the mic, no interior detail, symmetric). Drawn for one hand and mirrored; one line where they meet.
-                    for s in [CGFloat(-1), 1] {
-                        func q(_ dx: CGFloat, _ y: CGFloat) -> CGPoint { p(12 + s * dx, y) }
-                        path.move(to: q(0, 5.4))
-                        path.addCurve(to: q(4.3, 12.6), control1: q(1.9, 2.6), control2: q(4.3, 8.6))
-                        path.addCurve(to: q(6.4, 17.2), control1: q(4.3, 14.6), control2: q(5.4, 15.8))
-                        path.addLine(to: q(3.8, 19.8))
-                        path.addLine(to: q(0, 16.0))
-                    }
-                    line([(12, 5.4), (12, 16.0)])
                 case "flame":
                     path.move(to: p(12, 6.9))
                     curve((15.3, 13.4), (13.2, 8.7), (15.3, 10.7)); curve((12, 17), (15.3, 15.5), (13.9, 17))
@@ -67,7 +52,7 @@ struct TabIcon: View {
             default:
                 line([(7.2, 15), (10.3, 11.7), (12.9, 14.1), (16.8, 9.5)])
             }
-            ctx.stroke(path, with: .foreground, style: StrokeStyle(lineWidth: weight * k, lineCap: .round, lineJoin: .round))
+            ctx.stroke(path, with: .foreground, style: StrokeStyle(lineWidth: 1.55 * k, lineCap: .round, lineJoin: .round))
         }
         .frame(width: size, height: size)
     }
