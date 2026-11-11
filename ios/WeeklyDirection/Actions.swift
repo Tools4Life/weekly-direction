@@ -13,7 +13,7 @@ extension Store {
         var nv = cur
         if all && cur != "on" { nv = "on" } else if !all && cur == "on" { nv = nil }
         guard let c = w.commitments.first(where: { $0.id == id }) else {
-            setDay(w, k, [id: val], mark: nv)      // a caffeine dose (am / pm)
+            setDay(w, k, [id: val], mark: nv)      // not one of the week's habits (was: a caffeine dose, before Nov 11 2026)
             return
         }
         // past its start-by: when the timer was started (or now) is after the deadline

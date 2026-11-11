@@ -2,6 +2,14 @@
 
 **Current: 0.2 (12) uploaded to TestFlight Nov 11 (through commit d70c559: build 11 plus praying hands on the mic on the Prayer tab). Open: the prayer log's save to `data/prayerLog` is unverified against the Firestore rules (Eddie to pray one sentence and report).** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
 
+## Caffeine wean is information, not a habit (Nov 11, built, NOT uploaded)
+- Eddie: "that's not really a habit... not something that should get checked off". The AM / PM dose rows are gone from This
+  Week and doses no longer count toward a kept day or the streak (`Logic.dayItems` is the habits only). Days recorded
+  before stay as marked.
+- This Week shows today's allowance on the right of the "Daily habits" line ("CAFFEINE 150 AM · 100 PM", or "CAFFEINE-FREE");
+  tapping it opens the Caffeine page in Settings. `-MockCaf 1` turns the wean on in sample mode.
+- The web app is retired (Eddie, Nov 11): this rule no longer has to match `index.html`.
+
 ## Prayer weeks and summaries (Nov 11, built, NOT uploaded; Eddie: "this will be the final thing")
 - `PrayerWeeks.swift`: the log grouped under the week sealed last before each prayer ("earlier" for prayers before the first
   week). Prayer tab shows the newest week and "All weeks ›"; that opens one page per week (focus word, AI summary, the

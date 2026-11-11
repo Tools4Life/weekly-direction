@@ -122,7 +122,6 @@ struct ThisWeekView: View {
                     .modifier(Nudge(on: nudge == c.id))
                     .rise(2 + n)
             }
-            if let k = x.selKey, let d = x.selDay { doses(w, k, d, locked: k != x.todayK) }
         }
         .padding(.top, 12)
         .transition(.move(edge: .top).combined(with: .opacity))
@@ -168,15 +167,14 @@ struct ThisWeekView: View {
 
     // MARK: review block, habits header, doses
 
-    /// how many of today's habits and doses are still open (not done, failed or missed); 0 when today is not a habit day
+    /// how many of today's habits are still open (not done, failed or missed); 0 when today is not a habit day
     private func openToday(_ w: Week, _ x: Ctx) -> Int {
         guard x.habitToday, let d = x.days.first(where: { Rules.ymd($0) == x.todayK }) else { return 0 }
         let habits = w.commitments.filter { Rules.onDay($0, d) }.filter { c in
             let st = Rules.state(w, x.todayK, c)
             return !(st == .done || st == .fail || st == .miss)
         }
-        let doses = Logic.dayItems(w, d, store.settings).filter { ($0 == "am" || $0 == "pm") && !w.flag(x.todayK, $0) }
-        return habits.count + doses.count
+        return habits.count
     }
 
     /// Review time on the main page (Eddie, Nov 10 2026): 1 Reflect on this week (the mic starts it talking, the row
@@ -237,23 +235,13 @@ struct ThisWeekView: View {
                     Button(x.habitToday ? "today" : "done") { router.selK = nil }.foregroundStyle(Theme.ac)
                 }
                 .font(Theme.ui(14))
-            }
-        }
-    }
-
-    /// AM / PM caffeine doses: part of the day's items while the wean is on
-    @ViewBuilder private func doses(_ w: Week, _ k: String, _ d: Date, locked: Bool) -> some View {
-        if store.settings.cafOn {
-            let split = Logic.cafSplit(store.settings, Logic.cafLimit(store.settings, d))
-            ForEach([("am", "Caffeine · AM", split.am), ("pm", "Caffeine · PM", split.pm)].filter { $0.2 > 0 }, id: \.0) { dose in
-                let on = w.flag(k, dose.0)
-                HabitCardShell(done: on, dim: false, running: 0, icon: "cup", name: dose.1, meta: "\(dose.2) mg", metaAccent: false,
-                               strike: false, check: on ? .done : .open, onBody: {}, onCheck: {
-                    if locked { bump(dose.0); return }
-                    Haptic.tick()
-                    store.setItem(w, k, dose.0, !on)
-                })
-                .modifier(Nudge(on: nudge == dose.0))
+            } else if let caf = Logic.cafLine(store.settings, Now.date) {
+                // the caffeine wean is information, not a habit (Eddie, Nov 11 2026): today's allowance, nothing to check;
+                // it opens the plan in Settings
+                Button { router.settingsPage = "caffeine"; router.cover = .settings } label: {
+                    Eyebrow(text: caf, color: Theme.mu, size: 12).contentShape(Rectangle())
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("cafLine")
             }
         }
     }

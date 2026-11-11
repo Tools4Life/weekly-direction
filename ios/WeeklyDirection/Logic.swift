@@ -94,12 +94,18 @@ enum Logic {
         let am = min(mg, Int((Double(mg) / 2 / Double(st)).rounded(.up)) * st)
         return (am, mg - am)
     }
-    /// every item that must be done for the day to be kept: the day's habits, plus the AM/PM doses while the wean is on
+    /// every item that must be done for the day to be kept: the day's habits. The caffeine wean is information only
+    /// since Nov 11 2026 (Eddie: it is not a habit): its doses are no longer checked off and no longer part of a kept day.
+    /// Days recorded before that stay as they were marked.
     static func dayItems(_ w: Week, _ day: Date, _ s: Settings) -> [String] {
-        let hs = w.commitments.filter { Rules.onDay($0, day) }.map(\.id)
-        guard s.cafOn else { return hs }
+        w.commitments.filter { Rules.onDay($0, day) }.map(\.id)
+    }
+    /// today's caffeine allowance as one line ("Caffeine 150 am · 100 pm"), or nil when the wean is off
+    static func cafLine(_ s: Settings, _ day: Date) -> String? {
+        guard s.cafOn else { return nil }
         let (am, pm) = cafSplit(s, cafLimit(s, day))
-        return hs + (am > 0 ? ["am"] : []) + (pm > 0 ? ["pm"] : [])
+        if am + pm == 0 { return "Caffeine-free" }
+        return "Caffeine " + [am > 0 ? "\(am) am" : nil, pm > 0 ? "\(pm) pm" : nil].compactMap { $0 }.joined(separator: " · ")
     }
 
     // ---- week stats ----

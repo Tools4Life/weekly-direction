@@ -74,6 +74,11 @@ records a thought. A prayer never touches a week.
 - SPEC §2 is wrong about two functions; follow the web app: `transcribe` takes the raw audio body (Content-Type, X-Duration),
   `summarize` takes `{text, focus}` and the client writes `summary` + `summaryAt`.
 
+## Web app retired (Eddie, Nov 11 2026)
+He no longer uses the web app; iOS is the only client. "Must match `index.html`" below is where the rules came from, not a
+reason to block a change he asks for. First departure: the caffeine wean is information only (no dose rows, not part of a
+kept day; `Logic.dayItems` is the habits only, `Logic.cafLine` is the line on This Week).
+
 ## Rules that must not drift (the owner keeps a strict record)
 - `Rules.swift` must match `index.html` exactly: `onDay`, `baseBy`, `byOf`, `deadline`, `hState`, `weekEnd`, `habitDays`.
   Grace: from 2026-11-08, starting within 2 h of the start-by counts on time; after that it's missed and final. No late, no reschedule.

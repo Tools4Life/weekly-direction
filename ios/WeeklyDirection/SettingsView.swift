@@ -203,7 +203,7 @@ struct SettingsView: View {
         let s = store.settings
         Text("Caffeine wean").title(30).foregroundStyle(Theme.tx).padding(.bottom, 22)
         group {
-            toggle("Track caffeine wean", nil, Binding(get: { store.settings.cafOn }, set: { on in
+            toggle("Caffeine wean", nil, Binding(get: { store.settings.cafOn }, set: { on in
                 Haptic.tick()
                 var v: [String: Any] = ["cafOn": on]
                 if on, store.settings.cafFrom == nil { v["cafFrom"] = Logic.midnight(Now.date).timeIntervalSince1970 * 1000 }
@@ -220,7 +220,7 @@ struct SettingsView: View {
             } else {
                 // a finished plan shows no doses on This Week: say so, and offer the way back in
                 Text("Caffeine-free").font(Theme.num(26)).foregroundStyle(Theme.tx)
-                Text("This plan reached zero on \(Fmt.date(Rules.cal.date(byAdding: .day, value: total, to: from) ?? from)), so This Week shows no doses.")
+                Text("This plan reached zero on \(Fmt.date(Rules.cal.date(byAdding: .day, value: total, to: from) ?? from)), so This Week says caffeine-free.")
                     .font(Theme.ui(15)).foregroundStyle(Theme.mu).padding(.top, 2)
                 Button("Start a new wean today") {
                     Haptic.tick(); store.setSettings(["cafFrom": Logic.midnight(Now.date).timeIntervalSince1970 * 1000])
