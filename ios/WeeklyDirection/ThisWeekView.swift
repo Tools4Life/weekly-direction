@@ -237,8 +237,8 @@ struct ThisWeekView: View {
                 .font(Theme.ui(14))
             } else if let caf = Logic.cafLine(store.settings, Now.date) {
                 // the caffeine wean is information, not a habit (Eddie, Nov 11 2026): today's allowance, nothing to check;
-                // it opens the plan in Settings
-                Button { router.settingsPage = "caffeine"; router.cover = .settings } label: {
+                // it opens the wean's own page
+                Button { Haptic.tick(); router.cover = .caffeine } label: {
                     Eyebrow(text: caf, color: Theme.mu, size: 12).contentShape(Rectangle())
                 }
                 .buttonStyle(.plain).accessibilityIdentifier("cafLine")

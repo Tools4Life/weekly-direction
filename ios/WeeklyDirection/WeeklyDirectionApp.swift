@@ -175,6 +175,7 @@ struct MainTabs: View {
         case .edit(let i): EntryEditor(entry: i)
         case .closed(let id): ClosedMoment(weekId: id)
         case .prayerWeeks: PrayerWeeksView()
+        case .caffeine: CaffeineView()
         }
     }
 

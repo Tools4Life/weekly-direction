@@ -17,6 +17,7 @@ final class Router: ObservableObject {
         case edit(Int)
         case closed(String)                 // the closing moment for a week
         case prayerWeeks                    // the prayer log week by week
+        case caffeine                       // the wean as a page: today's allowance and the steps down
         var id: String { String(describing: self) }
     }
     enum Sheet: Identifiable, Equatable {
@@ -93,6 +94,9 @@ final class Router: ObservableObject {
         case "edit": tab = "reflect"; if let i = aw.flatMap({ Journal.entries($0.liveRefl).last?.i }) { cover = .edit(i) }
         case "write": tab = "reflect"; cover = .write
         case "recording": recording = true
+        case "caffeine":
+            if store.isMock { store.setSettings(["cafOn": true, "cafFrom": Logic.midnight(Now.date.addingTimeInterval(-6 * 86400)).timeIntervalSince1970 * 1000]) }
+            cover = .caffeine
         case "prayer": tab = "prayer"
         case "prayer-weeks": tab = "prayer"; cover = .prayerWeeks
         case "prayer-weeks-past": tab = "prayer"; prayerWeekStart = 1; cover = .prayerWeeks

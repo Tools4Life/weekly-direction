@@ -7,7 +7,9 @@
   Week and doses no longer count toward a kept day or the streak (`Logic.dayItems` is the habits only). Days recorded
   before stay as marked.
 - This Week shows today's allowance on the right of the "Daily habits" line ("CAFFEINE 150 AM · 100 PM", or "CAFFEINE-FREE");
-  tapping it opens the Caffeine page in Settings. `-MockCaf 1` turns the wean on in sample mode.
+  tapping it opens the wean's own page (`CaffeineView`, `-OpenScreen caffeine`): today's allowance, morning / afternoon, the
+  plan as a staircase to zero with today marked, the next step; "Edit plan" goes to Settings. `-MockCaf 1` turns the wean on
+  in sample mode.
 - The web app is retired (Eddie, Nov 11): this rule no longer has to match `index.html`.
 
 ## Prayer weeks and summaries (Nov 11, built, NOT uploaded; Eddie: "this will be the final thing")
