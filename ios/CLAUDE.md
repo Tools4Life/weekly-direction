@@ -62,6 +62,8 @@ draws the same views for `-OpenScreen widgets`). The extension never touches Fir
 On the Prayer tab the tab-bar mic (same mic icon on every tab; settled, no prayer icon) records a prayer (`Router.recordingPrayer`, `Recorder.start(prayer:)`, queued file name ends
 `_p`) into `data/prayerLog/{l<ms>}` = `{at, text}` (`Store.addPrayerLog`), shown under the prayer list. Everywhere else the mic
 records a thought. A prayer never touches a week.
+`PrayerWeeks.swift` groups the log by week (the week sealed last before the prayer) and asks `summarize` with
+`{mode: "prayers"}` once per finished week; the summary is stored in the same collection as `s-<weekId>` = `{week, summary}`.
 
 ## Known pitfalls
 - A failing XCTest assertion hangs (XCTest stalls collecting the failure's call stack) instead of printing. `scripts/test.sh`

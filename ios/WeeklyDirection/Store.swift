@@ -16,6 +16,8 @@ final class Store: ObservableObject {
     @Published var prayers: [Prayer] = []
     /// prayers spoken out loud, newest first
     @Published var prayerLog: [PrayerEntry] = []
+    /// the AI summary of a week's prayers, by week id (see PrayerWeeks.swift)
+    @Published var prayerSummaries: [String: String] = [:]
     @Published var library: [Chip] = []
     /// the in-progress plan (nil when there is none)
     @Published var draft: [String: Any]?
@@ -109,7 +111,7 @@ final class Store: ObservableObject {
         user = u
         email = u?.email
         ready = false
-        weeks = []; prayers = []; prayerLog = []; library = []; draft = nil
+        weeks = []; prayers = []; prayerLog = []; prayerSummaries = [:]; library = []; draft = nil
         base = nil
         guard let u else { return }
         // users/{uid}/weeklyDirection/{settings|draft}; data/{weeks|prayers|library} are collections
@@ -156,10 +158,14 @@ final class Store: ObservableObject {
         listeners.append(data.collection("prayerLog").addSnapshotListener { [weak self] snap, _ in
             Task { @MainActor in
                 guard let self, let snap else { return }
+                // the same collection holds the prayers ({at, text}) and one summary per week ({week, summary})
                 self.prayerLog = snap.documents.compactMap { d in
                     guard let at = msOf(d.data()["at"]), let t = d.data()["text"] as? String else { return nil }
                     return PrayerEntry(id: d.documentID, at: at, text: t)
                 }.sorted { $0.at > $1.at }
+                var sums: [String: String] = [:]
+                for d in snap.documents { if let w = d.data()["week"] as? String, let s = d.data()["summary"] as? String { sums[w] = s } }
+                self.prayerSummaries = sums
             }
         })
         listeners.append(data.collection("library").addSnapshotListener { [weak self] snap, err in
@@ -236,6 +242,11 @@ final class Store: ObservableObject {
             g.cancelAll()
         }
     }
+    /// the summary of one week's prayers: `data/prayerLog/s-<week>` = {week, summary, at}
+    func putPrayerSummary(_ week: String, _ text: String) {
+        if isMock { prayerSummaries[week] = text; return }
+        base?.document("data").collection("prayerLog").document("s-" + week).setData(["week": week, "summary": text, "at": Now.ms])
+    }
     func delPrayerLog(_ id: String) {
         if isMock { prayerLog.removeAll { $0.id == id }; return }
         base?.document("data").collection("prayerLog").document(id).delete()
@@ -266,8 +277,10 @@ final class Store: ObservableObject {
 
     // MARK: - mock (in-memory, like the web's memoryStore)
 
-    func loadMock(settings: [String: Any], weeks: [[String: Any]], prayers: [[String: Any]], library: [[String: Any]], prayerLog: [PrayerEntry] = []) {
+    func loadMock(settings: [String: Any], weeks: [[String: Any]], prayers: [[String: Any]], library: [[String: Any]], prayerLog: [PrayerEntry] = [],
+                  prayerSummaries: [String: String] = [:]) {
         self.prayerLog = prayerLog.sorted { $0.at > $1.at }
+        self.prayerSummaries = prayerSummaries
         self.settings = Settings(settings)
         self.weeks = weeks.compactMap { Week(id: $0["id"] as? String ?? "", $0) }.sorted { $0.sealedAtMs > $1.sealedAtMs }
         self.prayers = prayers.map { Prayer(id: $0["id"] as? String ?? "", $0) }.sorted { $0.created > $1.created }

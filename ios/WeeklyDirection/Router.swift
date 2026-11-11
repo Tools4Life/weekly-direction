@@ -16,6 +16,7 @@ final class Router: ObservableObject {
         case write
         case edit(Int)
         case closed(String)                 // the closing moment for a week
+        case prayerWeeks                    // the prayer log week by week
         var id: String { String(describing: self) }
     }
     enum Sheet: Identifiable, Equatable {
@@ -93,6 +94,8 @@ final class Router: ObservableObject {
         case "write": tab = "reflect"; cover = .write
         case "recording": recording = true
         case "prayer": tab = "prayer"
+        case "prayer-weeks": tab = "prayer"; cover = .prayerWeeks
+        case "prayer-weeks-past": tab = "prayer"; prayerWeekStart = 1; cover = .prayerWeeks
         case "prayer-open": tab = "prayer"; sheet = .prayer(store.prayers.first { !$0.pinned }?.id, pinned: false)
         case "prayer-short": tab = "prayer"; half = true; sheet = .prayer(store.prayers.first { !$0.pinned && $0.body.isEmpty }?.id, pinned: false)
         case "progress": tab = "progress"
@@ -108,6 +111,8 @@ final class Router: ObservableObject {
         }
     }
 
+    /// `-OpenScreen prayer-weeks-past`: the page the prayer weeks open on (0 = newest)
+    var prayerWeekStart = 0
     // small pieces of screen state that screenshots need to reach
     @Published var selectMode = false
     @Published var entryMenu: Int?

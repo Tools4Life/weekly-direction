@@ -2,6 +2,15 @@
 
 **Current: 0.2 (12) uploaded to TestFlight Nov 11 (through commit d70c559: build 11 plus praying hands on the mic on the Prayer tab). Open: the prayer log's save to `data/prayerLog` is unverified against the Firestore rules (Eddie to pray one sentence and report).** `tidy` deployed Nov 10. Pushed to GitHub through 442b1c1; later commits are local (`git push` works from Eddie's terminal).
 
+## Prayer weeks and summaries (Nov 11, built, NOT uploaded; Eddie: "this will be the final thing")
+- `PrayerWeeks.swift`: the log grouped under the week sealed last before each prayer ("earlier" for prayers before the first
+  week). Prayer tab shows the newest week and "All weeks ›"; that opens one page per week (focus word, AI summary, the
+  prayers), swiped sideways like the journal.
+- Summary: asked once per finished week (week closed) when the weeks view opens, stored at `data/prayerLog/s-<weekId>` =
+  `{week, summary, at}`. Uses `summarize` with `{mode: "prayers"}`; the app keeps it only if the reply says `mode: "prayers"`.
+  **Needs a deploy: `npx firebase-tools deploy --only functions:weekly-direction:summarize`.** Until then no prayer summary appears.
+- Not verified: the live function's prayer mode, anything on the phone, the Firestore rules for `data/prayerLog`.
+
 ## After 0.2 (12) (Nov 11): NOT uploaded yet
 - The mic stays the mic on every tab, the Prayer tab included (Eddie, after a cross and two rounds of praying hands: none sat
   well beside Apple's mic symbol). It still records a prayer there; the recording screen says PRAYER. Settled: don't reopen.

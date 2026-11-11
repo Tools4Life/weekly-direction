@@ -84,8 +84,13 @@ enum Mock {
         if let t = UserDefaults.standard.string(forKey: "MockTheme") { settings["theme"] = t }
         let log = [("2026-11-11", "06:10", "Lord, thank You for this morning. Give me a sober mind today, at work and at home.\nKeep my eyes and my thoughts. Let me be present with the girls tonight."),
                    ("2026-11-10", "21:40", "Father, I slipped today and I know it. Forgive me, and help me start tomorrow before the day starts me."),
-                   ("2026-11-09", "06:05", "Thank You for the church and for the men You have put around me. Provide for the house this month.")]
+                   ("2026-11-09", "06:05", "Thank You for the church and for the men You have put around me. Provide for the house this month."),
+                   ("2026-11-05", "06:20", "Lord, the job is heavy this week. Give me patience with the crew and honesty in the numbers."),
+                   ("2026-11-02", "21:10", "Thank You for Lyudmila and the girls. Heal the baby's cough. Let our home be a place of peace."),
+                   ("2026-10-28", "06:00", "Father, teach me Your Word this week. I want to hear You before I hear the phone.")]
         store.loadMock(settings: settings, weeks: weeks, prayers: prayers, library: library,
-                       prayerLog: log.map { PrayerEntry(id: "l" + $0.0 + $0.1, at: ms($0.0, $0.1), text: $0.2) })
+                       prayerLog: log.map { PrayerEntry(id: "l" + $0.0 + $0.1, at: ms($0.0, $0.1), text: $0.2) },
+                       prayerSummaries: ["2026-10-31": "This week I prayed about the weight of the job, asking for patience with the crew and honesty in the numbers. I thanked God for Lyudmila and the girls, asked Him to heal the baby's cough, and prayed for peace in our home.",
+                                         "2026-10-24": "This week I asked the Father to teach me His Word, and to let me hear Him before I hear the phone."])
     }
 }

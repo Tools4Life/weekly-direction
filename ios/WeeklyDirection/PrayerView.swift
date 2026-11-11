@@ -60,10 +60,21 @@ struct PrayerList: View {
         }
     }
 
-    /// Prayers spoken out loud (Eddie, Nov 11 2026): on this tab the mic records a prayer, and it lands here, newest
-    /// first, under its day. Press and hold one to delete it.
+    /// Prayers spoken out loud (Eddie, Nov 11 2026): on this tab the mic records a prayer, and it lands here. The tab
+    /// shows the newest week of them; All weeks opens every week with its summary (PrayerWeeks.swift).
     @ViewBuilder private var log: some View {
-        Eyebrow(text: "Prayer log", color: Theme.mu, size: 12).padding(.top, 40)
+        let pages = PrayerWeeks.pages(store.prayerLog, store.weeks)
+        HStack {
+            Eyebrow(text: "Prayer log", color: Theme.mu, size: 12)
+            Spacer()
+            if !pages.isEmpty {
+                Button { router.cover = .prayerWeeks } label: {
+                    HStack(spacing: 8) { Text("All weeks").caps(16); Image(systemName: "chevron.right").font(.system(size: 13, weight: .medium)) }.foregroundStyle(Theme.ac)
+                }
+                .buttonStyle(.plain).accessibilityIdentifier("prayerWeeks")
+            }
+        }
+        .padding(.top, 40)
         RecorderStatus().padding(.top, 8)
         // recordings still on the phone hold their place until they are written down
         ForEach(recorder.waitingPrayers.reversed()) { p in
@@ -73,18 +84,28 @@ struct PrayerList: View {
             }
             .fullWidth().padding(.top, 18)
         }
-        if store.prayerLog.isEmpty, recorder.waitingPrayers.isEmpty {
+        if pages.isEmpty, recorder.waitingPrayers.isEmpty {
             Text("Tap the button below and pray out loud. It is written down here.")
                 .font(Theme.serifItalic(17)).foregroundStyle(Theme.mu2).padding(.top, 14)
         }
-        ForEach(days, id: \.0) { day, entries in
+        if let newest = pages.first { PrayerDays(entries: newest.entries, deleting: $deleting) }
+    }
+}
+
+/// Prayers under their day, newest day first; press and hold one to delete it (the owner of `deleting` asks first)
+struct PrayerDays: View {
+    let entries: [PrayerEntry]
+    @Binding var deleting: PrayerEntry?
+
+    var body: some View {
+        ForEach(days, id: \.0) { day, es in
             HStack(alignment: .firstTextBaseline) {
-                Text(day == Rules.ymd(Now.date) ? "Today" : Fmt.dowl[Rules.weekday(entries[0].date)]).font(Theme.serif(20)).foregroundStyle(Theme.tx)
+                Text(day == Rules.ymd(Now.date) ? "Today" : Fmt.dowl[Rules.weekday(es[0].date)]).font(Theme.serif(20)).foregroundStyle(Theme.tx)
                 Spacer()
-                Eyebrow(text: Fmt.date(entries[0].date), color: Theme.mu2, size: 12)
+                Eyebrow(text: Fmt.date(es[0].date), color: Theme.mu2, size: 12)
             }
             .padding(.top, 30)
-            ForEach(entries) { e in
+            ForEach(es) { e in
                 VStack(alignment: .leading, spacing: 6) {
                     Text(Fmt.clock(e.date)).font(Theme.serifItalic(13)).foregroundStyle(Theme.mu2)
                     Text(e.read).font(Theme.serif(18)).lineSpacing(7).foregroundStyle(Theme.tx)
@@ -96,10 +117,9 @@ struct PrayerList: View {
         }
     }
 
-    /// the log by day, newest day first, newest prayer first within a day
     private var days: [(String, [PrayerEntry])] {
         var out: [(String, [PrayerEntry])] = []
-        for e in store.prayerLog {
+        for e in entries.sorted(by: { $0.at > $1.at }) {
             let k = Rules.ymd(e.date)
             if out.last?.0 == k { out[out.count - 1].1.append(e) } else { out.append((k, [e])) }
         }

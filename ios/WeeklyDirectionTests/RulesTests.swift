@@ -176,4 +176,17 @@ final class RulesTests: XCTestCase {
         XCTAssertEqual(store.prayerLog.count, n)
         XCTAssertEqual(store.activeWeek?.liveRefl, liveRefl)      // the journal is never touched
     }
+
+    /// prayers are grouped under the week sealed last before them; only a finished week is summarized
+    func testPrayerWeeks() {
+        let pages = PrayerWeeks.pages(store.prayerLog, store.weeks)
+        XCTAssertEqual(pages.map(\.id), ["2026-11-07", "2026-10-31", "2026-10-24"])
+        XCTAssertEqual(pages.map(\.entries.count), [3, 2, 1])
+        XCTAssertFalse(PrayerWeeks.finished(pages[0], newest: true))       // the open week
+        XCTAssertTrue(PrayerWeeks.finished(pages[1], newest: false))
+        XCTAssertTrue(PrayerWeeks.text(pages[1]).hasPrefix("Monday, 9:10 pm\nThank You for Lyudmila"))
+        // a prayer from before any week has its own page, last
+        let old = PrayerEntry(id: "x", at: Rules.localDate("2026-09-01", "07:00")!.timeIntervalSince1970 * 1000, text: "Early prayer.")
+        XCTAssertEqual(PrayerWeeks.pages(store.prayerLog + [old], store.weeks).last?.id, "earlier")
+    }
 }

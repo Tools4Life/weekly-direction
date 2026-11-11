@@ -336,7 +336,7 @@ struct SettingsView: View {
             "app": "Weekly Direction", "exportedAt": ISO8601DateFormatter().string(from: Date()),
             "settings": clean(store.settings.raw), "weeks": store.weeks.map { clean(withId($0.id, $0.raw)) },
             "library": store.library.map { clean(withId($0.id, $0.raw)) }, "prayers": store.prayers.map { clean(withId($0.id, $0.raw)) },
-            "prayerLog": store.prayerLog.map { ["id": $0.id, "at": $0.at, "text": $0.text] },
+            "prayerLog": store.prayerLog.map { ["id": $0.id, "at": $0.at, "text": $0.text] }, "prayerSummaries": store.prayerSummaries,
             "draft": store.draft.map(clean) ?? NSNull()
         ]
         guard let json = try? JSONSerialization.data(withJSONObject: data, options: [.prettyPrinted, .sortedKeys]) else { return nil }
